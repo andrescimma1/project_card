@@ -10,7 +10,8 @@ import { DP_SLOT_SIZE, HAND_SIZE } from '../rules/primitives';
 import { resolveBattle } from './battle';
 import { canDigivolve, canPlayDevolve, digivolveOptionOf, loadStats, playerDp } from './digivolve';
 import { activeCard, cardOf, drawCards } from './effects';
-import { bindPartners, partnerCards, partnersFromDeck } from './partner';
+import { bindPartners, PARTNER_IDS, partnerCards, partnersFromDeck } from './partner';
+import { BONUS_BIT, countPartnerEntry, markHand, setFlag } from './bonusFlags';
 import { shuffleZone } from './rng';
 import {
   IllegalActionError,
@@ -69,6 +70,7 @@ function emptyPlayer(id: PlayerId, deck: number[], partners: PartnerSlot[]): Pla
     settled: false,
     partners,
     partnerOf: bindPartners(deck, partners),
+    bonusFlags: 0,
   };
 }
 
@@ -141,6 +143,7 @@ function beginTurnMut(ctx: Ctx): StepResult {
   s.players[s.turn].digivolveOption = null;
   ctx.events.push({ type: 'turnStart', player: s.turn, turnNumber: s.turnNumber });
   prepareHand(ctx, s.turn);
+  for (const pl of s.players) markHand(pl);
   return { state: s, events: ctx.events };
 }
 
@@ -183,6 +186,8 @@ function armorDigivolve(ctx: Ctx, who: PlayerId): void {
   p.hp = armor.hp;
   p.powers = [armor.attacks.circle.power, armor.attacks.triangle.power, armor.attacks.cross.power];
   p.settled = false;
+  setFlag(p, BONUS_BIT.digivolved);
+  countPartnerEntry(p);
   ctx.events.push({ type: 'armorDigivolved', player: who, card: ref, from: slot.id, to: slot.armorId! });
 }
 
@@ -214,6 +219,9 @@ function digivolveInto(ctx: Ctx, who: PlayerId, target: CardRef): void {
     pushTop(p.offline, c);
     gone.push(c);
   }
+  setFlag(p, BONUS_BIT.digivolved);
+  const bottom = p.stack[2];
+  if (count(p.stack) === 3 && bottom !== null && PARTNER_IDS.includes(p.cards[bottom])) setFlag(p, BONUS_BIT.partnerNormalDigivolve);
   ctx.events.push({ type: 'digivolved', player: who, card: target, from });
   if (gone.length) ctx.events.push({ type: 'cardsDiscarded', player: who, cards: gone, from: 'dp' });
 }
@@ -304,6 +312,7 @@ export function applyAction(input: GameState, action: Action): StepResult {
       s.phase = count(p.stack) > 0 ? { name: 'dp' } : { name: 'entrance' };
       break;
     case 'changeHand':
+      setFlag(p, BONUS_BIT.changedHand);
       discardHand(ctx, action.player);
       ctx.events.push({ type: 'handChanged', player: action.player, auto: false });
       prepareHand(ctx, action.player);
@@ -314,6 +323,7 @@ export function applyAction(input: GameState, action: Action): StepResult {
       pushTop(p.stack, action.card);
       loadStats(p, card, card.level);
       ctx.events.push({ type: 'enter', player: action.player, card: action.card, enteredAs: p.enteredAs });
+      if (p.partnerOf[action.card] !== null && p.partnerOf[action.card] !== undefined) countPartnerEntry(p);
       s.phase = armorSlotOf(p, action.card) === null ? { name: 'dp' } : { name: 'armorDigivolve' };
       break;
     }
@@ -382,6 +392,7 @@ export function applyAction(input: GameState, action: Action): StepResult {
       break;
     }
   }
+  for (const pl of ctx.state.players) markHand(pl);
   return { state: ctx.state, events: ctx.events };
 }
 

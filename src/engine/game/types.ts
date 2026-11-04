@@ -64,6 +64,8 @@ export interface PlayerState {
   partners: PartnerSlot[];
   /** Per card instance: the partner slot whose copy it uses, or null (SLUS 0x80046A38). */
   partnerOf: (number | null)[];
+  /** Battle flags read by the EXP bonuses (player +0x110; bits in game/bonusFlags.ts). */
+  bonusFlags: number;
 }
 
 export type Phase =

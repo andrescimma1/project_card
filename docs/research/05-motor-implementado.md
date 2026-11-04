@@ -121,3 +121,24 @@ La interfaz **solo lee** lo que devuelve el motor; nunca decide reglas.
   (`SLUS_013.28` y `P.DRV`); el test lo vuelve a decodificar y lo compara.
 * `progression/packs.ts`: generador de sobres (`SLUS 0x8004635C`). Los grupos coinciden con la simulación
   independiente de la investigación; la regla del grupo raro (límite superior ≠ 0) se leyó en `0x8004667C`.
+
+## Progresión y modo historia (Etapa 6, en curso)
+
+| Módulo | Qué hace | Rutina del juego |
+|---|---|---|
+| `progression/collection.ts` | Colección: 6 copias, marcas nueva / obtenida / completa, números de serie | `SLUS 0x80045B18`, `0x80045E1C`, `0x80045968` |
+| `progression/partnerExp.ts` | EXP acumulada, niveles 1–99, Digi-Part por nivel, +10 cada 5 niveles | `SLUS 0x80049934`, `KAWSEG 0x801F4A24`, `SLUS 0x80049840`, `0x8004994C` |
+| `game/bonusFlags.ts` + `progression/bonuses.ts` | Las marcas de batalla (`+0x110`) que pone el motor y los 32 bonos de EXP | `KAWSEG 0x801FAA54`, tabla `0x801FC300` |
+| `progression/ranks.ts` | Rangos Tamer / Collector / 2P (escalón a escalón, nunca bajan), porcentajes y título final | `SLUS 0x8002CC44`, `SAISEG 0x801E16B0`, `ENDSEG 0x801DE80C` |
+| `progression/save.ts` | Partida nueva y resultado de una batalla contra la CPU (récords, EXP, Prize Pack, rangos) | `OPENSEG 0x801E8280`, `SLUS 0x8003F3C0` |
+| `story/vm.ts` | Máquina virtual de los guiones MSCD | `SLUS 0x80020F54` |
+| `story/cityHost.ts` | Comandos de las ciudades convertidos en peticiones a la interfaz; flags de historia en la partida | `SAISEG 0x801E390C`, `0x801E0B70` / `0x801E0A74` |
+
+* `npm run extract:scripts` copia los guiones de las ciudades de tu disco a `public/scripts/` (ignorado por git:
+  contienen los diálogos del juego). La pestaña **Historia** los ejecuta: partidas en 3 ranuras, mapa con las
+  ciudades que abren los flags, Battle Cafe, torneos, recompensas y batallas con el motor y la IA original.
+* 🟡 Decisiones: quién empieza una batalla de la historia (al azar); la Digi-Part inicial queda poseída pero sin
+  equipar; los menús siempre ofrecen cancelar (−1), que los guiones tratan; la batalla del tutorial (mazo 0) no
+  guarda resultado, como en el juego, pero se juega con tu mazo y no con el guion `BETA.MSD`.
+* Pendiente: editar mazos con la colección y equipar Digi-Parts y huevos (SUBSEG), las tiendas de fusión, el
+  intercambio y la pantalla de estadísticas finales.

@@ -8,8 +8,10 @@ con una interfaz moderna. La única modernización es visual: las reglas salen d
 * Pestaña **Mazos**: constructor con las reglas originales; los mazos guardados se pueden usar al jugar.
 * IA original de la CPU: portada completa desde el código del juego (`src/engine/ai/`, ver
   `docs/research/06-ia-original.md`), con la personalidad de cada mazo rival.
-* Progresión del original investigada (mundo, guiones, sobres, compañero, fusión, rangos, guardado):
-  `docs/research/07-progresion.md`. Todavía sin implementar.
+* Pestaña **Historia**: el modo historia original, con los guiones de las ciudades leídos de tu disco
+  (`npm run extract:scripts`), colección, sobres, EXP y Digi-Parts del compañero, bonos, rangos y 3 partidas
+  guardadas. Investigación en `docs/research/07-progresion.md`. Faltan la edición de mazos con la colección,
+  las tiendas de fusión y el intercambio.
 
 ## Etapa 5 (interfaz moderna)
 
@@ -67,7 +69,16 @@ npm run extract:decks -- "C:/ruta/Digimon - Digital Card Battle (USA)_extracted"
 npm run extract:art -- "C:/ruta/Digimon - Digital Card Battle (USA)_extracted"
 ```
 
-El arte va a `public/card-art/` y no se sube a git.
+```bash
+npm run extract:progression -- "C:/ruta/Digimon - Digital Card Battle (USA)_extracted"
+```
+
+```bash
+npm run extract:scripts -- "C:/ruta/Digimon - Digital Card Battle (USA)_extracted"
+```
+
+El arte va a `public/card-art/` y los guiones de las ciudades a `public/scripts/`; ninguno se sube a git.
+Sin los guiones, la pestaña Historia avisa de que faltan.
 
 Para que los tests también re-decodifiquen el disco y lo comparen byte a byte con el JSON,
 definir `DCB_DISC` con esa misma carpeta.

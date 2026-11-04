@@ -13,7 +13,8 @@
     "extract:cards": "tsx tools/extract-cards.ts",
     "extract:decks": "tsx tools/extract-decks.ts",
     "extract:art": "tsx tools/extract-art.ts",
-    "extract:progression": "tsx tools/extract-progression.ts"
+    "extract:progression": "tsx tools/extract-progression.ts",
+    "extract:scripts": "tsx tools/extract-scripts.ts"
   },
   "dependencies": {
     "motion": "^12.16.0",

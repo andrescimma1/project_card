@@ -8,6 +8,7 @@ import { VALUE_CAP } from '../rules/primitives';
 import { activeCard, applyCrossEffect, cardOf, runProgram, SLOT_CODE, type BattleCtx, type Fighter } from './effects';
 import type { CardRef, GameState, PlayerId, PlayerState, StepResult, SupportSource } from './types';
 import { count, popTop, pushTop } from './zones';
+import { BONUS_BIT, isUltimate, markHp, markSpecialty, setFlag } from './bonusFlags';
 import { ROUNDS_TO_WIN } from '../rules/primitives';
 
 const other = (x: PlayerId): PlayerId => (x === 0 ? 1 : 0);
@@ -129,12 +130,21 @@ function fight(ctx: BattleCtx): void {
 
   function hit(c: BattleCtx, attacker: PlayerId, defender: PlayerId): boolean {
     const damage = c.f[attacker].power[slotOf(attacker)];
+    const before = c.f[defender].hp;
     let eaten = 0;
     if (c.f[attacker].eatUp) {
       eaten = Math.min(damage, c.f[defender].hp);
       c.f[attacker].hp = Math.min(c.f[attacker].hp + eaten, VALUE_CAP);
     }
     c.f[defender].hp = Math.max(c.f[defender].hp - damage, 0);
+    if (!c.sim) {
+      const A = P[attacker];
+      setFlag(A, BONUS_BIT.attackCircle + slotOf(attacker));
+      if (damage > 0 && damage % 1110 === 0) setFlag(A, BONUS_BIT.damageFever);
+      if (damage === before && damage > 0 && A.rounds === ROUNDS_TO_WIN - 1) setFlag(A, BONUS_BIT.justEnough);
+      markHp(P[attacker], c.f[attacker].hp);
+      markHp(P[defender], c.f[defender].hp);
+    }
     c.events.push({ type: 'hit', attacker, defender, attackerCard: activeRef(P[attacker]), defenderCard: activeRef(P[defender]), damage, eaten, hp: hpOf(c) });
     return c.f[defender].hp > 0;
   }
@@ -151,14 +161,19 @@ function endGame(state: GameState, winner: PlayerId, reason: 'rounds' | 'noDigim
   ctx.events.push({ type: 'gameOver', winner, reason });
 }
 
-/** KO handling (0x801ECF0C + state 36). */
-function handleKo(ctx: BattleCtx, loser: PlayerId): void {
+/** KO handling (0x801ECF0C + state 36). `gambled` = which players supported this battle with a Gamble. */
+function handleKo(ctx: BattleCtx, loser: PlayerId, gambled: [boolean, boolean]): void {
   const state = ctx.state;
   const winner = other(loser);
   const L = state.players[loser];
   const W = state.players[winner];
   const revive = ctx.f[loser].revive;
   const koCard = activeRef(L);
+  const winnerCard = activeRef(W);
+  if (winnerCard >= 0) {
+    if (isUltimate(W.cards[winnerCard])) setFlag(W, BONUS_BIT.ultimateKo);
+    if (W.partnerOf[winnerCard] !== null && W.partnerOf[winnerCard] !== undefined) setFlag(W, BONUS_BIT.partnerRound);
+  }
   if (revive !== null && W.rounds !== ROUNDS_TO_WIN - 1) {
     L.hp = revive;
     ctx.events.push({ type: 'ko', player: loser, card: koCard, revived: true });
@@ -175,6 +190,12 @@ function handleKo(ctx: BattleCtx, loser: PlayerId): void {
   }
   W.rounds += 1;
   ctx.events.push({ type: 'roundWon', player: winner, rounds: W.rounds });
+  if (W.rounds === 2 && L.rounds === 0) {
+    setFlag(W, BONUS_BIT.upTwoZero);
+    setFlag(L, BONUS_BIT.downZeroTwo);
+  }
+  if (W.rounds >= ROUNDS_TO_WIN && gambled[winner]) setFlag(W, BONUS_BIT.finalRoundOwnGamble);
+  if (W.rounds >= ROUNDS_TO_WIN && gambled[winner]) setFlag(L, BONUS_BIT.finalRoundRivalGamble);
   if (W.rounds >= ROUNDS_TO_WIN) return endGame(state, winner, 'rounds', ctx);
   if (count(L.stack) === 0 && !hasDigimonInHand(L) && count(L.online) === 0) endGame(state, winner, 'noDigimon', ctx);
 }
@@ -201,6 +222,12 @@ export function resolveBattle(input: GameState): StepResult {
   const state = structuredClone(input);
   const ctx: BattleCtx = { state, f: [freshFighter(state.players[0]), freshFighter(state.players[1])], events: [], temp: 0 };
   ctx.events.push({ type: 'reveal', attacks: [state.players[0].attack ?? 'circle', state.players[1].attack ?? 'circle'], hp: hpOf(ctx) });
+  const gambled = state.players.map((p) => p.support?.kind === 'gamble') as [boolean, boolean];
+  for (const p of state.players) {
+    if (p.support && p.support.kind !== 'none') setFlag(p, BONUS_BIT.supportUsed);
+    if (p.support?.kind !== 'gamble') setFlag(p, BONUS_BIT.nonGambleSupport);
+    if (count(p.stack) > 0) markSpecialty(p);
+  }
 
   resolveEffects(ctx);
   fight(ctx);
@@ -220,7 +247,7 @@ export function resolveBattle(input: GameState): StepResult {
 
   for (const w of [state.turn, other(state.turn)]) {
     if (state.winner !== null) break;
-    if (state.players[w].hp === 0 && count(state.players[w].stack) > 0) handleKo(ctx, w);
+    if (state.players[w].hp === 0 && count(state.players[w].stack) > 0) handleKo(ctx, w, gambled);
   }
   if (state.winner === null) state.phase = { name: 'turnStart' };
   return { state, events: ctx.events };
