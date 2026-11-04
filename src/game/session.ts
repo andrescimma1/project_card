@@ -5,7 +5,7 @@
 import { createStore } from 'zustand/vanilla';
 import { chooseAiAction, createAi, type AiCtx, type AiProfile } from '../engine/ai';
 import { applyAction, createGame, legalActions } from '../engine/game/turn';
-import type { Action, GameEvent, GameState, PlayerId } from '../engine/game/types';
+import type { Action, GameEvent, GameState, PartnerSlot, PlayerId } from '../engine/game/types';
 import { buildScenes, type Scene } from './scenes';
 
 export const HUMAN: PlayerId = 0;
@@ -26,6 +26,8 @@ export interface StartOptions {
   cpuAi?: AiProfile;
   /** Digi-Egg of the CPU partner (DECK2.DEK +0x6D, `OriginalDeck.partnerEgg`). */
   cpuEgg?: number;
+  /** Partner slots of each player (story mode); by default they come from each deck. */
+  partners?: [PartnerSlot[], PartnerSlot[]];
 }
 
 export interface SessionState {
@@ -93,7 +95,7 @@ export function createSession() {
       start: (opts) => {
         nextId = 0;
         set({ log: [], battleReport: null, scenes: [], error: null, seed: opts.seed, cpu: createAi(opts.cpuAi ?? [0, 0, 0, 0], opts.seed * 7919) });
-        const r = createGame({ decks: [opts.human, opts.cpu], seed: opts.seed, firstPlayer: opts.humanFirst ? HUMAN : CPU, eggs: [0, opts.cpuEgg ?? 0] });
+        const r = createGame({ decks: [opts.human, opts.cpu], seed: opts.seed, firstPlayer: opts.humanFirst ? HUMAN : CPU, eggs: [0, opts.cpuEgg ?? 0], partners: opts.partners });
         advance(r.state, r.events);
       },
       act: (action) => {

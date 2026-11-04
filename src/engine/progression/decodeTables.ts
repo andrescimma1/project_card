@@ -63,6 +63,12 @@ export interface ProgressionTables {
   supportTemplates: { conditions: Condition[]; actions: Action[] };
   /** EXP bonuses evaluated after a battle (KAWSEG 0x801FC300). */
   bonuses: BonusDef[];
+  /** Rank titles (SLUS 0x8006E058 / 0x8006E078 / 0x8006E098) and collector category sizes (0x8006E0B8). */
+  ranks: { tamer: string[]; collector: string[]; battle2p: string[]; categorySizes: number[] };
+  /** The 36 "You're …!" titles (ENDSEG 0x801E0BB4). */
+  finalTitles: string[];
+  /** City names (OPENSEG 0x801F0684) and the 4 arenas of each city (0x801F06D4; '' = none). */
+  world: { cities: string[]; arenas: string[][]; keywords: string[] };
 }
 
 const SLUS_BASE = 0x80010000;
@@ -103,17 +109,20 @@ class Image {
   }
 }
 
-const text = (raw: string) => renderGameText(raw.replace(/\n/g, ' ')).replace(/\s+/g, ' ').trim();
+/** Game text with icons rendered; colour codes (*cN) dropped. */
+const text = (raw: string) => renderGameText(raw.replace(/\n/g, ' ').replace(/\*c\d/g, '')).replace(/\s+/g, ' ').trim();
 
 export function decodeProgressionTables(
   slusFile: Uint8Array,
-  overlays: { KAWSEG: Uint8Array; EVOSEG: Uint8Array; OPENSEG: Uint8Array },
+  overlays: { KAWSEG: Uint8Array; EVOSEG: Uint8Array; OPENSEG: Uint8Array; ENDSEG: Uint8Array; SAISEG: Uint8Array },
 ): ProgressionTables {
   const slus = new Image(slusFile, (a) => a - SLUS_BASE + SLUS_FILE_OFFSET);
   const ovl = (b: Uint8Array) => new Image(b, (a) => a - OVERLAY_BASE);
   const kaw = ovl(overlays.KAWSEG);
   const evo = ovl(overlays.EVOSEG);
   const open = ovl(overlays.OPENSEG);
+  const end = ovl(overlays.ENDSEG);
+  const sai = ovl(overlays.SAISEG);
 
   const packs = Array.from({ length: 16 }, (_, i) => ({
     index: i,
@@ -169,5 +178,28 @@ export function decodeProgressionTables(
     name: text(kaw.cstr(kaw.u32(0x801fc304 + 8 * i))),
   }));
 
-  return { packs, fusion: { mix, ranges, specials, partnerOrder, partnerFusion }, partners: { initialPart, starterPairs }, digiParts, supportTemplates, bonuses };
+  const titles = (base: number) => Array.from({ length: 8 }, (_, i) => slus.cstr(slus.u32(base + 4 * i)));
+  const ranks = {
+    tamer: titles(0x8006e058),
+    collector: titles(0x8006e078),
+    battle2p: titles(0x8006e098),
+    categorySizes: Array.from({ length: 6 }, (_, i) => slus.u8(0x8006e0b8 + i)),
+  };
+  const finalTitles = Array.from({ length: 36 }, (_, i) => text(end.cstr(end.u32(0x801e0bb4 + 4 * i))));
+
+  return {
+    packs,
+    fusion: { mix, ranges, specials, partnerOrder, partnerFusion },
+    partners: { initialPart, starterPairs },
+    digiParts,
+    supportTemplates,
+    bonuses,
+    ranks,
+    finalTitles,
+    world: {
+      cities: Array.from({ length: 12 }, (_, i) => open.cstr(open.u32(0x801f0684 + 4 * i))),
+      arenas: Array.from({ length: 12 }, (_, c) => Array.from({ length: 4 }, (_, k) => open.cstr(open.u32(0x801f06d4 + 4 * (4 * c + k))))),
+      keywords: Array.from({ length: 10 }, (_, i) => sai.cstr(sai.u32(0x801f36e0 + 4 * i))),
+    },
+  };
 }

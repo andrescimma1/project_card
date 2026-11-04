@@ -260,7 +260,8 @@ function Field({ game, player, onInspect }: { game: GameState; player: PlayerId;
   );
 }
 
-function BattleBoard({ game }: { game: GameState }) {
+/** The match board. `endScreen` replaces the default end dialog (story mode); `onLeave` the abandon button. */
+export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: GameState; endScreen?: (game: GameState) => React.ReactNode; onLeave?: () => void; hideLeave?: boolean }) {
   const [inspect, setInspect] = useState<Card | null>(null);
   const error = useSession((s) => s.error);
   const report = useSession((s) => s.battleReport);
@@ -332,9 +333,11 @@ function BattleBoard({ game }: { game: GameState }) {
             </section>
           )}
           <Log game={game} />
-          <button type="button" onClick={() => sessionStore.getState().reset()} className="self-start text-sm text-haze underline underline-offset-4 hover:text-ink">
-            Abandonar partida
-          </button>
+          {!hideLeave && (
+            <button type="button" onClick={() => (onLeave ? onLeave() : sessionStore.getState().reset())} className="self-start text-sm text-haze underline underline-offset-4 hover:text-ink">
+              Abandonar partida
+            </button>
+          )}
         </aside>
 
         {inspect && (
@@ -343,7 +346,7 @@ function BattleBoard({ game }: { game: GameState }) {
           </div>
         )}
         <CinematicHost game={game} />
-        {game.phase.name === 'gameOver' && !cinematic && <GameOver game={game} />}
+        {game.phase.name === 'gameOver' && !cinematic && (endScreen ? endScreen(game) : <GameOver game={game} />)}
       </div>
     </LayoutGroup>
   );

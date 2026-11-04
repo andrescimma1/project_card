@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { CrossEffect, Level, Specialty } from './engine/cards/types';
 
-export type View = 'play' | 'decks' | 'cards' | 'rules';
+export type View = 'story' | 'play' | 'decks' | 'cards' | 'rules';
 export type KindFilter = 'all' | 'digimon' | 'option' | 'digivolve';
 
 interface BrowserState {

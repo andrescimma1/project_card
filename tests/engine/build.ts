@@ -93,6 +93,7 @@ function buildPlayer(id: PlayerId, spec: PlayerSpec): { player: PlayerState; ref
     settled: spec.settled ?? false,
     partners: [],
     partnerOf: ids.map(() => null),
+    bonusFlags: 0,
   };
   return { player, refs };
 }

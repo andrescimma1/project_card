@@ -11,3 +11,6 @@ dist
 
 # card art extracted from the user disc (npm run extract:art) — not distributed
 public/card-art/
+
+# story scripts copied from the user disc (npm run extract:scripts) — contain the game dialogue, not distributed
+public/scripts/

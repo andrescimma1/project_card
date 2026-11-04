@@ -74,6 +74,27 @@ describe('partners and Digi-Parts', () => {
     expect(T.supportTemplates.conditions[0].operands[0].ref?.id).toBe(2);
   });
 
+  it('rank titles (SLUS 0x8006E058/78/98), collector category sizes (0x8006E0B8) and the 36 final titles (ENDSEG)', () => {
+    expect(T.ranks.tamer[0]).toBe('Beginner Tamer');
+    expect(T.ranks.collector[7]).toBe('Legendary Collector');
+    expect(T.ranks.battle2p[7]).toBe('Battle Emperor');
+    expect(T.ranks.categorySizes).toEqual([34, 35, 34, 36, 33, 110]);
+    expect(T.finalTitles).toHaveLength(36);
+    expect([T.finalTitles[0], T.finalTitles[26], T.finalTitles[35]]).toEqual(['Emperor Cassiopeia', 'Red Knight', 'Jamming King']);
+  });
+
+  it('city names (OPENSEG 0x801F0684) and 4 arena names per city (0x801F06D4)', () => {
+    expect(T.world.cities).toHaveLength(12);
+    expect([T.world.cities[0], T.world.cities[11]]).toEqual(['Beginner City', 'Infinity Tower']);
+    expect(T.world.arenas[2]).toEqual(['Jungle Arena', 'Extra Arena', 'Beet Arena', '']);
+    expect(T.world.arenas[5][3]).toBe('Haunted Arena');
+  });
+
+  it('the 10 keywords Wizardmon accepts (SAISEG 0x801F36E0), in index order', () => {
+    expect(T.world.keywords).toHaveLength(10);
+    expect([T.world.keywords[0], T.world.keywords[9]]).toEqual(['OMNIMON-1', 'JIJIMON']);
+  });
+
   it('32 EXP bonuses; Lucky Name is in the table', () => {
     expect(T.bonuses).toHaveLength(32);
     expect(T.bonuses[30]).toMatchObject({ id: 30, exp: 1, name: 'Lucky Name' });
@@ -89,6 +110,8 @@ describe.skipIf(!disc || !existsSync(join(disc ?? '', 'P.DRV')))('re-decode from
       KAWSEG: readDrvFile(p, 'KAWSEG.BIN'),
       EVOSEG: readDrvFile(p, 'EVOSEG.BIN'),
       OPENSEG: readDrvFile(p, 'OPENSEG.BIN'),
+      ENDSEG: readDrvFile(p, 'ENDSEG.BIN'),
+      SAISEG: readDrvFile(p, 'SAISEG.BIN'),
     });
     expect(tables).toEqual(T);
   });

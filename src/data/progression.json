@@ -1,6 +1,6 @@
 {
  "game": "Digimon Digital Card Battle (USA) SLUS-01328",
- "extractedFrom": "SLUS_013.28 + P.DRV (KAWSEG, EVOSEG, OPENSEG)",
+ "extractedFrom": "SLUS_013.28 + P.DRV (KAWSEG, EVOSEG, OPENSEG, ENDSEG, SAISEG)",
  "generatedBy": "tools/extract-progression.ts",
  "packs": [
   {
@@ -5269,5 +5269,185 @@
    "exp": 10,
    "name": "Super Bonus"
   }
- ]
+ ],
+ "ranks": {
+  "tamer": [
+   "Beginner Tamer",
+   "Regular Tamer",
+   "Mid Level Tamer",
+   "High Level Tamer",
+   "Expert Tamer",
+   "Master Tamer",
+   "Genius Tamer",
+   "Invincible Tamer"
+  ],
+  "collector": [
+   "General Public",
+   "Hobby Collector",
+   "Serious Collector",
+   "Top Level Collector",
+   "Famous Collector",
+   "Great Collector",
+   "Perfect Collector",
+   "Legendary Collector"
+  ],
+  "battle2p": [
+   "Battle Beginner",
+   "Battle Expert",
+   "Battle Specialist",
+   "Battle Champion",
+   "Battle Master",
+   "Battle Lord",
+   "Battle King",
+   "Battle Emperor"
+  ],
+  "categorySizes": [
+   34,
+   35,
+   34,
+   36,
+   33,
+   110
+  ]
+ },
+ "finalTitles": [
+  "Emperor Cassiopeia",
+  "King of 5 Worlds",
+  "Guardian of 4 Stars",
+  "Illusive Sky Master",
+  "Tricolor Master",
+  "Sorcerer of Swords",
+  "Fire Ocean Master",
+  "Lonely Red Wolf",
+  "Time Traveler",
+  "Freed Fire Demon",
+  "Mystic Magician",
+  "Wild Black Lion",
+  "Paradise Machine",
+  "Cheerful Pirate",
+  "Survivor",
+  "Dark Clown",
+  "3-headed Dragon",
+  "King of the Sea",
+  "Clover Prince",
+  "Dark Orion",
+  "Mysterious Alien",
+  "Bomber King",
+  "Legendary Tsunami",
+  "Wild Hunter",
+  "Black Assasin",
+  "Golden Invincible",
+  "Red Knight",
+  "Blue Ice Lord",
+  "Emerald Meteor",
+  "Black Lightning",
+  "Pyramid Mirage",
+  "Scarlet Magician",
+  "Blue Guardian",
+  "Prophet of the Wild",
+  "Shadowy Doom",
+  "Jamming King"
+ ],
+ "world": {
+  "cities": [
+   "Beginner City",
+   "Flame City",
+   "Jungle City",
+   "Igloo City",
+   "Junk City",
+   "Dark City",
+   "Desert Island",
+   "Pyramid City",
+   "Sky City",
+   "Steep Road",
+   "Wiseman Tower",
+   "Infinity Tower"
+  ],
+  "arenas": [
+   [
+    "Beginner Arena",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Flame Arena",
+    "Extra Arena",
+    "",
+    ""
+   ],
+   [
+    "Jungle Arena",
+    "Extra Arena",
+    "Beet Arena",
+    ""
+   ],
+   [
+    "Igloo Arena",
+    "Extra Arena",
+    "",
+    ""
+   ],
+   [
+    "Junk Arena",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Dark Arena",
+    "Extra Arena",
+    "",
+    "Haunted Arena"
+   ],
+   [
+    "Desert Arena",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Pyramid Arena",
+    "Extra Arena",
+    "",
+    ""
+   ],
+   [
+    "Sky Arena",
+    "Extra Arena",
+    "",
+    ""
+   ],
+   [
+    "Steep Arena",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Wiseman Arena",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Infinity Arena",
+    "",
+    "",
+    ""
+   ]
+  ],
+  "keywords": [
+   "OMNIMON-1",
+   "WARGREYMON",
+   "OMNIMON-2",
+   "MTLGARURUMON",
+   "A-VEEDRAMON",
+   "H-KBUTERIMON",
+   "VENOMMYOTIS",
+   "PIEDMON",
+   "MTLETEMON",
+   "JIJIMON"
+  ]
+ }
 }
