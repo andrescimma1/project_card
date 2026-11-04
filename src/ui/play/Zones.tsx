@@ -6,7 +6,8 @@ import { cardsIn, count, top } from '../../engine/game/zones';
 import { DP_CAP } from '../../engine/rules/primitives';
 import { frameColor } from '../theme';
 import { CardArt, CardBack } from './CardFace';
-import { cardAt } from './util';
+import { useSession } from '../../game/useSession';
+import { cardAt, seatNames } from './util';
 
 /** DP as the game computes it: sum of +P of the DP Slot cards, capped at 90. */
 export function DpGauge({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
@@ -74,6 +75,8 @@ export function RoundCrests({ rounds, label }: { rounds: number; label: string }
 }
 
 export function Piles({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
+  const twoPlayer = useSession((s) => s.twoPlayer);
+  const names = seatNames(twoPlayer, useSession((s) => s.names));
   const p = game.players[player];
   const t = top(p.offline);
   const topCard = t === null ? null : cardAt(game, player, t);
@@ -91,7 +94,7 @@ export function Piles({ game, player, onInspect }: { game: GameState; player: Pl
         )}
         <span className="text-[10px] text-haze">Offline Pile</span>
       </div>
-      <RoundCrests rounds={p.rounds} label={player === 0 ? 'Tus rondas' : 'Rondas de la CPU'} />
+      <RoundCrests rounds={p.rounds} label={twoPlayer ? `Rondas de ${names[player]}` : player === 0 ? 'Tus rondas' : 'Rondas de la CPU'} />
     </div>
   );
 }

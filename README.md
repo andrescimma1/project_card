@@ -10,8 +10,12 @@ con una interfaz moderna. La única modernización es visual: las reglas salen d
   `docs/research/06-ia-original.md`), con la personalidad de cada mazo rival.
 * Pestaña **Historia**: el modo historia original, con los guiones de las ciudades leídos de tu disco
   (`npm run extract:scripts`), colección, sobres, EXP y Digi-Parts del compañero, bonos, rangos y 3 partidas
-  guardadas. Investigación en `docs/research/07-progresion.md`. Faltan la edición de mazos con la colección,
-  las tiendas de fusión y el intercambio.
+  guardadas. Investigación en `docs/research/07-progresion.md`. Desde el mapa (o desde el menú de la ciudad) se
+  editan los 3 mazos con las cartas de tu colección y se equipan Digi-Parts y Digi-Eggs; las tiendas de Andromon
+  fusionan cartas (y hacen Partner Fusion) con la fórmula del juego; y dos partidas pueden **intercambiar** cartas
+  o jugar una **batalla 2P** desde la pantalla de partidas, como con dos tarjetas de memoria. El editor tiene el
+  Auto Deck y el mazo base del original, la partida empieza con tu nombre y las estadísticas completas (ENDSEG)
+  se ven al terminar la historia.
 
 ## Etapa 5 (interfaz moderna)
 

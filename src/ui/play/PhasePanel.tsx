@@ -2,9 +2,8 @@ import { cards, CROSS_EFFECT_LABEL } from '../../engine/cards/db';
 import type { DigimonCard } from '../../engine/cards/types';
 import { playerDp } from '../../engine/game/digivolve';
 import { legalActions } from '../../engine/game/turn';
-import type { Action, GameState } from '../../engine/game/types';
+import type { Action, GameState, PlayerId } from '../../engine/game/types';
 import { count } from '../../engine/game/zones';
-import { HUMAN, CPU } from '../../game/session';
 import { SLOT_GLYPH } from '../theme';
 import { activeRef, cardAt } from './util';
 import { useEffect } from 'react';
@@ -44,20 +43,35 @@ function Button({ children, onClick, primary }: { children: React.ReactNode; onC
   );
 }
 
-export function PhasePanel({ game, act }: { game: GameState; act: (a: Action) => void }) {
-  const actions = legalActions(game, HUMAN);
+export interface Seats {
+  /** The player the board is asking now (always player 1 against the CPU). */
+  me: PlayerId;
+  names: [string, string];
+  twoPlayer: boolean;
+}
+
+export function PhasePanel({ game, act, seats }: { game: GameState; act: (a: Action) => void; seats: Seats }) {
+  const { me: who, names, twoPlayer } = seats;
+  const them: PlayerId = who === 0 ? 1 : 0;
+  const actions = legalActions(game, who);
   const ph = game.phase;
   const find = (t: Action['type']) => actions.find((a) => a.type === t);
   const waitingCpu = actions.length === 0 && ph.name !== 'gameOver';
-  const me = game.players[HUMAN];
-  const cpu = game.players[CPU];
+  const me = game.players[who];
+  const rival = game.players[them];
+  const rivalName = twoPlayer ? names[them] : 'La CPU';
 
   return (
     <section aria-live="polite" className="flex flex-col gap-3 rounded-2xl border border-grid bg-panel/80 p-4">
+      {twoPlayer && ph.name !== 'gameOver' && (
+        <p className="font-display text-sm font-semibold" style={{ color: who === 0 ? 'var(--color-ice)' : 'var(--color-fire)' }}>
+          Le toca a {names[who]}
+        </p>
+      )}
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-lg font-semibold">{waitingCpu ? 'Turno de la CPU' : (PHASE_TITLE[ph.name] ?? ph.name)}</h2>
         <span className="text-xs text-haze">
-          Turno {game.turnNumber}, {game.turn === HUMAN ? 'atacas primero' : 'la CPU ataca primero'}
+          Turno {game.turnNumber}, {twoPlayer ? `${names[game.turn]} ataca primero` : game.turn === who ? 'atacas primero' : 'la CPU ataca primero'}
         </span>
       </div>
       {!waitingCpu && HINT[ph.name] && <p className="text-sm text-haze">{HINT[ph.name]}</p>}
@@ -70,7 +84,7 @@ export function PhasePanel({ game, act }: { game: GameState; act: (a: Action) =>
           {find('changeHand') && <Button onClick={() => act(find('changeHand')!)}>Cambiar toda la mano</Button>}
         </div>
       )}
-      {ph.name === 'armorDigivolve' && !waitingCpu && <ArmorChoice game={game} act={act} find={find} />}
+      {ph.name === 'armorDigivolve' && !waitingCpu && <ArmorChoice game={game} who={who} act={act} find={find} />}
       {ph.name === 'dp' && !waitingCpu && (
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm">DP actuales: <strong className="font-display">{playerDp(me)}</strong></span>
@@ -89,23 +103,23 @@ export function PhasePanel({ game, act }: { game: GameState; act: (a: Action) =>
           </Button>
         </div>
       )}
-      {ph.name === 'attack' && !waitingCpu && <AttackPicker game={game} actions={actions} act={act} />}
-      {ph.name === 'support' && ph.chooser === HUMAN && (
+      {ph.name === 'attack' && !waitingCpu && <AttackPicker game={game} who={who} rivalName={rivalName} actions={actions} act={act} />}
+      {ph.name === 'support' && ph.chooser === who && (
         <>
-          {cpu.support && (
+          {rival.support && (
             <p className="rounded-lg bg-deep px-3 py-2 text-sm">
-              La CPU eligió primero:{' '}
+              {rivalName} eligió primero:{' '}
               <strong>
-                {cpu.support.kind === 'none' ? 'sin soporte' : cpu.support.kind === 'gamble' ? 'la carta de arriba de su mazo (boca abajo)' : cardAt(game, CPU, cpu.support.card).name}
+                {rival.support.kind === 'none' ? 'sin soporte' : rival.support.kind === 'gamble' ? 'la carta de arriba de su mazo (boca abajo)' : cardAt(game, them, rival.support.card).name}
               </strong>
               .
             </p>
           )}
           <div className="flex flex-wrap gap-2">
             {actions.some((a) => a.type === 'chooseSupport' && a.choice.from === 'gamble') && (
-              <Button onClick={() => act({ type: 'chooseSupport', player: HUMAN, choice: { from: 'gamble' } })}>Apostar: carta del mazo ({count(me.online)})</Button>
+              <Button onClick={() => act({ type: 'chooseSupport', player: who, choice: { from: 'gamble' } })}>Apostar: carta del mazo ({count(me.online)})</Button>
             )}
-            <Button onClick={() => act({ type: 'chooseSupport', player: HUMAN, choice: { from: 'none' } })}>Sin soporte</Button>
+            <Button onClick={() => act({ type: 'chooseSupport', player: who, choice: { from: 'none' } })}>Sin soporte</Button>
           </div>
         </>
       )}
@@ -114,12 +128,12 @@ export function PhasePanel({ game, act }: { game: GameState; act: (a: Action) =>
   );
 }
 
-function ArmorChoice({ game, act, find }: { game: GameState; act: (a: Action) => void; find: (t: Action['type']) => Action | undefined }) {
-  const ref = activeRef(game, HUMAN);
+function ArmorChoice({ game, who, act, find }: { game: GameState; who: PlayerId; act: (a: Action) => void; find: (t: Action['type']) => Action | undefined }) {
+  const ref = activeRef(game, who);
   if (ref === null) return null;
-  const me = game.players[HUMAN];
+  const me = game.players[who];
   const slot = me.partners[me.partnerOf[ref] ?? -1];
-  const partner = cardAt(game, HUMAN, ref);
+  const partner = cardAt(game, who, ref);
   const armor = slot?.armorId != null ? cards[slot.armorId] : null;
   return (
     <div className="flex flex-wrap gap-2">
@@ -131,12 +145,10 @@ function ArmorChoice({ game, act, find }: { game: GameState; act: (a: Action) =>
   );
 }
 
-function AttackPicker({ game, actions, act }: { game: GameState; actions: Action[]; act: (a: Action) => void }) {
-  const me = game.players[HUMAN];
-  const ref = activeRef(game, HUMAN);
-  if (ref === null) return null;
-  const card = cardAt(game, HUMAN, ref) as DigimonCard;
-  const cpuChose = game.players[CPU].attack !== null;
+function AttackPicker({ game, who, rivalName, actions, act }: { game: GameState; who: PlayerId; rivalName: string; actions: Action[]; act: (a: Action) => void }) {
+  const me = game.players[who];
+  const ref = activeRef(game, who);
+  const rivalChose = game.players[who === 0 ? 1 : 0].attack !== null;
   const cinematic = useSession((s) => s.scenes.length > 0);
   useEffect(() => {
     if (cinematic) return;
@@ -149,6 +161,8 @@ function AttackPicker({ game, actions, act }: { game: GameState; actions: Action
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [actions, act, cinematic]);
+  if (ref === null) return null;
+  const card = cardAt(game, who, ref) as DigimonCard;
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-3 gap-2">
@@ -171,7 +185,7 @@ function AttackPicker({ game, actions, act }: { game: GameState; actions: Action
           );
         })}
       </div>
-      <p className="text-xs text-haze">{cpuChose ? 'La CPU ya eligió su ataque (oculto hasta después de los soportes).' : 'La CPU todavía no eligió.'}</p>
+      <p className="text-xs text-haze">{rivalChose ? `${rivalName} ya eligió su ataque (oculto hasta después de los soportes).` : `${rivalName} todavía no eligió.`}</p>
     </div>
   );
 }

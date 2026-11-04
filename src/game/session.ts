@@ -1,5 +1,5 @@
 /**
- * Match session: human (player 0) vs the original CPU AI (player 1).
+ * Match session: human (player 0) vs the original CPU AI (player 1), or two people ("2 Player Battle").
  * Framework-free Zustand store; the React layer only subscribes to it.
  */
 import { createStore } from 'zustand/vanilla';
@@ -28,6 +28,18 @@ export interface StartOptions {
   cpuEgg?: number;
   /** Partner slots of each player (story mode); by default they come from each deck. */
   partners?: [PartnerSlot[], PartnerSlot[]];
+  /** Two people play: player 2 is not the CPU. */
+  twoPlayer?: boolean;
+  /** Player names shown by the board (2P). */
+  names?: [string, string];
+}
+
+/** Who the board asks now: vs the CPU always player 1; in 2P player 1 while it has to act, then player 2. */
+export function controller(game: GameState, twoPlayer: boolean): PlayerId {
+  if (!twoPlayer) return HUMAN;
+  const first = legalActions(game, HUMAN).length > 0 && !(game.phase.name === 'attack' && game.players[HUMAN].attack !== null);
+  if (first) return HUMAN;
+  return legalActions(game, CPU).length > 0 ? CPU : HUMAN;
 }
 
 export interface SessionState {
@@ -41,8 +53,10 @@ export interface SessionState {
   sceneSeq: number;
   error: string | null;
   seed: number;
-  /** The CPU player: personality, rand() and plan memory of the original AI. */
+  /** The CPU player: personality, rand() and plan memory of the original AI (null in 2P). */
   cpu: AiCtx | null;
+  twoPlayer: boolean;
+  names: [string, string] | null;
   start: (opts: StartOptions) => void;
   act: (action: Action) => void;
   dismissReport: () => void;
@@ -67,8 +81,8 @@ export function createSession() {
       let g = game;
       const all = [...events];
       let guard = 0;
-      const ai = get().cpu!;
-      while (cpuShouldAct(g) && guard++ < 500) {
+      const ai = get().cpu;
+      while (ai && cpuShouldAct(g) && guard++ < 500) {
         const r = applyAction(g, chooseAiAction(g, CPU, ai));
         g = r.state;
         all.push(...r.events);
@@ -92,9 +106,12 @@ export function createSession() {
       error: null,
       seed: 1,
       cpu: null,
+      twoPlayer: false,
+      names: null,
       start: (opts) => {
         nextId = 0;
-        set({ log: [], battleReport: null, scenes: [], error: null, seed: opts.seed, cpu: createAi(opts.cpuAi ?? [0, 0, 0, 0], opts.seed * 7919) });
+        const cpu = opts.twoPlayer ? null : createAi(opts.cpuAi ?? [0, 0, 0, 0], opts.seed * 7919);
+        set({ log: [], battleReport: null, scenes: [], error: null, seed: opts.seed, cpu, twoPlayer: !!opts.twoPlayer, names: opts.names ?? null });
         const r = createGame({ decks: [opts.human, opts.cpu], seed: opts.seed, firstPlayer: opts.humanFirst ? HUMAN : CPU, eggs: [0, opts.cpuEgg ?? 0], partners: opts.partners });
         advance(r.state, r.events);
       },
@@ -110,7 +127,7 @@ export function createSession() {
       },
       dismissReport: () => set({ battleReport: null }),
       popScene: () => set({ scenes: get().scenes.slice(1), sceneSeq: get().sceneSeq + 1 }),
-      reset: () => set({ game: null, log: [], battleReport: null, scenes: [], error: null, cpu: null }),
+      reset: () => set({ game: null, log: [], battleReport: null, scenes: [], error: null, cpu: null, twoPlayer: false, names: null }),
     };
   });
 }

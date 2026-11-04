@@ -140,5 +140,6 @@ La interfaz **solo lee** lo que devuelve el motor; nunca decide reglas.
 * 🟡 Decisiones: quién empieza una batalla de la historia (al azar); la Digi-Part inicial queda poseída pero sin
   equipar; los menús siempre ofrecen cancelar (−1), que los guiones tratan; la batalla del tutorial (mazo 0) no
   guarda resultado, como en el juego, pero se juega con tu mazo y no con el guion `BETA.MSD`.
-* Pendiente: editar mazos con la colección y equipar Digi-Parts y huevos (SUBSEG), las tiendas de fusión, el
-  intercambio y la pantalla de estadísticas finales.
+* También: mazos con la colección, Auto Deck y mazo base, Digi-Parts y huevos (SUBSEG), las tiendas de fusión
+  (EVOSEG), el intercambio, la batalla 2P (OPENSEG) y las estadísticas completas (ENDSEG). Detalle en
+  [`07-progresion.md`](07-progresion.md) §12.1 y [`progresion/05`](progresion/05-estadisticas-autodeck-2p.md).

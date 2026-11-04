@@ -6,7 +6,7 @@ const ev = {
   turn: (player: 0 | 1): GameEvent => ({ type: 'turnStart', player, turnNumber: 2 }),
   digi: (player: 0 | 1): GameEvent => ({ type: 'digivolved', player, card: 5, from: 1 }),
   reveal: (): GameEvent => ({ type: 'reveal', attacks: ['circle', 'cross'], hp: [500, 600] }),
-  hit: (): GameEvent => ({ type: 'hit', attacker: 0, defender: 1, attackerCard: 0, defenderCard: 0, damage: 300, eaten: 0, hp: [500, 300] }),
+  hit: (): GameEvent => ({ type: 'hit', attacker: 0, defender: 1, attackerCard: 0, defenderCard: 0, damage: 300, eaten: 0, hp: [500, 300], slot: 'circle' }),
   round: (): GameEvent => ({ type: 'roundWon', player: 0, rounds: 1 }),
 };
 

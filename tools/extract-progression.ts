@@ -21,11 +21,12 @@ const tables = decodeProgressionTables(new Uint8Array(readFileSync(join(dir, 'SL
   OPENSEG: readDrvFile(p, 'OPENSEG.BIN'),
   ENDSEG: readDrvFile(p, 'ENDSEG.BIN'),
   SAISEG: readDrvFile(p, 'SAISEG.BIN'),
+  SUBSEG: readDrvFile(p, 'SUBSEG.BIN'),
 });
 const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'progression.json');
 const doc = {
   game: 'Digimon Digital Card Battle (USA) SLUS-01328',
-  extractedFrom: 'SLUS_013.28 + P.DRV (KAWSEG, EVOSEG, OPENSEG, ENDSEG, SAISEG)',
+  extractedFrom: 'SLUS_013.28 + P.DRV (KAWSEG, EVOSEG, OPENSEG, ENDSEG, SAISEG, SUBSEG)',
   generatedBy: 'tools/extract-progression.ts',
   ...tables,
 };

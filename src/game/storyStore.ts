@@ -9,6 +9,12 @@ import { validateDeck } from '../engine/game/turn';
 import type { GameEvent, GameState } from '../engine/game/types';
 import { psxRand } from '../engine/ai/rand';
 import { applyComResult, newGame as createSave, type ComResult, type SaveData } from '../engine/progression/save';
+import { ARMOR_IDS, availableCopies, chooseEgg, equipPart, unequipPart } from '../engine/progression/storyDecks';
+import { fuseCards, partnerFusion, visitShop } from '../engine/progression/fusion';
+import { trade, tradeBlocked } from '../engine/progression/trade';
+import { apply2pResult } from '../engine/progression/twoPlayer';
+import { markTutorial, refreshBaseDecks } from '../engine/progression/records';
+import { autoDeck, type AutoDeckOptions } from '../engine/progression/autoDeck';
 import { advance, enterCity as hostEnter, type CityHost, type StoryRequest, type StoryResponse } from '../story/cityHost';
 import { npcNames } from '../story/present';
 import { deleteSave, listSaves, loadSave, writeSave, type SaveSummary } from './saveSlots';
@@ -16,7 +22,7 @@ import type { SessionState } from './session';
 
 type KV = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-export type StoryView = 'slots' | 'newGame' | 'map' | 'city' | 'battle' | 'result';
+export type StoryView = 'slots' | 'newGame' | 'map' | 'city' | 'battle' | 'result' | 'trade' | 'duel';
 
 export interface StoryState {
   view: StoryView;
@@ -31,10 +37,17 @@ export interface StoryState {
   result: ComResult | null;
   /** Outcome of the last battle, handed back to the script (v1). */
   won: boolean;
+  /** Level limit of the Fusion Shop being visited (CMD11.4). */
+  shopLevel: number;
+  /** The two save slots being traded between (player 1, player 2). */
+  trade: { slots: [number, number]; saves: [SaveData, SaveData] } | null;
+  /** "2 Player Battle" between two save slots; `winner` once it is over. */
+  duel: { slots: [number, number]; saves: [SaveData, SaveData]; winner: number | null } | null;
   error: string | null;
   refreshSlots: () => void;
   chooseNewGame: (slot: number) => void;
-  newGame: (slot: number, partner: 0 | 1 | 2) => Promise<void>;
+  /** Start a game in `slot`; the name is checked like NAME ENTRY (OPENSEG 0x801E7EC4). Error message, or null. */
+  newGame: (slot: number, partner: 0 | 1 | 2, name?: string) => Promise<string | null>;
   continueGame: (slot: number) => void;
   deleteSlot: (slot: number) => void;
   enterCity: (city: number) => Promise<void>;
@@ -43,6 +56,43 @@ export interface StoryState {
   closeResult: () => void;
   saveNow: () => void;
   toSlots: () => void;
+  /** Store deck slot `k` (story rules, SUBSEG 0x801ECE70). Error message, or null. */
+  saveDeck: (k: number, name: string, cards: number[]) => string | null;
+  selectDeck: (k: number) => string | null;
+  partnerAction: (a: PartnerAction) => string | null;
+  fuse: (a: number, b: number) => ReturnType<typeof fuseCards>;
+  autoDeck: (o: AutoDeckOptions) => number[];
+  /** Known decks that can start a new deck (SUBSEG 0x801E11D4, after 0x800461C0). */
+  baseDecks: () => { index: number; name: string; owner: string; cards: number[] }[];
+  /** Leave the Complete Stats (ENDSEG 0x801E0B30 sets +0x28 bit 12) and go back to the script. */
+  closeStats: () => void;
+  openDuel: () => void;
+  /** Start a 2 Player Battle (OPENSEG "2 Player Battle"). Error message, or null. */
+  startDuel: (a: number, b: number) => string | null;
+  /** SLUS 0x80041A1C: both saves keep the result. */
+  finishDuel: (state: GameState, events: GameEvent[]) => void;
+  closeDuel: () => void;
+  openTrade: () => void;
+  pickTrade: (a: number, b: number) => string | null;
+  doTrade: (giveA: number[], giveB: number[]) => string | null;
+  partnerFuse: (k: number, b: number) => ReturnType<typeof partnerFusion>;
+}
+
+export type PartnerAction =
+  | { kind: 'equip'; partner: number; part: number }
+  | { kind: 'unequip'; partner: number; part: number }
+  | { kind: 'egg'; partner: number; egg: number };
+
+/** Why a whole deck cannot be stored, or null. */
+function deckError(save: SaveData, ids: number[]): string | null {
+  if (ids.length > 30) return 'Un mazo tiene 30 cartas como máximo.';
+  if (ids.some((id) => ARMOR_IDS.includes(id))) return 'Las cartas Armor solo aparecen por Digi-Egg.';
+  for (const id of new Set(ids)) {
+    const n = ids.filter((x) => x === id).length;
+    if (n > 4) return 'Máximo 4 copias por mazo.';
+    if (n > availableCopies(save, id)) return `Solo tienes ${availableCopies(save, id)} de esa carta.`;
+  }
+  return null;
 }
 
 export interface StoryDeps {
@@ -59,13 +109,31 @@ export async function fetchCityScript(city: number): Promise<Uint8Array> {
   return new Uint8Array(await res.arrayBuffer());
 }
 
+/** NAME ENTRY: 12 characters (the cursor stops at 11, OPENSEG 0x801E7D24). 🟡 "*" (text codes) is left out. */
+export function cleanName(raw: string): string {
+  return raw.replace(/[^ -~]|\*/g, '').slice(0, 12).trim();
+}
+
 /** DECK2 index of the tutorial deck: the game keeps no record of that battle (ctx+0x81F). */
 const TUTORIAL_DECK = 0;
 
 export function createStoryStore(deps: StoryDeps) {
   const rand = psxRand(deps.seed);
   return createStore<StoryState>((set, get) => {
-    const persist = () => {
+    /** Apply a change to the save; the city host keeps working on the same object. */
+    const update = <T,>(fn: (save: SaveData) => T): T => {
+      const save = get().save!;
+      const r = fn(save);
+      const next = { ...save };
+      const { host } = get();
+      if (host) host.save = next;
+      set({ save: next });
+      return r;
+    };
+
+    /** Write the slot; `counted` = a save the player made (OPENSEG 0x801EF6C4: +0x0D up to 255). */
+    const persist = (counted = false) => {
+      if (counted) update((s) => void (s.saveCount = Math.min((s.saveCount ?? 0) + 1, 255)));
       const { slot, save } = get();
       if (slot !== null && save) writeSave(slot, save, deps.storage);
       set({ slots: listSaves(deps.storage) });
@@ -80,10 +148,11 @@ export function createStoryStore(deps: StoryDeps) {
         return;
       }
       if (req.kind === 'screen' && req.screen === 'save') {
-        persist();
+        persist(true);
         return show(advance(host, rand, { kind: 'ack' }));
       }
       if (req.kind === 'battle') return startBattle(req.deck, req.lent);
+      if (req.kind === 'screen' && req.screen === 'fusion') set({ shopLevel: update((s) => visitShop(s, req.arg)) });
       set({ view: 'city', request: req });
     };
 
@@ -119,14 +188,21 @@ export function createStoryStore(deps: StoryDeps) {
       battle: null,
       result: null,
       won: false,
+      shopLevel: 0,
+      trade: null,
+      duel: null,
       error: null,
       refreshSlots: () => set({ slots: listSaves(deps.storage) }),
       chooseNewGame: (slot) => set({ view: 'newGame', slot }),
-      newGame: async (slot, partner) => {
+      newGame: async (slot, partner, name = 'Player') => {
+        const clean = cleanName(name);
+        if (!clean) return 'Escribe un nombre para tu partida.';
         const save = createSave(partner, rand);
+        save.name = clean;
         set({ slot, save });
         persist();
         await get().enterCity(0); // the game starts in Beginner City
+        return null;
       },
       continueGame: (slot) => {
         const save = loadSave(slot, deps.storage);
@@ -157,8 +233,10 @@ export function createStoryStore(deps: StoryDeps) {
         const result =
           battle.deck === TUTORIAL_DECK
             ? null
-            : applyComResult(save, { state, events, rival: decks[battle.deck], deckUsed: human }, rand);
-        set({ view: 'result', result, won: state.winner === 0, save: { ...save } });
+            : applyComResult(save, { state, events, rival: decks[battle.deck], deckUsed: human, lent: battle.lent }, rand);
+        if (battle.deck === TUTORIAL_DECK) markTutorial(save);
+        update(() => undefined);
+        set({ view: 'result', result, won: state.winner === 0 });
       },
       closeResult: () => {
         const { host } = get();
@@ -166,7 +244,103 @@ export function createStoryStore(deps: StoryDeps) {
         set({ result: null, battle: null });
         if (host) show(advance(host, rand, { kind: 'battleResult', win: get().won }));
       },
-      saveNow: () => persist(),
+      saveNow: () => persist(true),
+      saveDeck: (k, name, ids) => {
+        const save = get().save!;
+        const why = deckError(save, ids) ?? (k === save.selectedDeck && ids.length !== 30 ? 'El mazo activo debe tener 30 cartas.' : null);
+        if (why) return why;
+        // DECK NAME entry: 12 characters (the cursor stops at 11, SUBSEG 0x801E0A60)
+        update((s) => {
+          s.decks = s.decks.map((d, i) => (i === k ? { ...d, name: cleanName(name) || `Mazo ${k + 1}`, cards: [...ids] } : d));
+        });
+        return null;
+      },
+      selectDeck: (k) => {
+        if (get().save!.decks[k]?.cards.length !== 30) return 'Solo se puede elegir un mazo de 30 cartas.';
+        update((s) => {
+          s.selectedDeck = k;
+        });
+        return null;
+      },
+      partnerAction: (a) =>
+        update((s) => {
+          if (a.kind === 'equip') return equipPart(s, a.partner, a.part);
+          if (a.kind === 'unequip') return unequipPart(s, a.partner, a.part), null;
+          return chooseEgg(s, a.partner, a.egg);
+        }),
+      fuse: (a, b) => update((s) => fuseCards(s, a, b, get().shopLevel, rand)),
+      autoDeck: (o) => autoDeck(get().save!, o, rand),
+      baseDecks: () =>
+        update((s) => {
+          refreshBaseDecks(s);
+          return Object.entries(s.eventRecords)
+            .filter(([, r]) => r.base)
+            .map(([k]) => decks[Number(k)])
+            .map((d) => ({ index: d.index, name: d.name, owner: d.owner, cards: [...d.cards] }));
+        }),
+      openDuel: () => set({ view: 'duel', duel: null, slots: listSaves(deps.storage) }),
+      startDuel: (i, j) => {
+        if (i === j) return 'Elige dos partidas distintas.';
+        const a = loadSave(i, deps.storage);
+        const b = loadSave(j, deps.storage);
+        if (!a || !b) return 'Elige dos partidas distintas.';
+        for (const [k, s] of [a, b].entries()) {
+          const deck = s.decks[s.selectedDeck]?.cards ?? [];
+          if (validateDeck(deck).length) return `El mazo activo de ${s.name} (jugador ${k + 1}) no tiene 30 cartas válidas.`;
+        }
+        const seed = rand.next() * 65536 + rand.next();
+        deps.session.getState().start({
+          human: a.decks[a.selectedDeck].cards,
+          cpu: b.decks[b.selectedDeck].cards,
+          seed,
+          humanFirst: seed % 2 === 0, // 🟡 who starts is not traced
+          partners: [a.partners.map((p) => p.slot), b.partners.map((p) => p.slot)],
+          twoPlayer: true,
+          names: [a.name, b.name],
+        });
+        set({ view: 'duel', duel: { slots: [i, j], saves: [a, b], winner: null }, error: null });
+        return null;
+      },
+      finishDuel: (state, events) => {
+        const d = get().duel;
+        if (!d) return;
+        const [a, b] = d.saves;
+        apply2pResult([a, b], { state, events });
+        writeSave(d.slots[0], a, deps.storage);
+        writeSave(d.slots[1], b, deps.storage);
+        set({ duel: { ...d, saves: [{ ...a }, { ...b }], winner: state.winner }, slots: listSaves(deps.storage) });
+      },
+      closeDuel: () => {
+        deps.session.getState().reset();
+        set({ view: 'slots', duel: null, slots: listSaves(deps.storage) });
+      },
+      closeStats: () => {
+        update((s) => void (s.statsViewed = true));
+        const { host, request } = get();
+        if (host && request?.kind === 'screen' && request.screen === 'ending') show(advance(host, rand, { kind: 'ack' }));
+      },
+      partnerFuse: (k, b) => update((s) => partnerFusion(s, k, b, rand, get().shopLevel)),
+      openTrade: () => set({ view: 'trade', trade: null, slots: listSaves(deps.storage) }),
+      pickTrade: (i, j) => {
+        const a = loadSave(i, deps.storage);
+        const b = loadSave(j, deps.storage);
+        if (!a || !b || i === j) return 'Elige dos partidas distintas.';
+        const why = tradeBlocked(a, b);
+        if (why) return why;
+        set({ trade: { slots: [i, j], saves: [a, b] } });
+        return null;
+      },
+      doTrade: (giveA, giveB) => {
+        const t = get().trade;
+        if (!t) return 'Elige dos partidas.';
+        const [a, b] = t.saves;
+        const why = trade(a, b, giveA, giveB);
+        if (why) return why;
+        writeSave(t.slots[0], a, deps.storage);
+        writeSave(t.slots[1], b, deps.storage);
+        set({ trade: { slots: t.slots, saves: [{ ...a }, { ...b }] }, slots: listSaves(deps.storage) });
+        return null;
+      },
       toSlots: () => set({ view: 'slots', slot: null, save: null, host: null, request: null, slots: listSaves(deps.storage) }),
     };
   });

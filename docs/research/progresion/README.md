@@ -12,3 +12,4 @@ Notas completas, con cada dirección de código y cada tabla decodificada, que r
 
 Son notas de trabajo. Las rutas `PROG\…` y los scripts de Python que mencionan (desensambladores,
 generadores de tablas) quedaron fuera del proyecto: leen el disco del usuario y regeneran las tablas.
+* [`05-estadisticas-autodeck-2p.md`](05-estadisticas-autodeck-2p.md): récords por mazo, poder máximo, la página de estadísticas completas (ENDSEG), mazo base y Auto Deck, nombre, qué copia viaja en un intercambio y la batalla 2P.

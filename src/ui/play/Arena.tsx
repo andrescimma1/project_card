@@ -6,7 +6,8 @@ import type { GameState, PlayerId } from '../../engine/game/types';
 import { count } from '../../engine/game/zones';
 import { SLOT_GLYPH, SPECIALTY_COLOR, SPECIALTY_NAME } from '../theme';
 import { CardArt, trackPointer } from './CardFace';
-import { activeRef, cardAt } from './util';
+import { useSession } from '../../game/useSession';
+import { activeRef, cardAt, seatNames } from './util';
 
 export function HpBar({ hp, max, color }: { hp: number; max: number; color: string }) {
   const pct = Math.max(0, Math.min(100, (hp / Math.max(max, 1)) * 100));
@@ -21,10 +22,12 @@ export function HpBar({ hp, max, color }: { hp: number; max: number; color: stri
 export function ArenaCard({ game, player, onInspect, mirrored }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void; mirrored?: boolean }) {
   const p = game.players[player];
   const ref = activeRef(game, player);
+  const twoPlayer = useSession((s) => s.twoPlayer);
+  const names = seatNames(twoPlayer, useSession((s) => s.names));
   if (ref === null) {
     return (
       <div className="grid h-36 w-full max-w-[16rem] place-items-center rounded-2xl border-2 border-dashed border-grid p-4 text-center text-sm text-haze">
-        {player === 0 ? 'Tu Battle Slot está vacío' : 'Battle Slot de la CPU vacío'}
+        {twoPlayer ? `Battle Slot de ${names[player]} vacío` : player === 0 ? 'Tu Battle Slot está vacío' : 'Battle Slot de la CPU vacío'}
       </div>
     );
   }
@@ -40,7 +43,7 @@ export function ArenaCard({ game, player, onInspect, mirrored }: { game: GameSta
       onPointerMove={trackPointer}
       className="holo flex w-full max-w-[16rem] flex-col overflow-hidden rounded-2xl border-2 bg-panel text-left"
       style={{ borderColor: color, boxShadow: `0 0 40px color-mix(in srgb, ${color} 22%, transparent)` }}
-      aria-label={`${card.name}, ${p.hp} HP${player === 1 ? ', de la CPU' : ''}`}
+      aria-label={`${card.name}, ${p.hp} HP${twoPlayer ? `, de ${names[player]}` : player === 1 ? ', de la CPU' : ''}`}
     >
       <div className="relative">
         <CardArt card={card} className={`aspect-[16/10] w-full bg-abyss ${mirrored ? '-scale-x-100' : ''}`} />

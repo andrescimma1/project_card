@@ -12,6 +12,7 @@ import { evaluateBonuses, type BonusResult } from './bonuses';
 import { addCard, newCollection, type Collection } from './collection';
 import { openPack } from './packs';
 import { battleExpGain, gainExp, MAX_LEVEL, type PartnerProgress } from './partnerExp';
+import { applyBattleRecords, recordAttackUse, recordMaxAttack, recordRounds, type DeckRecord } from './records';
 import { updateRanks, type Ranks } from './ranks';
 import { progression } from './tables';
 
@@ -38,8 +39,12 @@ export interface SaveData {
   wins2p: number;
   losses2p: number;
   ranks: Ranks;
+  /** +0x10: rand() when the game was created; two saves with the same number cannot trade. */
+  registration: number;
   /** +0x28 bit 11: a trade was ever made (blocks Legendary Collector). */
   traded: boolean;
+  /** +0x4C / +0x4E: cards received / given by trading. */
+  trades: { received: number; given: number };
   /** +0x28 bit 10: trading unlocked by the story. */
   tradeEnabled: boolean;
   collection: Collection;
@@ -51,8 +56,16 @@ export interface SaveData {
   selectedDeck: number;
   /** +0x848: times each EXP bonus was earned. */
   bonusCounts: number[];
-  /** +0x888 / +0x9A4: record against each DECK2 deck. */
+  /** +0x888 / +0x9A4: record against each COM deck, by shared record index (records.ts `recordIndex`). */
   deckRecords: Record<number, { wins: number; losses: number }>;
+  /** +0xAC0 / +0xBFE: per DECK2 deck, known / Base Deck flags and the record with it as a loaned deck. */
+  eventRecords: Record<number, DeckRecord>;
+  /** +0xD3C: highest ◯ △ ✕ power each Digimon (0..190) reached in your battles. */
+  maxAttack: number[][];
+  /** +0x0D: times the game was saved (up to 255). */
+  saveCount: number;
+  /** +0x28 bit 12: the Complete Stats screen was seen. */
+  statsViewed: boolean;
   /** +0x11B6 / +0x1334: rounds won / lost by each Digimon card (0..190). */
   roundsWon: number[];
   roundsLost: number[];
@@ -64,6 +77,8 @@ export interface SaveData {
   fusion: { fused: number; used: number; mutations: number };
   /** +0x2768: the 3 cards of the last pack. */
   lastPack: number[];
+  /** Highest Fusion Shop visited (0..2, −1 none); 🟡 kept by the UNIT scripts in the original. */
+  fusionShop: number;
 }
 
 /** Starter partners offered at the start (OPENSEG 0x801DE8B8): Veemon, Hawkmon, Armadillomon. */
@@ -74,15 +89,18 @@ const STARTER_DECK = [142, 143, 144];
 export function newGame(choice: 0 | 1 | 2, rand: Rand): SaveData {
   const id = STARTER_PARTNERS[choice];
   const deck = originalDecks[STARTER_DECK[choice]];
+  const registration = rand.next() & 0xffff; // 0x8002D59C, when the player block is created
   const save: SaveData = {
     version: 1,
     name: 'Player',
+    registration,
     winsCom: 0,
     lossesCom: 0,
     wins2p: 0,
     losses2p: 0,
     ranks: { tamer: 0, collector: 0, battle2p: 0 },
     traded: false,
+    trades: { received: 0, given: 0 },
     tradeEnabled: false,
     collection: newCollection(),
     ownedParts: Array(128).fill(false),
@@ -91,12 +109,17 @@ export function newGame(choice: 0 | 1 | 2, rand: Rand): SaveData {
     selectedDeck: 0,
     bonusCounts: Array(32).fill(0),
     deckRecords: {},
+    eventRecords: { [STARTER_DECK[choice]]: { known: true, base: false, wins: 0, losses: 0 } }, // OPENSEG 0x801E83C8
+    maxAttack: Array.from({ length: 191 }, () => [0, 0, 0]),
+    saveCount: 0,
+    statsViewed: false,
     roundsWon: Array(191).fill(0),
     roundsLost: Array(191).fill(0),
     attackUse: [0, 0, 0],
     story: { flags: Array(12).fill(0), counters: Array(9).fill(0), points: 0, city: 0 },
     fusion: { fused: 0, used: 0, mutations: 0 },
     lastPack: [],
+    fusionShop: -1,
   };
   // 🟡 the starting Digi-Part is given (owned); whether it starts equipped is not traced
   save.ownedParts[progression.partners.initialPart[PARTNER_IDS.indexOf(id)]] = true;
@@ -127,22 +150,15 @@ export interface ComResult {
 /** Apply the end of a battle against the CPU to the save (player 0 is the save owner). */
 export function applyComResult(
   save: SaveData,
-  m: { state: GameState; events: GameEvent[]; rival: OriginalDeck; deckUsed: number[] },
+  m: { state: GameState; events: GameEvent[]; rival: OriginalDeck; deckUsed: number[]; lent: number | null },
   rand: Rand,
 ): ComResult {
   const win = m.state.winner === 0;
   const ranksBefore = { ...save.ranks };
-  const rec = (save.deckRecords[m.rival.index] ??= { wins: 0, losses: 0 });
-  const own = save.decks[save.selectedDeck];
-  if (win) {
-    rec.wins = Math.min(rec.wins + 1, CAP);
-    if (own) own.wins = Math.min(own.wins + 1, CAP);
-    save.winsCom = Math.min(save.winsCom + 1, CAP);
-  } else {
-    rec.losses = Math.min(rec.losses + 1, CAP);
-    if (own) own.losses = Math.min(own.losses + 1, CAP);
-    save.lossesCom = Math.min(save.lossesCom + 1, CAP);
-  }
+  applyBattleRecords(save, { win, lent: m.lent, rival: m.rival.index });
+  if (win) save.winsCom = Math.min(save.winsCom + 1, CAP);
+  else save.lossesCom = Math.min(save.lossesCom + 1, CAP);
+  recordMaxAttack(save, m.state, m.events);
 
   // EXP screen
   const bonuses = evaluateBonuses(m.state, 0, m.rival.exp);
@@ -174,20 +190,8 @@ export function applyComResult(
     save.lastPack = pack;
   }
 
-  // per-card rounds (KO 0x801ED0A0) and attack use (🟡 counted at each reveal)
-  let lastHit: Extract<GameEvent, { type: 'hit' }> | null = null;
-  for (const e of m.events) {
-    if (e.type === 'hit') lastHit = e;
-    if (e.type === 'reveal') save.attackUse[['circle', 'triangle', 'cross'].indexOf(e.attacks[0])]++;
-    if (e.type === 'ko') {
-      const loserId = m.state.players[e.player].cards[e.card];
-      if (e.player === 0 && loserId <= 190) save.roundsLost[loserId]++;
-      if (lastHit && lastHit.attacker === 0 && e.player === 1) {
-        const id = m.state.players[0].cards[lastHit.attackerCard];
-        if (id <= 190) save.roundsWon[id]++;
-      }
-    }
-  }
+  recordRounds(save, 0, m.state, m.events);
+  recordAttackUse(save, 0, m.events);
 
   save.ranks = updateRanks(save.ranks, { winsCom: save.winsCom, wins2p: save.wins2p, collection: save.collection, traded: save.traded });
   return { win, bonuses, expGained, levelsGained, learned, pack, packResults, ranksBefore };

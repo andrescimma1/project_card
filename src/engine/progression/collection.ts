@@ -1,12 +1,13 @@
 /**
  * The card collection of a save (docs/research/progresion/02-resultados-y-guardado.md §3.4).
- * One byte per card id (save+0x14B2): bits 0-2 copies (max 6), 0x10 complete, 0x20 new, 0x40 obtained
+ * One byte per card id (save+0x14B2): bits 0-2 copies (max 6), 0x08 received by trading (OPENSEG 0x801E1C30,
+ * shown by ENDSEG 0x801DFD5C), 0x10 complete, 0x20 new, 0x40 obtained
  * at least once, 0x80 just received. Each copy slot has a serial number (save+0x15E0[id][6]).
  */
 import { cards } from '../cards/db';
 
 export const MAX_OWNED = 6;
-export const FLAG = { complete: 0x10, isNew: 0x20, obtained: 0x40, justReceived: 0x80 } as const;
+export const FLAG = { traded: 0x08, complete: 0x10, isNew: 0x20, obtained: 0x40, justReceived: 0x80 } as const;
 
 export interface Collection {
   flags: number[];
@@ -22,9 +23,9 @@ const notCollectible = (id: number) => id >= 172 && id <= 190; // partners and A
 
 /** 0x80045968: a rand() serial that no lower copy slot of this card already has. */
 function assignSerial(c: Collection, id: number, slot: number, rand: { next(): number }): void {
-  let s: number;
-  do s = rand.next();
-  while (c.serials[id].slice(0, slot).includes(s));
+  let s = rand.next();
+  // the game retries until the serial is new; the cap only guards against a degenerate generator
+  for (let tries = 0; c.serials[id].slice(0, slot).includes(s) && tries < 1000; tries++) s = rand.next();
   c.serials[id][slot] = s;
 }
 

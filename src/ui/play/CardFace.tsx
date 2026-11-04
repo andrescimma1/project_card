@@ -23,7 +23,7 @@ export function CardArt({ card, className = '' }: { card: Card; className?: stri
         {card.name.slice(0, 1)}
       </div>
     );
-  return <img src={artUrl(card.id)} alt="" draggable={false} onError={() => setMissing(true)} className={`object-cover [image-rendering:pixelated] ${className}`} />;
+  return <img src={artUrl(card.id)} alt="" loading="lazy" draggable={false} onError={() => setMissing(true)} className={`object-cover [image-rendering:pixelated] ${className}`} />;
 }
 
 type Size = 'xs' | 'sm' | 'md';

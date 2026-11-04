@@ -115,7 +115,7 @@ export type GameEvent =
   | { type: 'effect'; player: PlayerId; source: SupportSource; card: CardRef; speed: number; voided: boolean; conditionsMet: boolean; hp: [number, number]; attacks: [AttackSlot, AttackSlot] }
   | { type: 'attackOrder'; first: PlayerId; second: PlayerId }
   | { type: 'crash'; player: PlayerId; card: CardRef; power: number; hp: [number, number] }
-  | { type: 'hit'; attacker: PlayerId; defender: PlayerId; attackerCard: CardRef; defenderCard: CardRef; damage: number; eaten: number; hp: [number, number] }
+  | { type: 'hit'; attacker: PlayerId; defender: PlayerId; attackerCard: CardRef; defenderCard: CardRef; damage: number; eaten: number; hp: [number, number]; slot: AttackSlot }
   | { type: 'ko'; player: PlayerId; card: CardRef; revived: boolean }
   | { type: 'roundWon'; player: PlayerId; rounds: number }
   | { type: 'cardsDiscarded'; player: PlayerId; cards: CardRef[]; from: 'hand' | 'online' | 'dp' | 'stack' | 'support' }

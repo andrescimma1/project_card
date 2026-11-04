@@ -4,52 +4,27 @@ import { percentages, rankTitles } from '../../engine/progression/ranks';
 import { progression } from '../../engine/progression/tables';
 import type { SaveData } from '../../engine/progression/save';
 import type { StoryRequest } from '../../story/cityHost';
-import { decodeScriptString, menuLabel, storySegments, visibleCities, type Segment } from '../../story/present';
+import { decodeScriptString, menuLabel, storySegments, visibleCities } from '../../story/present';
 import { useSession } from '../../game/useSession';
 import { storyStore, useStory } from '../../game/useStory';
 import { CardFace } from '../play/CardFace';
 import { BattleBoard } from '../play/PlayScreen';
 import type { GameState } from '../../engine/game/types';
+import { Button, PartName, Text } from './common';
+import { PartnerGet, StoryMenu } from './StoryMenus';
+import { FusionShop } from './FusionShop';
+import { CompleteStats } from './CompleteStats';
+import { cleanName } from '../../game/storyStore';
+import { TradeView } from './TradeView';
+import { DuelView } from './DuelView';
 
 const act = () => storyStore.getState();
-const COLOR: Record<number, string> = {
-  2: 'var(--color-fire)',
-  4: 'var(--color-nature)',
-  5: 'var(--color-ice)',
-  6: 'var(--color-rare)',
-  8: 'var(--color-darkness)',
-};
 const AREAS: { name: string; cities: number[] }[] = [
   { name: 'Mega Area', cities: [0, 1, 2, 3, 4] },
   { name: 'Giga Area', cities: [5, 7, 8, 6] },
   { name: 'Tera Area', cities: [9, 10, 11] },
 ];
 const permille = (v: number) => `${Math.floor(v / 10)}.${v % 10} %`;
-
-function Button({ children, onClick, primary, disabled }: { children: React.ReactNode; onClick: () => void; primary?: boolean; disabled?: boolean }) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 ${primary ? 'bg-ink text-abyss hover:bg-white' : 'border border-grid hover:bg-deep'}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Text({ segments }: { segments: Segment[] }) {
-  return (
-    <>
-      {segments.map((s, i) => (
-        <span key={i} style={COLOR[s.color] ? { color: COLOR[s.color] } : undefined}>
-          {s.text}
-        </span>
-      ))}
-    </>
-  );
-}
 
 function ErrorNote() {
   const error = useStory((s) => s.error);
@@ -94,6 +69,13 @@ function SlotsView() {
           </li>
         ))}
       </ol>
+      {slots.filter(Boolean).length >= 2 && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={() => act().openTrade()}>Intercambiar cartas</Button>
+          <Button onClick={() => act().openDuel()}>Batalla 2P</Button>
+          <span className="text-sm text-haze">Entre dos de tus partidas, como con dos tarjetas de memoria.</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -106,6 +88,48 @@ const STARTERS: { id: number; deck: string }[] = [
 
 function NewGameView() {
   const slot = useStory((s) => s.slot);
+  // OPENSEG: User Registration (NAME ENTRY, 12 letters) comes before STARTER SELECT
+  const [name, setName] = useState('Player');
+  const [named, setNamed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!named)
+    return (
+      <form
+        className="mx-auto flex max-w-xl flex-col gap-5 py-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!cleanName(name)) return setError('Escribe un nombre para tu partida.');
+          setError(null);
+          setNamed(true);
+        }}
+      >
+        <div>
+          <h2 className="font-display text-4xl font-bold">Registro</h2>
+          <p className="mt-2 text-haze">Elige tu nombre para este mundo. Los personajes te llaman así en los diálogos.</p>
+        </div>
+        <label className="flex flex-col gap-1">
+          <span className="text-sm text-haze">Nombre del jugador (hasta 12 letras)</span>
+          <input
+            value={name}
+            maxLength={12}
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            className="rounded-lg border border-grid bg-deep px-3 py-2 font-display text-xl"
+          />
+        </label>
+        {error && (
+          <p role="alert" className="text-sm" style={{ color: 'var(--color-probable)' }}>
+            {error}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <button type="submit" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-abyss hover:bg-white">
+            Este nombre está bien
+          </button>
+          <Button onClick={() => act().toSlots()}>Volver</Button>
+        </div>
+      </form>
+    );
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
       <div>
@@ -117,7 +141,7 @@ function NewGameView() {
           <button
             key={s.id}
             type="button"
-            onClick={() => void act().newGame(slot ?? 0, i as 0 | 1 | 2)}
+            onClick={() => void act().newGame(slot ?? 0, i as 0 | 1 | 2, name)}
             className="flex flex-col items-center gap-3 rounded-2xl border border-grid bg-panel/70 p-4 transition-colors hover:border-ink"
           >
             <CardFace card={cards[s.id]} size="md" />
@@ -126,7 +150,7 @@ function NewGameView() {
           </button>
         ))}
       </div>
-      <Button onClick={() => act().toSlots()}>Volver</Button>
+      <Button onClick={() => setNamed(false)}>Volver</Button>
     </div>
   );
 }
@@ -167,11 +191,25 @@ function MapView() {
   const save = useStory((s) => s.save)!;
   const open = visibleCities(save);
   const [saved, setSaved] = useState(false);
+  const [menu, setMenu] = useState(false);
+  if (menu)
+    return (
+      <div className="mx-auto flex max-w-6xl flex-col gap-5 py-4">
+        <h2 className="font-display text-3xl font-bold">Mazos y compañeros</h2>
+        <StoryMenu
+          onClose={() => {
+            setMenu(false);
+            setSaved(false);
+          }}
+        />
+      </div>
+    );
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-3xl font-bold">Mapa de Digi-land</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setMenu(true)}>Mazos y compañeros</Button>
           <Button
             onClick={() => {
               act().saveNow();
@@ -260,7 +298,7 @@ function Reward({ req }: { req: Extract<StoryRequest, { kind: 'reward' }> }) {
       {req.pack !== undefined && <p className="font-display text-xl font-semibold">Recibiste un {progression.packs[req.pack].name}</p>}
       {req.part !== undefined && (
         <p className="font-display text-xl font-semibold">
-          Digi-Part: <Text segments={storySegments(progression.digiParts[req.part].name, '')} />
+          Digi-Part: <PartName id={req.part} />
         </p>
       )}
       {req.cards.length > 0 && (
@@ -308,58 +346,69 @@ function Keyword() {
   );
 }
 
-function ScreenRequest({ req, save }: { req: Extract<StoryRequest, { kind: 'screen' }>; save: SaveData }) {
-  const done = () => act().reply({ kind: 'ack' });
-  if (req.screen === 'playerData') {
+function PlayerDataScreen({ save, onDone }: { save: SaveData; onDone: () => void }) {
+  // SAISEG 0x801E186C: with story flag v15 the ◯ button opens the Complete Stats (ENDSEG mode 2)
+  const cleared = useStory((s) => (s.host?.vm.vars[15] ?? 0) !== 0);
+  const [stats, setStats] = useState(false);
+  if (stats)
     return (
-      <div className="flex flex-col gap-3">
-        <PlayerPanel save={save} />
-        <Button primary onClick={done}>
-          Volver
-        </Button>
-      </div>
+      <CompleteStats
+        save={save}
+        autoScroll={false}
+        onClose={() => {
+          act().closeStats();
+          setStats(false);
+        }}
+      />
     );
-  }
-  if (req.screen === 'deckEdit') {
-    return (
-      <div className="flex flex-col gap-3 rounded-2xl border-2 border-grid bg-deep p-5">
-        <h3 className="font-display text-lg font-semibold">Mazo activo</h3>
-        <ul className="flex flex-col gap-2">
-          {save.decks.map((d, i) => (
-            <li key={i}>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="deck"
-                  disabled={d.cards.length !== 30}
-                  checked={save.selectedDeck === i}
-                  onChange={() => {
-                    save.selectedDeck = i;
-                    storyStore.setState({ save: { ...save } });
-                  }}
-                />
-                {d.cards.length ? `${d.name} (${d.wins} victorias, ${d.losses} derrotas)` : 'Vacío'}
-              </label>
-            </li>
-          ))}
-        </ul>
-        <p className="text-sm text-haze">Editar los mazos con tu colección y equipar Digi-Parts llegan en el siguiente paso.</p>
-        <Button primary onClick={done}>
-          Volver
-        </Button>
-      </div>
-    );
-  }
-  const text =
-    req.screen === 'fusion' ? 'La Fusion Shop llega en el siguiente paso.' : req.screen === 'ending' ? 'Fin de esta parte de la historia.' : '';
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border-2 border-grid bg-deep p-5">
-      <p>{text}</p>
-      <Button primary onClick={done}>
-        Continuar
-      </Button>
+    <div className="flex flex-col gap-3">
+      <PlayerPanel save={save} />
+      <div className="flex flex-wrap gap-2">
+        <Button primary onClick={onDone}>
+          Volver
+        </Button>
+        {cleared && <Button onClick={() => setStats(true)}>Estadísticas completas</Button>}
+      </div>
     </div>
   );
+}
+
+/** CMD11.19(0): the final ending. The game plays its ending video (not reproduced) and returns to the title. */
+function Ending() {
+  const [saved, setSaved] = useState(false);
+  return (
+    <div className="flex flex-col items-center gap-5 rounded-3xl border-2 bg-deep px-6 py-12 text-center" style={{ borderColor: 'var(--color-rare)' }}>
+      <h3 className="font-display text-5xl font-bold" style={{ color: 'var(--color-rare)' }}>
+        Fin
+      </h3>
+      <p className="max-w-[52ch] text-haze">
+        Aquí el juego original pasa su video final y vuelve a la pantalla de título. El video no se reproduce en este remake.
+      </p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button
+          onClick={() => {
+            act().saveNow();
+            setSaved(true);
+          }}
+        >
+          {saved ? 'Guardado' : 'Guardar'}
+        </Button>
+        <Button primary onClick={() => act().toSlots()}>
+          Volver a las partidas
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ScreenRequest({ req, save }: { req: Extract<StoryRequest, { kind: 'screen' }>; save: SaveData }) {
+  const done = () => act().reply({ kind: 'ack' });
+  if (req.screen === 'playerData') return <PlayerDataScreen save={save} onDone={done} />;
+  if (req.screen === 'deckEdit') return <StoryMenu onClose={done} />;
+  if (req.screen === 'fusion') return <FusionShop shop={req.arg} />;
+  if (req.screen === 'ending') return req.arg === 0 ? <Ending /> : <CompleteStats save={save} autoScroll={req.arg === 1} onClose={() => act().closeStats()} />;
+  return null;
 }
 
 function CityView() {
@@ -370,7 +419,7 @@ function CityView() {
   const city = host?.city ?? save.story.city;
   if (!req) return null;
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 py-4">
+    <div className={`mx-auto flex ${req.kind === 'screen' && req.screen !== 'playerData' ? 'max-w-6xl' : 'max-w-3xl'} flex-col gap-4 py-4`}>
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-display text-3xl font-bold">{progression.world.cities[city]}</h2>
         <span className="text-sm text-haze">{host?.place === 1 ? 'Battle Cafe' : host?.place === 2 ? 'Arena' : ''}</span>
@@ -418,6 +467,7 @@ function CityView() {
       {req.kind === 'reward' && <Reward req={req} />}
       {req.kind === 'keyword' && <Keyword />}
       {req.kind === 'screen' && <ScreenRequest req={req} save={save} />}
+      {req.kind === 'partnerGet' && <PartnerGet candidates={req.candidates} />}
     </div>
   );
 }
@@ -479,7 +529,7 @@ function ResultView() {
               ))}
               {result.learned.map((id) => (
                 <li key={id}>
-                  Aprende la Digi-Part <Text segments={storySegments(progression.digiParts[id].name, '')} />
+                  Aprende la Digi-Part <PartName id={id} />
                 </li>
               ))}
             </ul>
@@ -513,5 +563,7 @@ export function StoryScreen() {
   if (view === 'map') return <MapView />;
   if (view === 'battle') return <BattleView />;
   if (view === 'result') return <ResultView />;
+  if (view === 'trade') return <TradeView />;
+  if (view === 'duel') return <DuelView />;
   return <CityView />;
 }
