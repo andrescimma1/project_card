@@ -69,6 +69,11 @@ export interface ProgressionTables {
   finalTitles: string[];
   /** City names (OPENSEG 0x801F0684) and the 4 arenas of each city (0x801F06D4; '' = none). */
   world: { cities: string[]; arenas: string[][]; keywords: string[] };
+  /**
+   * Auto Deck (SUBSEG 0x801F10D8): cards per template — Option Cards Many / Few — as [Options, R, C, U]
+   * (SUBSEG 0x801DF9B4), and Offensive 0 / Defensive 1 for each card 191..300 (SUBSEG 0x801F228C).
+   */
+  autoDeck: { templates: number[][]; optionCategory: number[] };
 }
 
 const SLUS_BASE = 0x80010000;
@@ -114,7 +119,7 @@ const text = (raw: string) => renderGameText(raw.replace(/\n/g, ' ').replace(/\*
 
 export function decodeProgressionTables(
   slusFile: Uint8Array,
-  overlays: { KAWSEG: Uint8Array; EVOSEG: Uint8Array; OPENSEG: Uint8Array; ENDSEG: Uint8Array; SAISEG: Uint8Array },
+  overlays: { KAWSEG: Uint8Array; EVOSEG: Uint8Array; OPENSEG: Uint8Array; ENDSEG: Uint8Array; SAISEG: Uint8Array; SUBSEG: Uint8Array },
 ): ProgressionTables {
   const slus = new Image(slusFile, (a) => a - SLUS_BASE + SLUS_FILE_OFFSET);
   const ovl = (b: Uint8Array) => new Image(b, (a) => a - OVERLAY_BASE);
@@ -123,6 +128,7 @@ export function decodeProgressionTables(
   const open = ovl(overlays.OPENSEG);
   const end = ovl(overlays.ENDSEG);
   const sai = ovl(overlays.SAISEG);
+  const sub = ovl(overlays.SUBSEG);
 
   const packs = Array.from({ length: 16 }, (_, i) => ({
     index: i,
@@ -200,6 +206,10 @@ export function decodeProgressionTables(
       cities: Array.from({ length: 12 }, (_, i) => open.cstr(open.u32(0x801f0684 + 4 * i))),
       arenas: Array.from({ length: 12 }, (_, c) => Array.from({ length: 4 }, (_, k) => open.cstr(open.u32(0x801f06d4 + 4 * (4 * c + k))))),
       keywords: Array.from({ length: 10 }, (_, i) => sai.cstr(sai.u32(0x801f36e0 + 4 * i))),
+    },
+    autoDeck: {
+      templates: [0, 1].map((t) => Array.from({ length: 4 }, (_, k) => sub.u8(0x801df9b4 + 4 * t + k))),
+      optionCategory: Array.from({ length: 110 }, (_, i) => sub.u8(0x801f228c + i)),
     },
   };
 }

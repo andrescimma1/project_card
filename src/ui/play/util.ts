@@ -18,3 +18,8 @@ export function partnerCardOf(game: GameState, player: PlayerId, id: number): Ca
 export function activeRef(game: GameState, player: PlayerId): CardRef | null {
   return game.players[player].stack.find((x) => x !== null) ?? null;
 }
+
+/** Player labels for the board: "Tú" / "CPU" against the CPU, the two names in a 2 Player Battle. */
+export function seatNames(twoPlayer: boolean, names: [string, string] | null): [string, string] {
+  return twoPlayer ? (names ?? ['Jugador 1', 'Jugador 2']) : ['Tú', 'CPU'];
+}

@@ -36,6 +36,18 @@ describe('save slots', () => {
     expect(list[1]).toBeNull();
   });
 
+  it('older saves get the fields added later; COM records move to their shared record (0x800471F4)', () => {
+    const st = memoryStorage();
+    const old = newGame(0, counter()) as unknown as Record<string, unknown>;
+    for (const k of ['eventRecords', 'maxAttack', 'saveCount', 'statsViewed', 'fusionShop', 'trades', 'registration']) delete old[k];
+    old.deckRecords = { 125: { wins: 2, losses: 1 }, 114: { wins: 1, losses: 0 }, 3: { wins: 4, losses: 0 } };
+    st.setItem('dcb.save.A', JSON.stringify(old));
+    const s = loadSave(0, st)!;
+    expect(s.deckRecords).toEqual({ 114: { wins: 3, losses: 1 }, 3: { wins: 4, losses: 0 } });
+    expect(s.eventRecords[114]?.known && s.eventRecords[3]?.known).toBe(true);
+    expect([s.maxAttack.length, s.maxAttack[0], s.saveCount, s.statsViewed, s.fusionShop]).toEqual([191, [0, 0, 0], 0, false, -1]);
+  });
+
   it('ignores corrupt or foreign data, and deletes a slot', () => {
     const st = memoryStorage();
     st.setItem('dcb.save.A', '{nope');

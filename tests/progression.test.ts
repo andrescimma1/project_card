@@ -102,6 +102,18 @@ describe('partners and Digi-Parts', () => {
   });
 });
 
+describe('Auto Deck (SUBSEG)', () => {
+  it('two templates — Option Cards Many / Few — of Options, R, C, U (SUBSEG 0x801DF9B4)', () => {
+    expect(T.autoDeck.templates).toEqual([[10, 10, 6, 4], [5, 12, 8, 5]]);
+  });
+
+  it('every card 191..300 is Offensive (0) or Defensive (1) for the Option preference (SUBSEG 0x801F228C)', () => {
+    expect(T.autoDeck.optionCategory).toHaveLength(110);
+    expect(T.autoDeck.optionCategory.filter((c) => c === 0)).toHaveLength(52);
+    expect([T.autoDeck.optionCategory[192 - 191], T.autoDeck.optionCategory[191 - 191]]).toEqual([0, 1]); // Devil's Chip / Golden Banana
+  });
+});
+
 const disc = process.env.DCB_DISC;
 describe.skipIf(!disc || !existsSync(join(disc ?? '', 'P.DRV')))('re-decode from the disc', () => {
   it('matches the committed JSON', () => {
@@ -112,6 +124,7 @@ describe.skipIf(!disc || !existsSync(join(disc ?? '', 'P.DRV')))('re-decode from
       OPENSEG: readDrvFile(p, 'OPENSEG.BIN'),
       ENDSEG: readDrvFile(p, 'ENDSEG.BIN'),
       SAISEG: readDrvFile(p, 'SAISEG.BIN'),
+      SUBSEG: readDrvFile(p, 'SUBSEG.BIN'),
     });
     expect(tables).toEqual(T);
   });

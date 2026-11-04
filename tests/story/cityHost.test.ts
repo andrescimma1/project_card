@@ -71,6 +71,24 @@ describe('city host (SAISEG 0x801E390C)', () => {
     expect(advance(again, counter())).toEqual({ kind: 'say', lines: [] });
   });
 
+  it('PARTNER GET: candidates (10.11 / 11.10), the screen (10.10) adds the partner and sets its flag', () => {
+    const s = save();
+    const h = enterCity(s, 3, city(cmd(10, 11), cmd(11, 10, [0, 4]), cmd(11, 10, [0, 3]), cmd(10, 10), cmd(10, 5)));
+    expect(advance(h, counter())).toEqual({ kind: 'partnerGet', candidates: [4, 3] });
+    advance(h, counter(), { kind: 'choice', value: 3 });
+    expect(s.partners.map((p) => p.slot.id)).toEqual([175, 184]);
+    expect(h.vm.vars[307]).toBe(1);
+  });
+
+  it('partner flags follow the slots; Digi-Egg flags give the egg (and equip it if none)', () => {
+    const s = save();
+    const h = enterCity(s, 0, city(set(295, 0, 1), cmd(10, 5)));
+    expect(h.vm.vars[294]).toBe(1); // Veemon owned
+    advance(h, counter());
+    expect(s.partners[0].eggs[0]).toBe(172);
+    expect(s.partners[0].slot.armorId).toBe(172);
+  });
+
   it('wins (10.16 → v1), trade unlock (10.18), deck check (11.21: v1 = 1 when no deck qualifies)', () => {
     const s = save();
     s.winsCom = 301;

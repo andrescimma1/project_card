@@ -13,7 +13,14 @@ import { CROSS_EFFECT_LABEL } from '../../engine/cards/db';
 import { SLOT_GLYPH, SPECIALTY_COLOR, frameColor } from '../theme';
 import { HpBar } from './Arena';
 import { CardArt, CardFace } from './CardFace';
-import { activeRef, cardAt, partnerCardOf } from './util';
+import { activeRef, cardAt, partnerCardOf, seatNames } from './util';
+
+/** Names of the two players for the cinematics ("Tú" / "CPU", or both names in 2P). */
+function useSeats(): { twoPlayer: boolean; names: [string, string] } {
+  const twoPlayer = useSession((s) => s.twoPlayer);
+  const names = useSession((s) => s.names);
+  return { twoPlayer, names: seatNames(twoPlayer, names) };
+}
 
 const SPEED = ['None', 'Low', 'Mid', 'High'];
 
@@ -53,6 +60,7 @@ function Shell({ children, label, onSkip }: { children: React.ReactNode; label: 
 
 function DigivolveScene({ game, scene, onDone }: { game: GameState; scene: Extract<Scene, { kind: 'digivolve' }>; onDone: () => void }) {
   const reduce = useReducedMotion();
+  const seats = useSeats();
   const to = cardAt(game, scene.player, scene.card);
   const from = scene.fromId !== undefined ? partnerCardOf(game, scene.player, scene.fromId) : scene.from === null ? null : cardAt(game, scene.player, scene.from);
   const [stage, setStage] = useState<'from' | 'flash' | 'to'>(from && !reduce ? 'from' : 'to');
@@ -70,7 +78,7 @@ function DigivolveScene({ game, scene, onDone }: { game: GameState; scene: Extra
   const color = frameColor(to);
   return (
     <Shell label={scene.armor ? 'Armor-digivolución' : 'Digivolución'} onSkip={onDone}>
-      <p className="font-display text-sm tracking-wide text-haze">{scene.player === 0 ? 'Tu Digimon' : 'El Digimon de la CPU'}</p>
+      <p className="font-display text-sm tracking-wide text-haze">{seats.twoPlayer ? `El Digimon de ${seats.names[scene.player]}` : scene.player === 0 ? 'Tu Digimon' : 'El Digimon de la CPU'}</p>
       <div className="relative grid h-[22rem] w-[16rem] place-items-center" onClick={onDone}>
         <AnimatePresence mode="popLayout">
           {stage !== 'to' && from ? (
@@ -105,11 +113,12 @@ function Fighter({ game, player, card, hp, max, attack, ko, lunge, hurt, dmg, he
   game: GameState; player: PlayerId; card: DigimonCard | null; hp: number; max: number; attack: string | null; ko: boolean; lunge: boolean; hurt: boolean; dmg: number | null; heal: number | null;
 }) {
   const reduce = useReducedMotion();
+  const seats = useSeats();
   const color = card ? SPECIALTY_COLOR[game.players[player].specialty] : 'var(--color-grid)';
   const dir = player === 0 ? 1 : -1;
   return (
     <div className="relative flex w-[clamp(9rem,30vw,15rem)] flex-col items-center gap-2">
-      <span className="font-display text-xs text-haze">{player === 0 ? 'Tú' : 'CPU'}</span>
+      <span className="font-display text-xs text-haze">{seats.names[player]}</span>
       <motion.div
         animate={reduce ? {} : lunge ? { x: [0, 40 * dir, 0] } : hurt ? { x: [0, -8 * dir, 8 * dir, -4 * dir, 0] } : { x: 0 }}
         transition={{ duration: lunge ? 0.45 : 0.4 }}
@@ -150,6 +159,7 @@ function Fighter({ game, player, card, hp, max, attack, ko, lunge, hurt, dmg, he
 }
 
 function BattleScene({ game, scene, onDone }: { game: GameState; scene: Extract<Scene, { kind: 'battle' }>; onDone: () => void }) {
+  const seats = useSeats();
   const steps = useMemo(() => scene.events.filter((e) => SHOWN.has(e.type)), [scene]);
   const [i, setI] = useState(0);
   const step: Step | undefined = steps[i];
@@ -227,7 +237,7 @@ function BattleScene({ game, scene, onDone }: { game: GameState; scene: Extract<
                 </div>
                 );
               })()}
-              <p className="max-w-[46ch] font-display text-xl font-semibold">{describeEvent(step, game)}</p>
+              <p className="max-w-[46ch] font-display text-xl font-semibold">{describeEvent(step, game, seats.twoPlayer ? seats.names : undefined)}</p>
             </motion.div>
           )}
         </AnimatePresence>

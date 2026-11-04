@@ -8,7 +8,7 @@ import { legalActions } from '../../engine/game/turn';
 import type { Action, CardRef, GameState, PlayerId } from '../../engine/game/types';
 import { cardsIn } from '../../engine/game/zones';
 import { describeEvent } from '../../game/describe';
-import { CPU, HUMAN } from '../../game/session';
+import { controller, CPU, HUMAN } from '../../game/session';
 import { sessionStore, useSession } from '../../game/useSession';
 import { CardDetail } from '../CardDetail';
 import { ArenaCard } from './Arena';
@@ -16,9 +16,9 @@ import { CardArt, CardFace } from './CardFace';
 import { useDecks } from '../../game/deckStore';
 import { validateDeck } from '../../engine/game/turn';
 import { CinematicHost } from './Cinematics';
-import { PhasePanel } from './PhasePanel';
+import { PhasePanel, type Seats } from './PhasePanel';
 import { PhaseRail } from './PhaseRail';
-import { cardAt } from './util';
+import { cardAt, seatNames } from './util';
 import { DpGauge, Piles } from './Zones';
 
 const STARTER_LABEL: Record<string, string> = { Red: 'Rojo (Veemon)', Green: 'Verde (Hawkmon)', Yellow: 'Amarillo (Armadillomon)' };
@@ -170,16 +170,19 @@ function actionForCard(actions: Action[], ref: CardRef): Action | undefined {
   return actions.find((a) => ('card' in a && a.card === ref) || (a.type === 'chooseSupport' && a.choice.from === 'hand' && a.choice.card === ref));
 }
 
-function Hand({ game, player, actions, act, onInspect }: { game: GameState; player: PlayerId; actions: Action[]; act: (a: Action) => void; onInspect: (c: Card) => void }) {
+function Hand({ game, player, seats, actions, act, onInspect }: { game: GameState; player: PlayerId; seats: Seats; actions: Action[]; act: (a: Action) => void; onInspect: (c: Card) => void }) {
   const refs = cardsIn(game.players[player].hand);
-  const choosing = player === HUMAN && actions.length > 0 && ['entrance', 'dp', 'digivolveOption', 'digivolve', 'support'].includes(game.phase.name);
-  if (!refs.length) return <p className="py-4 text-sm text-haze">{player === HUMAN ? 'Tu mano está vacía.' : 'La mano de la CPU está vacía.'}</p>;
+  const mine = player === seats.me;
+  const big = seats.twoPlayer ? mine : player === HUMAN;
+  const choosing = mine && actions.length > 0 && ['entrance', 'dp', 'digivolveOption', 'digivolve', 'support'].includes(game.phase.name);
+  if (!refs.length)
+    return <p className="py-4 text-sm text-haze">{seats.twoPlayer ? `La mano de ${seats.names[player]} está vacía.` : player === HUMAN ? 'Tu mano está vacía.' : 'La mano de la CPU está vacía.'}</p>;
   return (
     <ul className={`flex gap-2.5 overflow-x-auto px-1 pt-3 pb-2 ${player === CPU ? 'justify-end' : ''}`}>
       <AnimatePresence initial={false}>
         {refs.map((r) => {
           const card = cardAt(game, player, r);
-          const a = player === HUMAN ? actionForCard(actions, r) : undefined;
+          const a = mine ? actionForCard(actions, r) : undefined;
           return (
             <motion.li
               key={`${player}-${r}`}
@@ -195,9 +198,9 @@ function Hand({ game, player, actions, act, onInspect }: { game: GameState; play
                 aria-label={a ? `${PLAY_LABEL[game.phase.name] ?? 'Jugar'} ${card.name}` : `Ver ${card.name}`}
                 className={`block rounded-xl transition-transform duration-150 ${a ? 'hover:-translate-y-2' : ''}`}
               >
-                <CardFace card={card} size={player === HUMAN ? 'md' : 'xs'} glow={!!a} />
+                <CardFace card={card} size={big ? 'md' : 'xs'} glow={!!a} />
               </button>
-              {player === HUMAN && (
+              {big && (
                 <button
                   type="button"
                   onClick={() => onInspect(card)}
@@ -215,16 +218,16 @@ function Hand({ game, player, actions, act, onInspect }: { game: GameState; play
   );
 }
 
-function Log({ game }: { game: GameState }) {
+function Log({ game, names }: { game: GameState; names?: [string, string] }) {
   const log = useSession((s) => s.log);
-  const recent = log.filter((l) => l.event.type !== 'cardsDiscarded' && !(l.event.type === 'draw' && l.event.player === CPU)).slice(-80).reverse();
+  const recent = log.filter((l) => l.event.type !== 'cardsDiscarded' && !(l.event.type === 'draw' && l.event.player === CPU && !names)).slice(-80).reverse();
   return (
     <section className="flex max-h-[34rem] flex-col gap-2 overflow-y-auto rounded-2xl border border-grid bg-deep/60 p-3" aria-label="Registro de la partida">
       <h2 className="font-display text-sm font-semibold text-haze">Registro</h2>
       <ul className="flex flex-col gap-1 text-[13px]">
         {recent.map((l) => (
           <li key={l.id} className={l.event.type === 'turnStart' ? 'mt-1.5 font-semibold' : 'text-haze'}>
-            {describeEvent(l.event, game)}
+            {describeEvent(l.event, game, names)}
           </li>
         ))}
       </ul>
@@ -266,7 +269,11 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
   const error = useSession((s) => s.error);
   const report = useSession((s) => s.battleReport);
   const cinematic = useSession((s) => s.scenes.length > 0);
-  const actions = useMemo(() => legalActions(game, HUMAN), [game]);
+  const twoPlayer = useSession((s) => s.twoPlayer);
+  const sessionNames = useSession((s) => s.names);
+  const seats: Seats = { me: controller(game, twoPlayer), names: seatNames(twoPlayer, sessionNames), twoPlayer };
+  const logNames = twoPlayer ? seats.names : undefined;
+  const actions = useMemo(() => legalActions(game, seats.me), [game, seats.me]);
   const act = (a: Action) => sessionStore.getState().act(a);
 
   return (
@@ -276,11 +283,11 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
           className="flex min-w-0 flex-col gap-4 rounded-3xl border border-grid p-3 sm:p-4"
           style={{ background: 'linear-gradient(180deg, rgb(24 33 90 / 0.55), rgb(13 19 51 / 0.2) 45%, rgb(24 33 90 / 0.55))' }}
         >
-          <section aria-label="CPU" className="flex flex-col gap-2">
+          <section aria-label={seats.names[CPU]} className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="font-display text-sm font-semibold text-haze">CPU, mano abierta como en el original</h2>
+              <h2 className="font-display text-sm font-semibold text-haze">{twoPlayer ? `Mano de ${seats.names[CPU]}` : 'CPU, mano abierta como en el original'}</h2>
             </div>
-            <Hand game={game} player={CPU} actions={[]} act={act} onInspect={setInspect} />
+            <Hand game={game} player={CPU} seats={seats} actions={seats.me === CPU ? actions : []} act={act} onInspect={setInspect} />
             <Field game={game} player={CPU} onInspect={setInspect} />
           </section>
 
@@ -290,7 +297,7 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
             </div>
             <div className="order-2 flex flex-col items-center gap-1">
               <span className="font-display text-xl font-bold text-haze sm:text-3xl">VS</span>
-              <span className="text-center text-[10px] text-haze">{game.turn === HUMAN ? 'Atacas primero' : 'La CPU ataca primero'}</span>
+              <span className="text-center text-[10px] text-haze">{twoPlayer ? `${seats.names[game.turn]} ataca primero` : game.turn === HUMAN ? 'Atacas primero' : 'La CPU ataca primero'}</span>
             </div>
             <div className="order-1 flex justify-center sm:order-3 sm:justify-start">
               <ArenaCard game={game} player={CPU} onInspect={setInspect} mirrored />
@@ -299,7 +306,7 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
 
           <div className="flex flex-col gap-3">
             <PhaseRail game={game} />
-            <PhasePanel game={game} act={act} />
+            <PhasePanel game={game} act={act} seats={seats} />
             {error && (
               <p role="alert" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-conflict)' }}>
                 {error}
@@ -307,10 +314,10 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
             )}
           </div>
 
-          <section aria-label="Tú" className="flex flex-col gap-2">
+          <section aria-label={seats.names[HUMAN]} className="flex flex-col gap-2">
             <Field game={game} player={HUMAN} onInspect={setInspect} />
-            <h2 className="mt-1 font-display text-sm font-semibold text-haze">Tu mano</h2>
-            <Hand game={game} player={HUMAN} actions={actions} act={act} onInspect={setInspect} />
+            <h2 className="mt-1 font-display text-sm font-semibold text-haze">{twoPlayer ? `Mano de ${seats.names[HUMAN]}` : 'Tu mano'}</h2>
+            <Hand game={game} player={HUMAN} seats={seats} actions={seats.me === HUMAN ? actions : []} act={act} onInspect={setInspect} />
           </section>
         </div>
 
@@ -327,12 +334,12 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
                 {report
                   .filter((e) => e.type !== 'cardsDiscarded')
                   .map((e, i) => (
-                    <li key={i}>{describeEvent(e, game)}</li>
+                    <li key={i}>{describeEvent(e, game, logNames)}</li>
                   ))}
               </ol>
             </section>
           )}
-          <Log game={game} />
+          <Log game={game} names={logNames} />
           {!hideLeave && (
             <button type="button" onClick={() => (onLeave ? onLeave() : sessionStore.getState().reset())} className="self-start text-sm text-haze underline underline-offset-4 hover:text-ink">
               Abandonar partida

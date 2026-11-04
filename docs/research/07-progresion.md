@@ -255,13 +255,31 @@ bloque y una suma de comprobación. ✅ [COD]
   Digi-Parts de la copia llegan con la colección. Afecta también a las partidas sueltas: los mazos rivales con huevo (por
   ejemplo, el de Davis o el del Digimon Emperor) se transforman al entrar.
 * **Desert Island** ✅: los torneos con regla de mazo (sin Option) se comprueban antes de entrar.
-* **Constructor de mazos** 🟡: hoy es libre. En el modo historia, los mazos tendrían que salir de la colección.
+* **Constructor de mazos** ✅: en el modo historia los mazos salen de la colección (no más copias de las que
+  tienes, 4 por mazo, nunca cartas Armor; SUBSEG `0x801ECE70`). **Hecho**; la pestaña Mazos sigue libre para
+  las partidas sueltas.
+
+### 12.1 Cómo quedó implementado (y qué se decidió sin dato exacto)
+
+| Pieza | Código | Decisión 🟡 |
+|---|---|---|
+| Mazos de la historia | `src/engine/progression/storyDecks.ts`, `src/ui/decks/DeckEditor.tsx` | Cada carta Partner cuenta como 1 copia si está en tus ranuras (no está en la colección). El nombre del mazo tiene hasta 12 letras (✅ SUBSEG `0x801E0A60`). El mazo activo no se puede guardar con menos de 30 cartas. |
+| Digi-Parts y Digi-Eggs | `equipPart` / `unequipPart` / `chooseEgg` | Reglas de `0x800495B4`, `0x800496E4` y `0x80047E64`. ❓ Cómo se quita un huevo ya puesto: no se ofrece. |
+| PARTNER GET | `cityHost.ts` (10.11 / 11.10 / 10.10), `StoryMenus.tsx` | Se elige con la pregunta "¿Este compañero está bien?"; ❓ si el original deja rechazar todos. |
+| Tiendas de fusión | `fusion.ts` (`fuseCards`, `partnerFusion`, `visitShop`), `FusionShop.tsx` | Límite R / C / cualquiera con valores 0 / 2 / 3. La tienda más alta visitada fija el límite de todas (diálogo *"I already got your data"*); se guarda en `save.fusionShop` porque no se sabe en qué variable de los guiones UNIT lo guarda el juego. Los diálogos de Andromon (UNIT00-02) no se ejecutan: su juego de comandos de EVOSEG no está decodificado (❓), así que la pantalla va directo a fusionar y no da pistas del resultado. En la búsqueda ±d, cuál de los dos candidatos es "arriba" al 50 % no está confirmado. |
+| Intercambio | `trade.ts`, `TradeView.tsx` | Dos de las tres partidas hacen de dos tarjetas de memoria. La copia que viaja, las marcas y el orden de los rangos son los del original (`progresion/05` §6). |
+| Estadísticas completas | `records.ts`, `stats.ts`, `CompleteStats.tsx` | Récords por mazo con la unión de `0x800471F4`, mazos conocidos y prestados, poder máximo y rondas por carta, y la página de ENDSEG en su orden (`progresion/05` §1-§3). Se ven al final secreto (desplazamiento solo), desde los datos del jugador con la historia terminada (v15), y el final (`CMD11.19(0)`) muestra "Fin" en lugar del vídeo. |
+| Auto Deck y mazo base | `autoDeck.ts`, `StoryMenus.tsx` | Algoritmo y tablas de SUBSEG (`progresion/05` §4). El mazo base se valida con tu colección al guardarlo (el original no lo comprueba al copiarlo). |
+| Nombre | `cleanName`, pantalla de registro | 12 letras, no vacío. 🟡 Se omite `*` (códigos de texto del juego). |
+| Batalla 2P | `twoPlayer.ts`, `DuelView.tsx`, sesión con dos jugadores | Las dos partidas comparten la pantalla; el tablero dice a quién le toca. Resultado de `0x80041A1C` (`progresion/05` §7). |
+| Número de registro | `save.registration` | `rand()` al crear la partida, antes de elegir las cartas iniciales (`0x8002D59C`). Las partidas guardadas antes de esta versión reciben uno al azar al cargarse. |
 
 ## 13. Desconocido
 
 * ❓ Qué personaje da el 2.º y el 3.er compañero y con qué candidatos, y el evento exacto de cada Digi-Egg.
 * ❓ Los comandos de los guiones de las tiendas de fusión (los avisos de "fusión especial" y "mutación") y
-  dónde se guardan sus variables.
+  dónde se guardan sus variables. Por eso la tienda del remake no muestra los diálogos de Andromon.
+* ❓ El teclado de la pantalla de nombre (qué caracteres ofrece) y si la batalla 2P exige partidas con registro distinto.
 * ❓ 7 Digi-Parts obtenidas por evento (45, 61, 85, 86, 92, 99, 114): se sabe dónde aparecen, no el comando.
 * ❓ Algunos comandos menores de los guiones (efectos visuales de Infinity Tower, dos modos de la pantalla de
   mazos).

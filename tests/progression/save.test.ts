@@ -43,27 +43,27 @@ describe('after a battle against the CPU', () => {
     const s = newGame(0, counter());
     const { state, events } = ended(0);
     const rival = deck('New Power'); // EXP 5
-    const r = applyComResult(s, { state, events, rival, deckUsed: [175, ...Array(29).fill(27)] }, counter());
+    const r = applyComResult(s, { state, events, rival, deckUsed: [175, ...Array(29).fill(27)], lent: null }, counter());
     expect([s.winsCom, s.lossesCom]).toEqual([1, 0]);
     expect(r.pack).toHaveLength(3);
     expect(r.expGained[0]).toBe(r.bonuses.exp);
     expect(r.bonuses.exp).toBeGreaterThan(5);
     expect(s.partners[0].exp).toBe(r.bonuses.exp);
     expect(s.attackUse).toEqual([1, 0, 0]);
-    expect(s.deckRecords[rival.index]).toEqual({ wins: 1, losses: 0 });
+    expect(s.deckRecords[rival.index]).toEqual({ wins: 1, losses: 0 }); // New Power (3) keeps its own record
   });
 
   it('a loss: no pack, and EXP only from the loss bonuses', () => {
     const s = newGame(0, counter());
     const { state, events } = ended(1);
-    const r = applyComResult(s, { state, events, rival: deck('New Power'), deckUsed: [175, ...Array(29).fill(27)] }, counter());
+    const r = applyComResult(s, { state, events, rival: deck('New Power'), deckUsed: [175, ...Array(29).fill(27)], lent: null }, counter());
     expect([s.winsCom, s.lossesCom, r.pack.length]).toEqual([0, 1, 0]);
   });
 
   it('partners that were not in the deck used get no EXP', () => {
     const s = newGame(0, counter());
     const { state, events } = ended(0);
-    const r = applyComResult(s, { state, events, rival: deck('New Power'), deckUsed: Array(30).fill(27) }, counter());
+    const r = applyComResult(s, { state, events, rival: deck('New Power'), deckUsed: Array(30).fill(27), lent: null }, counter());
     expect(r.expGained).toEqual([0]);
     expect(s.partners[0].exp).toBe(0);
   });

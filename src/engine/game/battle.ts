@@ -145,7 +145,7 @@ function fight(ctx: BattleCtx): void {
       markHp(P[attacker], c.f[attacker].hp);
       markHp(P[defender], c.f[defender].hp);
     }
-    c.events.push({ type: 'hit', attacker, defender, attackerCard: activeRef(P[attacker]), defenderCard: activeRef(P[defender]), damage, eaten, hp: hpOf(c) });
+    c.events.push({ type: 'hit', attacker, defender, attackerCard: activeRef(P[attacker]), defenderCard: activeRef(P[defender]), damage, eaten, hp: hpOf(c), slot: P[attacker].attack ?? 'circle' });
     return c.f[defender].hp > 0;
   }
 }
