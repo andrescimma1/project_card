@@ -1,0 +1,183 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+  --font-code: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* Digital ocean base */
+  --color-abyss: #0d1333;
+  --color-deep: #121a42;
+  --color-panel: #18215a;
+  --color-grid: #2b3878;
+  --color-ink: #e9edff;
+  --color-haze: #9ba7da;
+
+  /* The five specialties, as the game colours them */
+  --color-fire: #ff5a4e;
+  --color-ice: #4fb6ff;
+  --color-nature: #49d17d;
+  --color-darkness: #b48cff;
+  --color-rare: #ffd447;
+
+  /* Verification states */
+  --color-verified: #3ee6c4;
+  --color-probable: #ffb547;
+  --color-unknown: #7d89bd;
+  --color-conflict: #ff6fa8;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-abyss);
+  background-image:
+    linear-gradient(var(--color-deep) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-deep) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-verified);
+  outline-offset: 2px;
+}
+
+/* Holographic foil: the one loud element. Follows the pointer through --mx / --my. */
+.holo {
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  isolation: isolate;
+}
+.holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.35), transparent 42%),
+    repeating-linear-gradient(
+      115deg,
+      rgb(255 90 78 / 0.22) 0%,
+      rgb(255 212 71 / 0.22) 6%,
+      rgb(73 209 125 / 0.22) 12%,
+      rgb(79 182 255 / 0.22) 18%,
+      rgb(180 140 255 / 0.22) 24%
+    );
+  background-size:
+    100% 100%,
+    300% 300%;
+  background-position:
+    center,
+    var(--mx) var(--my);
+}
+.holo:hover::after,
+.holo:focus-visible::after,
+.holo[data-active='true']::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo::after {
+    transition: none;
+  }
+}
+
+.prose-doc {
+  max-width: 76ch;
+  line-height: 1.65;
+  font-size: 1rem;
+}
+.prose-doc h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1.15;
+  margin: 0 0 1.25rem;
+}
+.prose-doc h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-grid);
+}
+.prose-doc h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 1.75rem 0 0.5rem;
+  color: var(--color-ice);
+}
+.prose-doc p,
+.prose-doc ul,
+.prose-doc ol {
+  margin: 0.75rem 0;
+}
+.prose-doc ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.prose-doc ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.prose-doc a {
+  color: var(--color-ice);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-doc code {
+  font-family: var(--font-code);
+  font-size: 0.85em;
+  background: var(--color-deep);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.prose-doc pre {
+  background: var(--color-deep);
+  border: 1px solid var(--color-grid);
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+.prose-doc pre code {
+  background: none;
+  padding: 0;
+}
+.prose-doc table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  max-width: 100%;
+}
+.prose-doc th,
+.prose-doc td {
+  border: 1px solid var(--color-grid);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-doc th {
+  background: var(--color-panel);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.prose-doc blockquote {
+  border-left: 3px solid var(--color-probable);
+  padding-left: 1rem;
+  color: var(--color-haze);
+}
