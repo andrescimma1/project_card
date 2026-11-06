@@ -29,9 +29,9 @@ function Volume({ label, value, onChange, onRelease }: { label: string; value: n
   const pct = Math.round(value * 100);
   return (
     <label className="relative z-[1] flex flex-col gap-1.5">
-      <span className="flex items-baseline justify-between font-display text-[17px] font-bold italic">
+      <span className="flex items-baseline justify-between font-display text-[17px] font-bold ">
         {label}
-        <span className="num text-[16px] text-cyan not-italic">{pct}%</span>
+        <span className="num text-[16px] text-brass not-italic">{pct}%</span>
       </span>
       <input
         type="range"
@@ -56,8 +56,8 @@ function Switch({ label, hint, on, onToggle }: { label: string; hint?: string; o
         <span />
       </span>
       <span className="flex min-w-0 flex-col">
-        <span className="font-display text-[16px] font-bold italic">{label}</span>
-        {hint && <span className="text-[13px] leading-snug text-haze">{hint}</span>}
+        <span className="font-display text-[16px] font-bold ">{label}</span>
+        {hint && <span className="text-[13px] leading-snug text-faded">{hint}</span>}
       </span>
     </button>
   );
@@ -82,7 +82,7 @@ export function AudioButton() {
   }, [open]);
 
   const set = (patch: Partial<AudioSettings>) => audio.update(patch);
-  const preview = () => emitCues([{ name: 'ATTACK_RESOLVED', data: { slot: 'circle' } }, { name: 'HIT_TAKEN', data: { slot: 'circle' }, delay: 220 }]);
+  const preview = () => emitCues([{ name: 'ATTACK_RESOLVED', data: { action: 'fury' } }, { name: 'HIT_TAKEN', data: { action: 'fury' }, delay: 220 }]);
 
   return (
     <div ref={root} className="relative flex h-full shrink-0 items-center">
@@ -92,7 +92,7 @@ export function AudioButton() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={s.muted ? 'Sonido (silenciado)' : 'Sonido'}
-        className={`flex items-center gap-2 px-2 font-display text-[15px] font-semibold italic transition-colors ${open ? 'text-ink' : 'text-haze/80 hover:text-ink'}`}
+        className={`flex items-center gap-2 px-2 font-display text-[15px] font-semibold transition-colors ${open ? 'text-bone' : 'text-faded/80 hover:text-bone'}`}
       >
         <SpeakerIcon muted={s.muted || s.master === 0} level={s.master} />
         <span className="hidden lg:inline">Sonido</span>
@@ -110,11 +110,11 @@ export function AudioButton() {
             aria-label="Ajustes de sonido"
           >
             <div className="fill flex flex-col gap-4 p-5">
-              <h2 className="relative z-[1] font-display text-[24px] leading-none font-black italic">Sonido</h2>
+              <h2 className="relative z-[1] font-display text-[24px] leading-none font-black ">Sonido</h2>
               <Volume label="General" value={s.master} onChange={(v) => set({ master: v })} onRelease={() => gameEvents.emit('UI_CONFIRM')} />
               <Volume label="Música" value={s.music} onChange={(v) => set({ music: v })} />
               <Volume label="Efectos" value={s.sfx} onChange={(v) => set({ sfx: v })} onRelease={preview} />
-              <div className="relative z-[1] h-px bg-cyan/20" />
+              <div className="relative z-[1] h-px bg-brass/20" />
               <Switch label="Silenciar todo" on={s.muted} onToggle={() => set({ muted: !s.muted })} />
               <Switch label="Sonidos de interfaz" hint="Cursor, clics, pestañas y paneles." on={s.uiSounds} onToggle={() => set({ uiSounds: !s.uiSounds })} />
               <Switch
@@ -123,7 +123,7 @@ export function AudioButton() {
                 on={s.reduceIntense}
                 onToggle={() => set({ reduceIntense: !s.reduceIntense })}
               />
-              <p className="relative z-[1] text-[13px] leading-snug text-haze">Música y efectos originales, sintetizados en el navegador. Se guarda en este navegador.</p>
+              <p className="relative z-[1] text-[13px] leading-snug text-faded">Música y efectos originales, sintetizados en el navegador. Se guarda en este navegador.</p>
             </div>
           </motion.div>
         )}

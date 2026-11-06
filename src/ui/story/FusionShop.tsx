@@ -5,6 +5,7 @@
  */
 import { useMemo, useState } from 'react';
 import { cards } from '../../engine/cards/db';
+import { TERMS } from '../vocab/terms';
 import type { Card } from '../../engine/cards/types';
 import { partnerCards } from '../../engine/game/partner';
 import { copiesOf } from '../../engine/progression/collection';
@@ -15,7 +16,7 @@ import { Chip } from '../decks/DeckEditor';
 import { Button, Notice, PartName } from './common';
 
 const act = () => storyStore.getState();
-const LIMIT = ['Digimon de nivel R y cartas Option', 'Digimon hasta nivel C y cartas Option', 'cualquier carta'];
+const LIMIT = [`${TERMS.creatures.toLowerCase()} de nivel ${TERMS.levels.R} y cartas de apoyo`, `${TERMS.creatures.toLowerCase()} hasta nivel ${TERMS.levels.C} y cartas de apoyo`, 'cualquier carta'];
 const limitText = (level: number) => LIMIT[level === 0 ? 0 : level === 2 ? 1 : 2];
 const KIND_TEXT: Record<FusionKind, string> = { normal: 'Fusión', special: '¡Fusión especial!', mutation: '¡Fusión mutante!' };
 
@@ -33,13 +34,13 @@ function Picker({ onPick, selected }: { onPick: (id: number) => void; selected: 
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-haze">Buscar</span>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-grid bg-deep px-3 py-2" />
+          <span className="text-sm text-faded">Buscar</span>
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-seam bg-leather px-3 py-2" />
         </label>
         <div className="flex flex-wrap gap-1.5">
           {(['all', 'digimon', 'option', 'digivolve'] as const).map((k) => (
             <Chip key={k} on={kind === k} onClick={() => setKind(k)}>
-              {k === 'all' ? 'Todas' : k === 'digimon' ? 'Digimon' : k === 'option' ? 'Option' : 'Digivolve'}
+              {k === 'all' ? 'Todas' : k === 'digimon' ? TERMS.creatures : k === 'option' ? TERMS.supportShort : TERMS.evolution}
             </Chip>
           ))}
         </div>
@@ -57,7 +58,7 @@ function Picker({ onPick, selected }: { onPick: (id: number) => void; selected: 
               >
                 <CardFace card={c} size="sm" glow={selected.includes(c.id)} />
               </button>
-              <span className="absolute right-1 bottom-1 rounded-md bg-abyss/85 px-1.5 text-xs tabular-nums text-haze">
+              <span className="absolute right-1 bottom-1 rounded-md bg-soot/85 px-1.5 text-xs tabular-nums text-faded">
                 {free} de {copiesOf(save.collection, c.id)}
               </span>
             </li>
@@ -72,7 +73,7 @@ function Slot({ id, label, onClear }: { id: number | null; label: string; onClea
   return (
     <div className="flex flex-col items-center gap-2">
       {id === null ? (
-        <div className="grid h-44 w-32 place-items-center cut [--c:10px] border-2 border-dashed border-grid text-sm text-haze">{label}</div>
+        <div className="grid h-44 w-32 place-items-center cut [--c:10px] border-2 border-dashed border-seam text-sm text-faded">{label}</div>
       ) : (
         <button type="button" onClick={onClear} aria-label={`Quitar ${cards[id].name}`} className="cut [--c:10px]">
           <CardFace card={cards[id]} size="sm" />
@@ -106,9 +107,9 @@ function CardFusion({ shopLevel, onDone }: { shopLevel: number; onDone: (o: Outc
   };
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-4 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4">
+      <div className="flex flex-wrap items-center gap-4 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4">
         <Slot id={a} label="Carta 1" onClear={() => setA(null)} />
-        <span className="font-display text-3xl text-haze" aria-hidden>
+        <span className="font-display text-3xl text-faded" aria-hidden>
           +
         </span>
         <Slot id={b} label="Carta 2" onClear={() => setB(null)} />
@@ -116,7 +117,7 @@ function CardFusion({ shopLevel, onDone }: { shopLevel: number; onDone: (o: Outc
           <Button primary disabled={a === null || b === null} onClick={fuse}>
             Fusionar
           </Button>
-          <span className="max-w-[24ch] text-sm text-haze">Se pierden las dos cartas y recibes una nueva.</span>
+          <span className="max-w-[24ch] text-sm text-faded">Se pierden las dos cartas y recibes una nueva.</span>
         </div>
       </div>
       <Notice text={notice} />
@@ -140,7 +141,7 @@ function PartnerFusionView({ shopLevel, onDone }: { shopLevel: number; onDone: (
     setNotice(null);
     const name = cards[p.slot.id].name;
     const face = partnerCards(act().save!.partners[k].slot).card;
-    if (r.part !== undefined) return onDone({ face, title: `${name} aprende una Digi-Part`, detail: <PartName id={r.part} /> });
+    if (r.part !== undefined) return onDone({ face, title: `${name} aprende una ${TERMS.part.toLowerCase()}`, detail: <PartName id={r.part} /> });
     onDone({
       face,
       title: r.exp ? `${name} gana ${r.exp} EXP` : 'RANK MAX',
@@ -165,8 +166,8 @@ function PartnerFusionView({ shopLevel, onDone }: { shopLevel: number; onDone: (
           </Chip>
         ))}
       </div>
-      <p className="max-w-[70ch] text-sm text-haze">
-        Elige una carta para {cards[p.slot.id].name}. Cinco cartas concretas le enseñan una Digi-Part; cualquier otra le da tanta EXP como su valor
+      <p className="max-w-[70ch] text-sm text-faded">
+        Elige una carta para {cards[p.slot.id].name}. Cinco cartas concretas le enseñan una {TERMS.part.toLowerCase()}; cualquier otra le da tanta EXP como su valor
         Composite.
       </p>
       <Notice text={notice} />
@@ -184,7 +185,7 @@ export function FusionShop({ shop }: { shop: number }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="font-display text-2xl font-bold">Fusion Shop · Andromon No.{shop + 1}</h3>
-          <p className="text-sm text-haze">Aquí se fusionan {limitText(shopLevel)}. Las cartas que usan tus mazos no se pueden fusionar.</p>
+          <p className="text-sm text-faded">Aquí se fusionan {limitText(shopLevel)}. Las cartas que usan tus mazos no se pueden fusionar.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Chip on={mode === 'cards'} onClick={() => setMode('cards')}>
@@ -197,11 +198,11 @@ export function FusionShop({ shop }: { shop: number }) {
         </div>
       </div>
       {outcome && (
-        <div className="flex flex-wrap items-center gap-4 cut [--c:16px] border-2 bg-deep p-4" style={{ borderColor: 'var(--color-rare)' }} role="status">
+        <div className="flex flex-wrap items-center gap-4 cut [--c:16px] border-2 bg-leather p-4" style={{ borderColor: 'var(--color-rare)' }} role="status">
           <CardFace card={outcome.face} size="sm" />
           <div className="flex flex-col gap-1">
-            <p className="font-display text-2xl font-bold italic">{outcome.title}</p>
-            {outcome.detail && <div className="text-sm text-haze">{outcome.detail}</div>}
+            <p className="font-display text-2xl font-bold ">{outcome.title}</p>
+            {outcome.detail && <div className="text-sm text-faded">{outcome.detail}</div>}
             {outcome.showName && <p className="font-display text-lg">{outcome.face.name}</p>}
           </div>
           <div className="ml-auto">

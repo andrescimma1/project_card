@@ -87,6 +87,30 @@ no usa texturas ni gráficos de la interfaz original, solo el arte de las cartas
 * **Arte original** de las 301 cartas, pixelado, extraído del disco (`npm run extract:art`).
 * Atajos: teclas 1/2/3 eligen ◯/△/✕.
 
+## Identidad propia (sobre el mismo motor)
+
+El juego dejó de ser un remake: conserva el motor, el DP, la evolución, los efectos y la progresión, pero
+la interfaz habla con vocabulario y estética propios. **Las reglas no cambiaron** (ningún archivo de
+`src/engine` se tocó en este paso).
+
+* **Vocabulario** (`src/ui/vocab/`): todo lo que el jugador lee sale de ahí y es configurable.
+  * `actions.ts`: los tres ataques son **Furia**, **Técnica** e **Instinto** (`fury`, `technique`,
+    `instinct`). Es una capa de compatibilidad: el motor y los datos del disco siguen llamando a los
+    espacios `circle / triangle / cross`, y la interfaz convierte solo en el borde (`slotOf`, `actionOf`).
+  * `factions.ts`: la especialidad de las reglas se muestra como **facción** (Roja, Azul, Verde, Sombría,
+    Dorada) con su paleta. Facción, hábitat y elemento son conceptos distintos: la facción es
+    temperamento y la usan las reglas; hábitat y elemento son solo presentación.
+  * `terms.ts`: Criatura, Evolución, Novato / Campeón / Perfecto, Puntos de evolución (PE), Reserva,
+    Mazo, Descarte, Carta de apoyo, Carta de evolución, Reliquias, Huevo… Los textos de las cartas del
+    disco se muestran con esos nombres (`cardText`), sin tocar los datos.
+* **Tema** (`src/index.css`, `src/ui/play/glyphs.tsx`): fantasía ilustrada con piedra tallada, cuero,
+  bronce y pergamino, más texturas de papel y grabados generados con SVG. Fuentes Grenze (títulos y
+  números) y Alegreya Sans (texto). Iconos SVG propios: espadas cruzadas, mira, escudo, emblemas de
+  facción y el sello del dorso. Las cartas son físicas: esquinas redondeadas y marco del color de su
+  facción.
+* `tests/vocab.test.ts` revisa que ningún texto visible de la interfaz use términos de Digimon ni
+  ◯ △ ✕, y que esté en español latino neutro.
+
 ## Mazos propios (Etapa 6)
 
 * `src/game/deckbook.ts`: reglas de construcción del original (30 cartas, máximo 4 copias, al menos un

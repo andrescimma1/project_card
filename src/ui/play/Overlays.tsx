@@ -6,28 +6,31 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { gameEvents } from '../../audio/bus';
 import { usePanelCue } from '../../audio/react';
-import { CROSS_EFFECT_LABEL } from '../../engine/cards/db';
 import type { Card } from '../../engine/cards/types';
 import type { GameEvent, GameState } from '../../engine/game/types';
 import { describeEvent } from '../../game/describe';
 import { CPU } from '../../game/session';
 import { sessionStore, useSession } from '../../game/useSession';
-import { LEVEL_NAME, SPECIALTY_COLOR, SPECIALTY_NAME } from '../theme';
+import { LEVEL_NAME } from '../theme';
 import { CardFace } from './CardFace';
-import { SLOTS, SlotDisc } from './glyphs';
+import { CUSTOM_ART } from '../art';
+import { ACTIONS, slotOf } from '../vocab/actions';
+import { factionOf } from '../vocab/factions';
+import { cardText, crossEffectLabel, TERMS } from '../vocab/terms';
+import { ActionDisc, FactionEmblem } from './glyphs';
 import type { Playback } from './Playback';
 import { cardAt } from './util';
 
-const SPEED_NAME = ['None', 'Low', 'Mid', 'High'];
+const SPEED_NAME = ['ninguna', 'baja', 'media', 'alta'];
 
 const GROUP: Record<string, string> = {
   turnStart: 'Preparación',
   mulligan: 'Preparación',
   entrance: 'Preparación',
   armorDigivolve: 'Preparación',
-  dp: 'Digivolución',
-  digivolveOption: 'Digivolución',
-  digivolve: 'Digivolución',
+  dp: TERMS.evolution,
+  digivolveOption: TERMS.evolution,
+  digivolve: TERMS.evolution,
   attack: 'Batalla',
   support: 'Batalla',
 };
@@ -43,7 +46,7 @@ export function PhaseBanner({ game, paused, names, twoPlayer }: { game: GameStat
     if (!key || paused || key === last.current) return;
     last.current = key;
     const first = twoPlayer ? names[game.turn] : game.turn === 0 ? 'Tú' : 'La CPU';
-    const sub = group === 'Preparación' ? `Turno ${game.turnNumber} · ${first} ataca${game.turn === 0 && !twoPlayer ? 's' : ''} primero` : group === 'Batalla' ? 'Elige tu ataque' : 'Carga DP y digievoluciona';
+    const sub = group === 'Preparación' ? `Turno ${game.turnNumber} · ${first} ataca${game.turn === 0 && !twoPlayer ? 's' : ''} primero` : group === 'Batalla' ? 'Elige tu ataque' : `Carga ${TERMS.dp} y evoluciona`;
     setShown({ key, title: `Fase de ${group}`, sub });
     gameEvents.emit('PHASE_BANNER');
   }, [key, paused, group, game.turn, game.turnNumber, names, twoPlayer]);
@@ -70,13 +73,19 @@ export function PhaseBanner({ game, paused, names, twoPlayer }: { game: GameStat
           transition={{ type: 'spring', stiffness: 220, damping: 26 }}
           aria-hidden
         >
-          <div className="absolute inset-y-2 right-0 left-24 -skew-x-[14deg]" style={{ background: 'linear-gradient(90deg, transparent, rgb(47 125 255 / 0.55) 30%, rgb(47 125 255 / 0.75))', boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.4)' }} />
-          <span className="relative font-display text-[64px] leading-none font-black text-white italic" style={{ textShadow: '0 4px 0 #061340, 0 0 24px rgb(72 228 255 / 0.6)' }}>
+          <div
+            className="absolute inset-y-1 right-6 left-16"
+            style={{
+              background: 'var(--grain), linear-gradient(180deg, #f3e6c4, #d9c393)',
+              clipPath: 'polygon(0 0, 100% 0, calc(100% - 22px) 50%, 100% 100%, 0 100%, 22px 50%)',
+              boxShadow: 'inset 0 -3px 0 #a97a32',
+              filter: 'drop-shadow(0 8px 14px rgb(0 0 0 / 0.55))',
+            }}
+          />
+          <span className="relative font-display text-[60px] leading-none font-black text-ink" style={{ textShadow: '0 1px 0 rgb(255 248 225 / 0.7)' }}>
             {shown.title}
           </span>
-          <span className="relative font-display text-[24px] font-bold text-gold italic" style={{ textShadow: '0 2px 0 #000' }}>
-            {shown.sub}
-          </span>
+          <span className="relative pb-1 font-display text-[24px] font-bold text-[#7a4e24]">{shown.sub}</span>
         </motion.div>
       )}
     </AnimatePresence>
@@ -103,17 +112,17 @@ export function LogDrawer({ open, onClose, game, names }: { open: boolean; onClo
         >
           <div className="fill flex flex-col">
             <div className="relative z-[1] flex items-center justify-between px-4 pt-3 pb-2">
-              <h2 className="font-display text-[24px] font-black italic">Registro</h2>
+              <h2 className="font-display text-[24px] font-black ">Registro</h2>
               <button type="button" data-sfx="none" onClick={onClose} className="cmd !py-1 !text-[14px]">
                 <span>Cerrar</span>
               </button>
             </div>
             <div className="thin-scroll relative z-[1] min-h-0 flex-1 overflow-y-auto px-4 pb-4">
               {report && (
-                <section className="mb-3 bg-gold/10 p-3 shadow-[inset_0_0_0_1px_rgb(255_201_52/0.5)]" aria-label="Última batalla">
+                <section className="mb-3 rounded-md bg-gold/10 p-3 shadow-[inset_0_0_0_1px_rgb(232_191_93/0.45)]" aria-label="Última batalla">
                   <div className="mb-1 flex items-center justify-between">
-                    <h3 className="font-display text-[17px] font-bold text-gold italic">Última batalla</h3>
-                    <button type="button" onClick={() => sessionStore.getState().dismissReport()} className="text-[13px] text-haze underline underline-offset-4 hover:text-ink">
+                    <h3 className="font-display text-[17px] font-bold text-gold ">Última batalla</h3>
+                    <button type="button" onClick={() => sessionStore.getState().dismissReport()} className="text-[13px] text-faded underline underline-offset-4 hover:text-bone">
                       Ocultar
                     </button>
                   </div>
@@ -128,7 +137,7 @@ export function LogDrawer({ open, onClose, game, names }: { open: boolean; onClo
               )}
               <ul className="flex flex-col gap-1 text-[14px]">
                 {recent.map((l) => (
-                  <li key={l.id} className={l.event.type === 'turnStart' ? 'mt-2 font-display text-[16px] font-bold text-cyan italic' : 'text-ink/80'}>
+                  <li key={l.id} className={l.event.type === 'turnStart' ? 'mt-2 font-display text-[16px] font-bold text-brass ' : 'text-bone/80'}>
                     {describeEvent(l.event, game, names)}
                   </li>
                 ))}
@@ -154,7 +163,7 @@ export function CardPopup({ card, onClose, onDetail }: { card: Card | null; onCl
     <AnimatePresence>
       {card && (
         <motion.div
-          className="absolute inset-0 z-40 grid place-items-center bg-void/70 backdrop-blur-[3px]"
+          className="absolute inset-0 z-40 grid place-items-center bg-night/70 backdrop-blur-[3px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -176,34 +185,70 @@ export function CardPopup({ card, onClose, onDetail }: { card: Card | null; onCl
                 <CardFace card={card} size="lg" />
               </motion.div>
               <div className="relative z-[1] flex min-w-0 flex-1 flex-col gap-3">
-                <span className="plate self-start text-[26px] font-black italic">
-                  <span className="font-display uppercase">{card.name}</span>
+                <span className="plate self-start text-[28px] font-black">
+                  <span className="font-display">{card.name}</span>
                 </span>
                 {card.kind === 'digimon' ? (
                   <>
-                    <p className="font-display text-[19px] font-semibold">
-                      <span style={{ color: SPECIALTY_COLOR[card.specialty] }}>{SPECIALTY_NAME[card.specialty]}</span> · {LEVEL_NAME[card.level]} ·{' '}
-                      <span className="text-gold">HP {card.hp}</span>
-                      {(card.level === 'C' || card.level === 'U') && <> · digievoluciona con {card.dpRequired} DP</>} · +P {card.dpGiven}
+                    <p className="flex flex-wrap items-center gap-x-2 font-display text-[19px] font-semibold">
+                      {(() => {
+                        const f = factionOf(card)!;
+                        return (
+                          <span className="flex items-center gap-1.5" style={{ color: f.palette.light }} title={f.temperament}>
+                            <FactionEmblem faction={f.id} className="size-[20px]" />
+                            {TERMS.faction} {f.name}
+                          </span>
+                        );
+                      })()}
+                      <span>· {LEVEL_NAME[card.level]} ·</span>
+                      <span className="text-gold">
+                        {TERMS.hp} {card.hp}
+                      </span>
+                      {(card.level === 'C' || card.level === 'U') && (
+                        <span>
+                          · evoluciona con {card.dpRequired} {TERMS.dp}
+                        </span>
+                      )}
+                      <span>
+                        · da {card.dpGiven} {TERMS.dp}
+                      </span>
                     </p>
+                    {CUSTOM_ART[card.id] && (CUSTOM_ART[card.id]!.habitat || CUSTOM_ART[card.id]!.element) && (
+                      <p className="text-[16px] text-faded">
+                        {CUSTOM_ART[card.id]!.habitat && (
+                          <>
+                            {TERMS.habitat}: <span className="text-bone">{CUSTOM_ART[card.id]!.habitat}</span>
+                          </>
+                        )}
+                        {CUSTOM_ART[card.id]!.habitat && CUSTOM_ART[card.id]!.element && ' · '}
+                        {CUSTOM_ART[card.id]!.element && (
+                          <>
+                            {TERMS.element}: <span className="text-bone">{CUSTOM_ART[card.id]!.element}</span>
+                          </>
+                        )}
+                      </p>
+                    )}
                     <div className="flex flex-col gap-1.5">
-                      {SLOTS.map((s) => (
-                        <div key={s} data-slot={s} className="atk-row h-[42px] px-2">
-                          <SlotDisc slot={s} size={30} />
-                          <span className="flex-1 font-display text-[19px] font-bold">{card.attacks[s].name}</span>
-                          <span className="num text-[30px] font-black italic">{card.attacks[s].power}</span>
+                      {ACTIONS.map((a) => (
+                        <div key={a} data-action={a} className="atk-row h-[42px] px-2">
+                          <ActionDisc action={a} size={30} />
+                          <span className="w-[90px] shrink-0 font-display text-[16px] font-bold" style={{ color: 'color-mix(in srgb, var(--a) 45%, #f6e7c6)' }}>
+                            {TERMS.actions[a]}
+                          </span>
+                          <span className="flex-1 font-display text-[19px] font-bold">{card.attacks[slotOf(a)].name}</span>
+                          <span className="num text-[30px] font-black">{card.attacks[slotOf(a)].power}</span>
                         </div>
                       ))}
                     </div>
-                    <p data-slot="cross" className="font-display text-[17px] font-semibold">
-                      Efecto especial <span style={{ color: 'var(--a)' }}>✕ {CROSS_EFFECT_LABEL[card.crossEffect]}</span>
+                    <p className="font-display text-[18px] font-semibold">
+                      {TERMS.instinctEffect}: <span className="text-[#a9c6dc]">{crossEffectLabel(card.crossEffect)}</span>
                     </p>
-                    <SupportText title="Efecto de soporte" text={card.support.text} speed={card.supportSpeed} />
+                    <SupportText title={TERMS.supportEffect} text={card.support.text} speed={card.supportSpeed} />
                   </>
                 ) : card.kind === 'option' ? (
-                  <SupportText title="Carta Option" text={card.support.text} speed={card.supportSpeed} />
+                  <SupportText title={TERMS.supportCard} text={card.support.text} speed={card.supportSpeed} />
                 ) : (
-                  <SupportText title="Digivolve Option" text={card.text} />
+                  <SupportText title={TERMS.evolutionCard} text={card.text} />
                 )}
                 <span className="flex-1" />
                 <div className="flex gap-3">
@@ -225,17 +270,17 @@ export function CardPopup({ card, onClose, onDetail }: { card: Card | null; onCl
 
 function SupportText({ title, text, speed }: { title: string; text: string; speed?: number }) {
   return (
-    <div className="bg-abyss/60 p-3 shadow-[inset_0_0_0_1px_rgb(159_208_255/0.25)]">
-      <p className="mb-1 flex items-baseline justify-between font-display text-[16px] font-bold text-cyan italic">
+    <div className="rounded-md p-3 text-ink" style={{ background: 'var(--grain), linear-gradient(180deg, #f2e4c2, #dfcb9e)', boxShadow: 'inset 0 0 0 1px #6f5638' }}>
+      <p className="mb-1 flex items-baseline justify-between font-display text-[17px] font-bold text-[#7a4e24]">
         {title}
-        {speed !== undefined && <span className="text-[14px] text-haze not-italic">Velocidad {SPEED_NAME[speed]}</span>}
+        {speed !== undefined && <span className="text-[15px] text-[#6a4c2e]">Velocidad {SPEED_NAME[speed]}</span>}
       </p>
-      <p className="text-[16px] leading-snug">{text}</p>
+      <p className="text-[17px] leading-snug">{cardText(text)}</p>
     </div>
   );
 }
 
-/** The support or cross effect of the battle step, shown between the two Digimon. */
+/** The support or Instinto effect of the battle step, shown between the two creatures. */
 export function EffectCard({ playback }: { playback: Playback | null }) {
   const e = playback?.effect ?? null;
   return (
@@ -251,7 +296,7 @@ export function EffectCard({ playback }: { playback: Playback | null }) {
         >
           {(() => {
             const c = cardAt(playback.board, e.player, e.card);
-            const text = e.source === 'cross' && c.kind === 'digimon' ? `✕ ${CROSS_EFFECT_LABEL[c.crossEffect]}` : c.kind !== 'digivolve' ? c.support.text : '';
+            const text = e.source === 'cross' && c.kind === 'digimon' ? `${TERMS.actions.instinct}: ${crossEffectLabel(c.crossEffect)}` : c.kind !== 'digivolve' ? cardText(c.support.text) : '';
             return (
               <div className="frame side-player" style={{ '--c': '18px', filter: 'drop-shadow(0 20px 30px rgb(0 0 0 / 0.7))' } as CSSProperties}>
                 <div className="fill flex items-center gap-5 p-4">
@@ -259,14 +304,14 @@ export function EffectCard({ playback }: { playback: Playback | null }) {
                     <CardFace card={c} size="md" glow />
                   </div>
                   <div className="relative z-[1] flex w-[300px] flex-col gap-2">
-                    <span className="font-display text-[15px] font-bold text-haze italic">
-                      {e.source === 'cross' ? 'Efecto especial ✕' : e.source === 'option' ? 'Carta Option' : 'Efecto de soporte'} · Velocidad {SPEED_NAME[e.speed]}
+                    <span className="font-display text-[15px] font-bold text-faded ">
+                      {e.source === 'cross' ? TERMS.instinctEffect : e.source === 'option' ? TERMS.supportCard : TERMS.supportEffect} · velocidad {SPEED_NAME[e.speed]}
                     </span>
-                    <p className="text-[17px] leading-snug">{text}</p>
+                    <p className="text-[17px] leading-snug">{cardText(text)}</p>
                     {/* the outcome lands with its sound (battleStepCues: 700 ms) */}
                     <motion.span
-                      className="self-start px-2.5 py-0.5 font-display text-[16px] font-extrabold text-abyss italic"
-                      style={{ background: e.voided ? 'var(--color-conflict)' : e.conditionsMet ? 'var(--color-atk-triangle)' : 'var(--color-unknown)' }}
+                      className="self-start px-2.5 py-0.5 font-display text-[16px] font-extrabold text-soot "
+                      style={{ background: e.voided ? '#d9826f' : e.conditionsMet ? '#b9d27a' : '#c9bca2', boxShadow: '0 0 0 1px #2b1d12' }}
                       initial={{ scale: 1.8, opacity: 0, rotate: -6 }}
                       animate={{ scale: 1, opacity: 1, rotate: 0 }}
                       transition={{ delay: 0.7, type: 'spring', stiffness: 420, damping: 18 }}
@@ -290,7 +335,7 @@ export function EndBanner({ title, subtitle, tone, children }: { title: string; 
   useEffect(() => gameEvents.emit(win ? 'BATTLE_WON' : 'BATTLE_LOST'), [win]);
   return (
     <motion.div
-      className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-void/75 backdrop-blur-[2px]"
+      className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-night/75 backdrop-blur-[2px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       role="dialog"
@@ -302,18 +347,22 @@ export function EndBanner({ title, subtitle, tone, children }: { title: string; 
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-        style={{ background: win ? 'linear-gradient(90deg, transparent, rgb(255 201 52 / 0.35) 25%, rgb(255 201 52 / 0.45) 50%, rgb(255 201 52 / 0.35) 75%, transparent)' : 'linear-gradient(90deg, transparent, rgb(47 125 255 / 0.3) 25%, rgb(47 125 255 / 0.4) 50%, rgb(47 125 255 / 0.3) 75%, transparent)' }}
+        style={{
+          background: win
+            ? 'var(--grain), linear-gradient(90deg, transparent, rgb(201 151 74 / 0.5) 22%, rgb(232 191 93 / 0.6) 50%, rgb(201 151 74 / 0.5) 78%, transparent)'
+            : 'var(--grain), linear-gradient(90deg, transparent, rgb(60 54 50 / 0.75) 22%, rgb(80 72 66 / 0.85) 50%, rgb(60 54 50 / 0.75) 78%, transparent)',
+        }}
       >
         <motion.h2
           initial={{ scale: 2.2, opacity: 0, letterSpacing: '0.3em' }}
           animate={{ scale: 1, opacity: 1, letterSpacing: '0.02em' }}
           transition={{ delay: 0.15, type: 'spring', stiffness: 160, damping: 16 }}
-          className="font-display text-[110px] leading-none font-black italic"
-          style={{ color: win ? '#fff4c2' : '#dce9ff', textShadow: win ? '0 5px 0 #8a5a00, 0 0 40px rgb(255 201 52 / 0.8)' : '0 5px 0 #061340, 0 0 30px rgb(72 228 255 / 0.5)' }}
+          className="font-display text-[110px] leading-none font-black "
+          style={{ color: win ? '#fff1c6' : '#e2d6be', textShadow: win ? '0 5px 0 #5e3f1c, 3px 0 0 #2b1d12, -3px 0 0 #2b1d12' : '0 5px 0 #1a120c, 3px 0 0 #1a120c, -3px 0 0 #1a120c' }}
         >
           {title}
         </motion.h2>
-        {subtitle && <p className="mt-3 font-display text-[24px] font-semibold text-ink/90">{subtitle}</p>}
+        {subtitle && <p className="mt-3 font-display text-[24px] font-semibold text-bone/90">{subtitle}</p>}
       </motion.div>
       <motion.div className="flex gap-4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         {children}

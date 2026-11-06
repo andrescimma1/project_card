@@ -24,7 +24,7 @@ describe('game event bus', () => {
       timers.push(t);
       return () => void (t.dead = true);
     };
-    const cues: Cue[] = [{ name: 'ATTACK_RESOLVED', data: { slot: 'circle' } }, { name: 'HIT_TAKEN', delay: 220 }, { name: 'MONSTER_DEFEATED', delay: 600 }];
+    const cues: Cue[] = [{ name: 'ATTACK_RESOLVED', data: { action: 'fury' } }, { name: 'HIT_TAKEN', delay: 220 }, { name: 'MONSTER_DEFEATED', delay: 600 }];
     const cancel = emitCues(cues, bus, schedule);
     expect(got).toEqual(['ATTACK_RESOLVED']);
     timers[0].fn();

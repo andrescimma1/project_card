@@ -14,3 +14,6 @@ public/card-art/
 
 # story scripts copied from the user disc (npm run extract:scripts) — contain the game dialogue, not distributed
 public/scripts/
+
+# master images of our own creatures (as generated, ~3 MB each); the game uses the WebP in public/art/
+public/cards-art/

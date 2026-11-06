@@ -1,7 +1,7 @@
 # 01 — El mundo y los guiones (formato MSCD, intérprete, ciudades, rivales, recompensas)
 
 Fuentes: disco extraído (C.DRV, B.DRV, P.DRV, SLUS_013.28), `src/data/decks.json`, `src/data/cards.json`.
-Herramientas (todas en `PROG\w01\`): `cdrv.py` (lee ficheros de los DRV sin copiarlos), `msdis.py` (desensamblador
+Herramientas (todas en `PROG\w01\`): `cdrv.py` (lee archivos de los DRV sin copiarlos), `msdis.py` (desensamblador
 MSCD), `pp.py` (listado legible, se regenera: `python -I pp.py CITY03`), `cfa.py` (análisis de flujo + condiciones),
 `report.py` (genera las tablas por ciudad), `gates.py` (condiciones exactas DNF de entrada a cada torneo),
 `flags.py` (índice de quién pone cada flag → `flags_index.txt`), `chk9.py`. Direcciones = RAM PSX (SLUS en
@@ -31,13 +31,13 @@ Leyenda: ✅ verificado en código/datos · 🟡 probable (se dice por qué) · 
 
 ---
 
-## 1. Formato de fichero MSCD ✅
+## 1. Formato de archivo MSCD ✅
 
 | Offset | Tipo | Valor / significado | Evidencia |
 |---|---|---|---|
 | +0x00 | char[4] | "MSCD" (no se comprueba en código) | búsqueda de la constante en EXE+overlays: 0 resultados |
-| +0x04 | u32 | 3 (versión) en los 16 ficheros | datos |
-| +0x08 | u32 | **fin del código** (= tamaño del fichero en todos) | VM: `vm+0x10 = hdr+8` (SLUS 0x80020E68) y bucle `while (pc-base) < end` (0x80021910) |
+| +0x04 | u32 | 3 (versión) en los 16 archivos | datos |
+| +0x08 | u32 | **fin del código** (= tamaño del archivo en todos) | VM: `vm+0x10 = hdr+8` (SLUS 0x80020E68) y bucle `while (pc-base) < end` (0x80021910) |
 | +0x0C | u32 | **nº de variables** (CITY 372, UNIT 30, BETA 10) | SAISEG reserva `372*4` (0x801E4E30 `addiu a0,zero,372`) |
 | +0x10 | … | código (no hay tablas de offsets ni tabla de textos separada: el texto va *inline*) | VM: `vm+4 = vm+8 = base+16` |
 

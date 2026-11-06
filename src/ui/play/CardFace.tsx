@@ -1,14 +1,15 @@
 import { useState, type CSSProperties, type PointerEvent } from 'react';
 import type { Card } from '../../engine/cards/types';
-import { SPECIALTY_NAME, frameColor } from '../theme';
-import { SLOTS, SlotIcon } from './glyphs';
+import { artUrl, isCustomArt } from '../art';
+import { frameColor } from '../theme';
+import { ACTIONS, slotOf } from '../vocab/actions';
+import { factionOf, paletteOf } from '../vocab/factions';
+import { cardText, TERMS } from '../vocab/terms';
+import { ActionIcon, BackSigil, FactionEmblem } from './glyphs';
 
-/** Original card art extracted from the user's disc (npm run extract:art). Missing art falls back gracefully. */
-export function artUrl(cardId: number) {
-  return `/card-art/LC${String(cardId).padStart(3, '0')}.png`;
-}
+export { artUrl };
 
-/** Foil and 3D tilt follow the pointer (CSS variables read by `.tcg` / `.holo`). */
+/** Sheen and 3D tilt follow the pointer (CSS variables read by `.tcg` / `.holo`). */
 export function trackPointer(e: PointerEvent<HTMLElement>) {
   const el = e.currentTarget;
   const r = el.getBoundingClientRect();
@@ -16,8 +17,8 @@ export function trackPointer(e: PointerEvent<HTMLElement>) {
   const y = (e.clientY - r.top) / r.height;
   el.style.setProperty('--mx', `${x * 100}%`);
   el.style.setProperty('--my', `${y * 100}%`);
-  el.style.setProperty('--rx', `${(0.5 - y) * 14}deg`);
-  el.style.setProperty('--ry', `${(x - 0.5) * 18}deg`);
+  el.style.setProperty('--rx', `${(0.5 - y) * 10}deg`);
+  el.style.setProperty('--ry', `${(x - 0.5) * 13}deg`);
 }
 
 export function resetPointer(e: PointerEvent<HTMLElement>) {
@@ -41,7 +42,8 @@ export function CardArt({ card, className = '', flip = false }: { card: Card; cl
       loading="lazy"
       draggable={false}
       onError={() => setMissing(true)}
-      className={`object-cover [image-rendering:pixelated] ${flip ? '-scale-x-100' : ''} ${className}`}
+      // the disc art is 64×64 and is drawn pixelated; our own art is high resolution
+      className={`object-cover ${isCustomArt(card.id) ? '' : '[image-rendering:pixelated]'} ${flip ? '-scale-x-100' : ''} ${className}`}
     />
   );
 }
@@ -50,9 +52,16 @@ export type CardSize = 'xs' | 'sm' | 'hand' | 'md' | 'lg';
 /** Every size is the same card: the face is drawn in em, the size only sets the font size. */
 const FONT: Record<CardSize, number> = { xs: 6.6, sm: 8.9, hand: 10, md: 11.4, lg: 18 };
 
+/** Level medallion: our initial for the level; support and evolution cards say what they are. */
+function badgeOf(card: Card): string {
+  if (card.kind === 'digimon') return TERMS.levelShort[card.level];
+  return card.kind === 'option' ? 'Ap' : 'Ev';
+}
+
 /**
- * A card as a collectible: metal edge in its specialty colour, big art, level badge, +P, HP and ◯ △ ✕.
- * `playable` pulses (the board can play it now); `glow` marks it as selected; `dim` greys it out.
+ * A physical card in its faction's colours: the art in an inked window, the name on a parchment strip,
+ * level medallion, +PE, HP and the three actions (Furia, Técnica, Instinto) with their powers.
+ * `playable` pulses (the board can play it now); `glow` marks it as selected; `dim` darkens it.
  */
 export function CardFace({
   card,
@@ -69,8 +78,10 @@ export function CardFace({
   dim?: boolean;
   className?: string;
 }) {
-  const style = { fontSize: FONT[size], '--spec': frameColor(card) } as CSSProperties;
-  const digimon = card.kind === 'digimon' ? card : null;
+  const pal = paletteOf(card);
+  const style = { fontSize: FONT[size], '--f-main': pal.main, '--f-dark': pal.dark, '--f-light': pal.light } as CSSProperties;
+  const creature = card.kind === 'digimon' ? card : null;
+  const faction = factionOf(card);
   return (
     <div
       className={`tcg ${className}`}
@@ -86,31 +97,43 @@ export function CardFace({
       <div className="tcg-body">
         <div className="tcg-art">
           <CardArt card={card} className="h-full w-full" />
-          <span className="tcg-badge">{digimon ? digimon.level : card.kind === 'option' ? 'OP' : 'DV'}</span>
-          {digimon && <span className="tcg-chip num">+P {digimon.dpGiven}</span>}
+          <span className="tcg-badge" title={creature ? TERMS.levels[creature.level] : card.kind === 'option' ? TERMS.supportCard : TERMS.evolutionCard}>
+            {badgeOf(card)}
+          </span>
+          {creature && (
+            <span className="tcg-chip num" title={`Da ${creature.dpGiven} ${TERMS.dp} al cargarla`}>
+              <small>{TERMS.dp}</small>+{creature.dpGiven}
+            </span>
+          )}
           <span className="tcg-name">{card.name}</span>
         </div>
         <div className="tcg-foot">
-          {digimon ? (
+          {creature ? (
             <>
               <div className="tcg-hp">
                 <span>
-                  <small>HP </small>
-                  <b className="num">{digimon.hp}</b>
+                  <small>{TERMS.hp} </small>
+                  <b className="num">{creature.hp}</b>
                 </span>
-                <small>{digimon.level === 'C' || digimon.level === 'U' ? `${digimon.dpRequired} DP` : SPECIALTY_NAME[digimon.specialty]}</small>
+                {creature.level === 'C' || creature.level === 'U' ? (
+                  <small>
+                    {creature.dpRequired} {TERMS.dp}
+                  </small>
+                ) : (
+                  faction && <FactionEmblem faction={faction.id} className="h-[1.25em] w-[1.25em]" />
+                )}
               </div>
               <div className="tcg-atk">
-                {SLOTS.map((s) => (
-                  <span key={s} data-slot={s} className="num">
-                    <SlotIcon slot={s} />
-                    {digimon.attacks[s].power}
+                {ACTIONS.map((a) => (
+                  <span key={a} data-action={a} className="num">
+                    <ActionIcon action={a} />
+                    {creature.attacks[slotOf(a)].power}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <p className="tcg-text">{card.kind === 'option' ? card.support.text : card.kind === 'digivolve' ? card.text : ''}</p>
+            <p className="tcg-text">{cardText(card.kind === 'option' ? card.support.text : card.kind === 'digivolve' ? card.text : '')}</p>
           )}
         </div>
         <div className="tcg-holo" />
@@ -119,24 +142,22 @@ export function CardFace({
   );
 }
 
-/** Face-down deck: an original back (not the game's) with the number of cards. */
+/** Face-down deck: our own back (leather, bronze edge and sigil) with the number of cards. */
 export function CardBack({ count, label, size = 'hand' }: { count: number; label: string; size?: CardSize }) {
+  const back = {
+    background: 'radial-gradient(circle at 50% 46%, rgb(232 191 93 / 0.18), transparent 46%), var(--grain), linear-gradient(160deg, #5b3a22, #2e1d12 55%, #4a2f1b)',
+    boxShadow: 'inset 0 0 0 0.25em #c9974a, inset 0 0 0 0.4em #2b1d12, inset 0 0 0 0.55em rgb(201 151 74 / 0.45)',
+  };
   return (
     <div className="flex flex-col items-center gap-1.5" style={{ fontSize: FONT[size] * 0.62 }}>
       <div className="relative" style={{ width: '12.6em', height: '17.6em' }}>
-        {count > 1 && <div className="cut absolute inset-0 translate-x-[0.5em] translate-y-[0.5em] bg-[#06133b] [--c:1.1em]" />}
-        {count > 8 && <div className="cut absolute inset-0 translate-x-[0.25em] translate-y-[0.25em] bg-[#0a1d52] [--c:1.1em]" />}
+        {count > 1 && <div className="absolute inset-0 translate-x-[0.5em] translate-y-[0.5em] rounded-[0.85em] bg-[#1d130c]" />}
+        {count > 8 && <div className="absolute inset-0 translate-x-[0.25em] translate-y-[0.25em] rounded-[0.85em] bg-[#2a1b11]" />}
         {count > 0 ? (
-          <div
-            className="cut absolute inset-0 grid place-items-center [--c:1.1em]"
-            style={{
-              background:
-                'radial-gradient(circle at 50% 50%, rgb(72 228 255 / 0.35), transparent 38%), repeating-linear-gradient(45deg, rgb(72 228 255 / 0.08) 0 2px, transparent 2px 9px), linear-gradient(160deg, #2a62c9, #0b2463 55%, #1c4aa8)',
-              boxShadow: 'inset 0 0 0 2px rgb(159 208 255 / 0.6)',
-            }}
-          >
-            <span className="grid size-[6em] rotate-45 place-items-center border-2 border-cyan/70 bg-abyss/70">
-              <span className="num -rotate-45 text-[2.6em] font-extrabold text-ink italic">{count}</span>
+          <div className="absolute inset-0 grid place-items-center rounded-[0.85em]" style={back}>
+            <BackSigil className="absolute size-[8.5em] text-[#c9974a] opacity-80" />
+            <span className="num relative grid size-[5.4em] place-items-center rounded-full bg-[#1d130c]/85 text-[2.6em] font-extrabold text-bone shadow-[0_0_0_0.08em_#c9974a]">
+              <span className="text-[0.42em]">{count}</span>
             </span>
           </div>
         ) : (
@@ -145,7 +166,7 @@ export function CardBack({ count, label, size = 'hand' }: { count: number; label
           </div>
         )}
       </div>
-      {label && <span className="font-display text-[1.7em] font-semibold text-haze">{label}</span>}
+      {label && <span className="font-display text-[1.7em] font-semibold text-faded">{label}</span>}
     </div>
   );
 }

@@ -13,7 +13,7 @@ Notación: `save` = `*0x8006E050` (bloque de guardado), `opp` = `*0x8006E054` (c
 
 * ✅ **No hay "cartas del mazo rival"**: tras ganar se recibe **un Prize Pack de 3 cartas** cuyo tipo
   lo fija el mazo rival (`DECK2` byte `+0x6B`). Perder no da sobre.
-* ✅ **EXP** (solo para los Partners cuya carta va en el mazo): `EXP del rival` (`DECK2 +0x6C`, solo si ganás)
+* ✅ **EXP** (solo para los Partners cuya carta va en el mazo): `EXP del rival` (`DECK2 +0x6C`, solo si ganas)
   `+ Σ bonos` (32 bonos, tabla `KAWSEG 0x801FC300`), luego `× (1 + boost%)` del Partner.
   Curva: subir del rango `r` al `r+1` cuando la EXP **acumulada** ≥ `(r+1)(r+3)`; rango máx. 99 (EXP 9999).
 * ✅ Cada subida de rango puede dar **un Digi-Part** (tabla de 128 con el rango de aprendizaje por Partner)

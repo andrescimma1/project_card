@@ -1,42 +1,44 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Barlow Condensed', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Grenze', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'Alegreya Sans', 'Segoe UI', ui-sans-serif, sans-serif;
   --font-code: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
-  /* Blue technology: the original's board, 25 years later */
-  --color-void: #020716;
-  --color-abyss: #050e2a;
-  --color-deep: #0a1c4a;
-  --color-panel: #0e2a66;
-  --color-grid: #23468c;
-  --color-ink: #eef5ff;
-  --color-haze: #8eaedf;
+  /* Materials: carved stone, old leather, bronze and aged parchment */
+  --color-night: #15100c;
+  --color-soot: #1e1712;
+  --color-leather: #2b2119;
+  --color-hide: #3a2c20;
+  --color-seam: #6f5638;
+  --color-bone: #f1e5ca;
+  --color-faded: #b9a47f;
+  --color-parchment: #e8d9b4;
+  --color-ink: #2b1d12;
+  --color-brass: #cf9d4c;
+  --color-gold: #e8bf5d;
+  --color-steel: #4f7593;
+  --color-copper: #b5623b;
+  --color-blood: #c23b2c;
+  --color-vital: #7ea446;
 
-  --color-electric: #2f7dff;
-  --color-cyan: #48e4ff;
-  --color-gold: #ffc934;
-  --color-crimson: #ff3d58;
-  --color-copper: #ff8a3c;
+  /* The three action kinds */
+  --color-fury: #b8392c;
+  --color-technique: #3f7e4c;
+  --color-instinct: #3b6789;
 
-  /* ◯ △ ✕ as the original colours its attack rows */
-  --color-atk-circle: #ff4561;
-  --color-atk-triangle: #2fd47c;
-  --color-atk-cross: #3a88ff;
-
-  /* The five specialties */
-  --color-fire: #ff5a4e;
-  --color-ice: #4fb6ff;
-  --color-nature: #49d17d;
-  --color-darkness: #b48cff;
-  --color-rare: #ffd447;
+  /* Colour codes of the story scripts (*cN) */
+  --color-fire: #d9583f;
+  --color-ice: #6f9fc2;
+  --color-nature: #86ad59;
+  --color-darkness: #a48cc6;
+  --color-rare: #e3b551;
 
   /* Verification states (research views) */
-  --color-verified: #3ee6c4;
-  --color-probable: #ffb547;
-  --color-unknown: #7d89bd;
-  --color-conflict: #ff6fa8;
+  --color-verified: #79b585;
+  --color-probable: #dba04a;
+  --color-unknown: #948f9f;
+  --color-conflict: #cc6a83;
 }
 
 html,
@@ -54,170 +56,186 @@ body {
 
 body {
   margin: 0;
-  background-color: var(--color-void);
-  color: var(--color-ink);
+  background-color: var(--color-night);
+  color: var(--color-bone);
   font-family: var(--font-body);
+  font-size: 1.02rem;
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-cyan);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
-/* ---------- surfaces ---------- */
+/* ---------- textures (original, generated) ---------- */
 
 :root {
-  --circuit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' fill='none' stroke='%2348e4ff' stroke-width='1.2' stroke-opacity='.09'%3E%3Cpath d='M0 26h40l14 14h46M100 40h80M0 104h24l18-18h34M76 86V60M128 180v-38l16-16h36M128 0v22l-14 14M46 180v-28l14-14h44l12-12M156 60v24l-12 12H96'/%3E%3Cg fill='%2348e4ff' fill-opacity='.2' stroke='none'%3E%3Ccircle cx='100' cy='40' r='2.6'/%3E%3Ccircle cx='76' cy='60' r='2.6'/%3E%3Ccircle cx='116' cy='126' r='2.6'/%3E%3Ccircle cx='144' cy='126' r='2'/%3E%3Ccircle cx='96' cy='96' r='2.6'/%3E%3C/g%3E%3C/svg%3E");
+  /* paper grain: brown specks */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 1.1 0 0 0 -.42'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* stone mottling: soft light patches */
+  --mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='s' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011 .017' numOctaves='4' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .92 0 0 0 0 .8 0 0 0 0 .62 .16 0 0 0 -.04'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  /* engravings: original tribal motifs (spirals, chevrons, sun, dots) */
+  --engrave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='none' stroke='%23cf9d4c' stroke-opacity='.075' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M38 52a12 12 0 1 1 12 12 8 8 0 1 1-8-8 4 4 0 1 1 4 4'/%3E%3Cpath d='M112 24l10 10 10-10 10 10 10-10M112 38l10 10 10-10 10 10 10-10'/%3E%3Ccircle cx='150' cy='130' r='9'/%3E%3Cpath d='M150 112v-7M150 148v7M132 130h-7M168 130h7M137 117l-5-5M163 143l5 5M163 117l5-5M137 143l-5 5'/%3E%3Cpath d='M14 160l14-12 14 12 14-12 14 12 14-12'/%3E%3C/svg%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='%23cf9d4c' fill-opacity='.07'%3E%3Ccircle cx='84' cy='108' r='2.5'/%3E%3Ccircle cx='96' cy='108' r='2.5'/%3E%3Ccircle cx='108' cy='108' r='2.5'/%3E%3Ccircle cx='40' cy='118' r='2'/%3E%3Ccircle cx='182' cy='60' r='2'/%3E%3C/svg%3E");
 }
 
 /* Custom classes live in the components layer so Tailwind utilities can still override them. */
 @layer components {
 
-.circuit {
-  background-image: var(--circuit);
+.engrave {
+  background-image: var(--engrave);
 }
 
-/* App background behind every screen */
+/* App background behind every screen: a dark carved-stone hall */
 .app-bg {
   background:
-    radial-gradient(ellipse 70% 55% at 50% 45%, rgb(47 125 255 / 0.2), transparent 70%),
-    radial-gradient(ellipse 120% 80% at 50% 120%, rgb(72 228 255 / 0.1), transparent 60%),
-    linear-gradient(180deg, #04102f, var(--color-void) 70%);
+    radial-gradient(ellipse 75% 60% at 50% 40%, rgb(207 157 76 / 0.09), transparent 70%),
+    var(--mottle),
+    linear-gradient(180deg, #1d1611, var(--color-night) 75%);
 }
 
-/* The board itself */
+/* The board: a stone table lit from above */
 .board-bg {
   background:
-    radial-gradient(ellipse 46% 30% at 50% 50%, rgb(72 228 255 / 0.2), transparent 70%),
-    radial-gradient(ellipse 80% 60% at 50% 50%, rgb(47 125 255 / 0.18), transparent 75%),
-    linear-gradient(180deg, #071640 0%, #030a24 48%, #030a24 52%, #071640 100%);
+    radial-gradient(ellipse 50% 34% at 50% 50%, rgb(232 191 93 / 0.13), transparent 72%),
+    radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55)),
+    var(--mottle),
+    linear-gradient(180deg, #2a2119 0%, #1a140f 50%, #2a2119 100%);
 }
 
-/* Two-corner chamfer, the cut used by every frame and card */
+/* Rounded corners, like a worn card or a carved plaque (--c sets the size). */
 .cut {
-  clip-path: polygon(var(--c, 14px) 0, 100% 0, 100% calc(100% - var(--c, 14px)), calc(100% - var(--c, 14px)) 100%, 0 100%, 0 var(--c, 14px));
+  border-radius: calc(var(--c, 14px) * 0.55);
 }
 
-/* Metal frame: the outer element is the bevel, `.fill` is the panel. */
+/*
+ * Panel: a bronze rim around a leather plate. The outer element is the rim, `.fill` the plate.
+ * `.side-player` and `.side-rival` tint the leather (steel blue / oxblood) like the original's two sides.
+ */
 .frame {
   --c: 16px;
-  --edge-a: #d6ecff;
-  --edge-b: #3d7de4;
-  --edge-c: #0a2466;
-  --fill-a: #0d2763;
-  --fill-b: #06123a;
-  --tint: rgb(47 125 255 / 0.16);
+  --rim-a: #e2b874;
+  --rim-b: #8a5f30;
+  --rim-c: #3f2a16;
+  --fill-a: #33271d;
+  --fill-b: #221a14;
+  --side: var(--color-brass);
   position: relative;
-  padding: 2px;
-  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
-  background: linear-gradient(165deg, var(--edge-a), var(--edge-b) 20%, var(--edge-c) 50%, var(--edge-b) 80%, var(--edge-a));
+  padding: 3px;
+  border-radius: calc(var(--c) * 0.6);
+  background: linear-gradient(170deg, var(--rim-a), var(--rim-b) 22%, var(--rim-c) 55%, var(--rim-b) 85%, var(--rim-a));
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.45);
 }
 .frame > .fill {
-  --c2: calc(var(--c) - 1px);
   position: relative;
   height: 100%;
-  clip-path: polygon(var(--c2) 0, 100% 0, 100% calc(100% - var(--c2)), calc(100% - var(--c2)) 100%, 0 100%, 0 var(--c2));
+  border-radius: calc(var(--c) * 0.6 - 3px);
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent 18%),
-    radial-gradient(ellipse 80% 120% at 50% 0%, var(--tint), transparent 70%),
+    var(--grain),
+    linear-gradient(180deg, rgb(255 236 200 / 0.06), transparent 22%),
     linear-gradient(180deg, var(--fill-a), var(--fill-b));
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.55),
+    inset 0 0 0 2px rgb(241 229 202 / 0.08);
 }
+/* hand-drawn inner line */
 .frame > .fill::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 5px;
   pointer-events: none;
-  opacity: 0.7;
-  background-image: var(--circuit);
+  border-radius: calc(var(--c) * 0.6 - 6px);
+  border: 1px solid rgb(207 157 76 / 0.22);
 }
 .side-player {
-  --edge-a: #d6ecff;
-  --edge-b: #3d7de4;
-  --edge-c: #0a2466;
-  --fill-a: #0c2766;
-  --fill-b: #061340;
-  --tint: rgb(47 125 255 / 0.22);
-  --side: var(--color-electric);
-  --side-hi: #9fd0ff;
+  --rim-a: #d9c08f;
+  --rim-b: #7c6a4a;
+  --rim-c: #2f3638;
+  --fill-a: #25313a;
+  --fill-b: #172028;
+  --side: var(--color-steel);
 }
 .side-rival {
-  --edge-a: #ffe3c4;
-  --edge-b: #e8702e;
-  --edge-c: #571b08;
-  --fill-a: #271a42;
-  --fill-b: #0b1236;
-  --tint: rgb(255 138 60 / 0.16);
+  --rim-a: #e9b98a;
+  --rim-b: #94512c;
+  --rim-c: #3d1c11;
+  --fill-a: #3a231b;
+  --fill-b: #251410;
   --side: var(--color-copper);
-  --side-hi: #ffc79a;
 }
 
-/* Slanted name plate */
+/* Name plate: a strip of parchment with notched ends, ink lettering */
 .plate {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  padding: 0.15em 1.1em;
-  transform: skewX(-14deg);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--side, #2f7dff) 85%, #fff), var(--side, #2f7dff) 45%, color-mix(in srgb, var(--side, #2f7dff) 55%, #000));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.45),
-    0 2px 0 rgb(0 0 0 / 0.4);
-  color: #fff;
-}
-.plate > * {
-  transform: skewX(14deg);
+  padding: 0.12em 1.05em;
+  color: var(--color-ink);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #f3e6c4, #dcc697);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.45em) 50%, 100% 100%, 0 100%, 0.45em 50%);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--side, var(--color-brass)) 70%, transparent);
 }
 
-/* Command buttons */
+/* Command buttons: bronze plaques; the primary one is polished brass */
 .cmd {
   position: relative;
   display: inline-flex;
   width: fit-content;
   align-items: center;
   gap: 0.5em;
-  padding: 0.45em 1.15em;
+  padding: 0.42em 1.1em;
+  border-radius: 6px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: 0.01em;
-  color: var(--color-ink);
-  background: linear-gradient(180deg, #1b4596, #0c2560);
+  font-size: 1.08rem;
+  letter-spacing: 0.02em;
+  color: var(--color-bone);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #5d442b, #3c2b1b);
   box-shadow:
-    inset 0 0 0 1px rgb(159 208 255 / 0.55),
-    inset 0 1px 0 rgb(255 255 255 / 0.3),
-    0 3px 0 #020a24;
-  transform: skewX(-10deg);
+    inset 0 0 0 1px #a5794a,
+    inset 0 1px 0 rgb(255 226 170 / 0.25),
+    0 3px 0 #140e09;
   transition:
     filter 0.15s ease,
     transform 0.12s ease;
 }
-.cmd > * {
-  transform: skewX(10deg);
-}
 .cmd:hover:not(:disabled) {
-  filter: brightness(1.25);
+  filter: brightness(1.18);
 }
 .cmd:active:not(:disabled) {
-  transform: skewX(-10deg) translateY(2px);
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 0 0 1px #a5794a,
+    0 1px 0 #140e09;
 }
 .cmd:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
 }
 .cmd[data-primary='true'] {
-  color: #10110a;
-  background: linear-gradient(180deg, #ffe58a, var(--color-gold) 45%, #c98a00);
+  color: var(--color-ink);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #f3d58d, #d5a34e 55%, #a97a32);
   box-shadow:
-    inset 0 0 0 1px rgb(255 245 200 / 0.8),
-    inset 0 1px 0 rgb(255 255 255 / 0.7),
-    0 3px 0 #4a3200,
-    0 0 18px rgb(255 201 52 / 0.35);
+    inset 0 0 0 1px #6b4a1f,
+    inset 0 1px 0 rgb(255 248 220 / 0.7),
+    0 3px 0 #3b2810;
 }
 
 /* ---------- cards ---------- */
 
+/*
+ * A physical card: rounded corners, a frame in the faction's colours (--f-main/--f-dark/--f-light),
+ * a parchment body with ink lettering and an inked art window.
+ */
 .tcg {
-  --spec: #4fb6ff;
+  --f-main: #8c6b43;
+  --f-dark: #3d2b17;
+  --f-light: #e2c999;
   --rx: 0deg;
   --ry: 0deg;
   --mx: 50%;
@@ -226,112 +244,131 @@ body {
   width: 12.6em;
   height: 17.6em;
   flex: none;
+  border-radius: 0.85em;
   transform: perspective(46em) rotateX(var(--rx)) rotateY(var(--ry));
   transition:
     transform 0.2s ease,
     filter 0.2s ease;
-  filter: drop-shadow(0 0.55em 0.8em rgb(0 0 0 / 0.6));
+  filter: drop-shadow(0 0.45em 0.55em rgb(0 0 0 / 0.55));
 }
 .tcg[data-playable='true'] {
-  filter: drop-shadow(0 0 0.18em var(--color-cyan)) drop-shadow(0 0 0.8em rgb(72 228 255 / 0.6));
-  animation: tcg-pulse 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 0.14em var(--color-gold)) drop-shadow(0 0 0.55em rgb(232 191 93 / 0.55));
+  animation: tcg-pulse 2s ease-in-out infinite;
 }
 .tcg[data-active='true'] {
-  filter: drop-shadow(0 0 0.2em var(--color-gold)) drop-shadow(0 0 0.7em rgb(255 201 52 / 0.5));
+  filter: drop-shadow(0 0 0.2em #fff3cf) drop-shadow(0 0 0.7em rgb(232 191 93 / 0.8));
 }
 .tcg[data-dim='true'] {
-  filter: grayscale(0.7) brightness(0.55);
-}
-.tcg-edge,
-.tcg-body {
-  position: absolute;
-  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  filter: sepia(0.5) grayscale(0.4) brightness(0.55);
 }
 .tcg-edge {
-  --c: 1.1em;
+  position: absolute;
   inset: 0;
-  background: linear-gradient(155deg, #fff 0%, var(--spec) 16%, color-mix(in srgb, var(--spec) 30%, #020716) 50%, var(--spec) 82%, #fff 100%);
+  border-radius: 0.85em;
+  background:
+    var(--grain),
+    linear-gradient(160deg, var(--f-light), var(--f-main) 24%, var(--f-dark) 62%, var(--f-main) 88%, var(--f-light));
+  box-shadow:
+    inset 0 0 0 0.09em #1a110a,
+    inset 0 0 0 0.22em color-mix(in srgb, var(--f-light) 55%, transparent);
 }
 .tcg-body {
-  --c: 0.95em;
-  inset: 0.3em;
+  position: absolute;
+  inset: 0.42em;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(180deg, #0b1d4d, #040c26);
+  border-radius: 0.5em;
+  color: var(--color-ink);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #f2e4c2, #dfcb9e);
+  box-shadow: inset 0 0 0 0.08em #3a2817;
 }
 .tcg-art {
   position: relative;
   flex: none;
-  height: 12em;
-  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--spec) 40%, #020716), #020716 75%);
-}
-.tcg-art::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgb(2 7 22 / 0.35), transparent 22%, transparent 58%, rgb(2 7 22 / 0.92));
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  height: 11.55em;
+  margin: 0.32em 0.32em 0;
+  overflow: hidden;
+  border-radius: 0.32em;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--f-main) 55%, #20160e), #140e09 80%);
+  box-shadow:
+    0 0 0 0.12em #2b1d12,
+    inset 0 0 0 0.06em rgb(0 0 0 / 0.5);
 }
 .tcg-name {
   position: absolute;
   z-index: 1;
-  left: 0.45em;
-  right: 0.45em;
+  left: 0.25em;
+  right: 0.25em;
   bottom: 0.25em;
   overflow: hidden;
+  padding: 0.1em 0.45em 0.06em;
+  border-radius: 0.18em;
   font-family: var(--font-display);
-  font-size: 1.32em;
-  font-weight: 800;
-  font-style: italic;
+  font-size: 1.28em;
+  font-weight: 700;
   line-height: 1.05;
-  text-transform: uppercase;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-shadow:
-    0 1px 0 #000,
-    0 0 0.4em rgb(0 0 0 / 0.9);
+  color: var(--color-ink);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #f6eacb, #e2cfa2);
+  box-shadow:
+    0 0 0 0.07em #2b1d12,
+    inset 0.22em 0 0 var(--f-main);
 }
 .tcg-badge {
   position: absolute;
   z-index: 1;
-  top: 0.35em;
-  left: 0.35em;
+  top: 0.3em;
+  left: 0.3em;
   display: grid;
   place-items: center;
-  min-width: 2.2em;
-  height: 2.2em;
-  padding: 0 0.35em;
+  width: 2.15em;
+  height: 2.15em;
+  border-radius: 9999px;
   font-family: var(--font-display);
   font-size: 1.05em;
   font-weight: 800;
-  font-style: italic;
-  color: #fff;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--spec) 80%, #fff), var(--spec) 40%, color-mix(in srgb, var(--spec) 45%, #000));
-  clip-path: polygon(0.5em 0, 100% 0, 100% calc(100% - 0.5em), calc(100% - 0.5em) 100%, 0 100%, 0 0.5em);
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.5);
+  line-height: 1;
+  color: var(--f-light);
+  background: radial-gradient(circle at 40% 35%, var(--f-main), var(--f-dark));
+  box-shadow:
+    0 0 0 0.1em #2b1d12,
+    inset 0 0 0 0.12em color-mix(in srgb, var(--color-gold) 80%, transparent);
 }
 .tcg-chip {
   position: absolute;
   z-index: 1;
-  top: 0.45em;
-  right: 0.45em;
-  padding: 0.15em 0.4em;
+  top: 0.35em;
+  right: 0.3em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.2em;
+  padding: 0.16em 0.4em 0.12em;
+  border-radius: 0.2em;
   font-family: var(--font-display);
-  font-size: 0.95em;
-  font-weight: 700;
+  font-size: 1em;
+  font-weight: 800;
   line-height: 1;
-  color: var(--color-gold);
-  background: rgb(2 7 22 / 0.8);
-  box-shadow: inset 0 0 0 1px rgb(255 201 52 / 0.55);
+  color: var(--color-ink);
+  background: linear-gradient(180deg, #f3d58d, #d5a34e);
+  box-shadow: 0 0 0 0.08em #2b1d12;
+}
+.tcg-chip small {
+  font-size: 0.72em;
+  font-weight: 700;
 }
 .tcg-foot {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.3em;
-  padding: 0.2em 0.5em 0.4em;
+  gap: 0.28em;
+  padding: 0.25em 0.42em 0.38em;
 }
 .tcg-hp {
   display: flex;
@@ -341,45 +378,46 @@ body {
   line-height: 1;
 }
 .tcg-hp b {
-  font-size: 1.75em;
+  font-size: 1.7em;
   font-weight: 800;
-  font-style: italic;
 }
 .tcg-hp small {
   font-size: 0.95em;
-  font-weight: 600;
-  color: var(--color-haze);
+  font-weight: 700;
+  color: #6a4c2e;
 }
 .tcg-atk {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.25em;
+  gap: 0.22em;
 }
 .tcg-atk > span {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.15em;
-  height: 1.65em;
+  gap: 0.12em;
+  height: 1.7em;
+  border-radius: 0.22em;
   font-family: var(--font-display);
-  font-size: 1.02em;
-  font-weight: 700;
+  font-size: 1.06em;
+  font-weight: 800;
   line-height: 1;
-  background: color-mix(in srgb, var(--a) 28%, #040c26);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a) 75%, transparent);
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--a) 18%, #f5e9cc);
+  box-shadow: inset 0 0 0 0.08em color-mix(in srgb, var(--a) 70%, #2b1d12);
 }
 .tcg-atk svg {
-  width: 0.8em;
-  height: 0.8em;
+  width: 0.95em;
+  height: 0.95em;
+  flex: none;
   color: var(--a);
 }
 .tcg-text {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 0.92em;
+  font-size: 0.95em;
   font-weight: 500;
   line-height: 1.2;
-  color: #c3d5f3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
@@ -388,30 +426,22 @@ body {
 .tcg[data-size='xs'] .tcg-hp small {
   display: none;
 }
+/* a warm sheen of light on paper, following the pointer (no rainbow foil) */
 .tcg-holo {
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  mix-blend-mode: color-dodge;
   opacity: 0;
   transition: opacity 0.2s ease;
-  background:
-    radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.45), transparent 40%),
-    repeating-linear-gradient(115deg, rgb(255 90 78 / 0.2) 0%, rgb(255 212 71 / 0.2) 5%, rgb(73 209 125 / 0.2) 10%, rgb(79 182 255 / 0.2) 15%, rgb(180 140 255 / 0.2) 20%);
-  background-size:
-    100% 100%,
-    300% 300%;
-  background-position:
-    center,
-    var(--mx) var(--my);
+  background: radial-gradient(circle at var(--mx) var(--my), rgb(255 244 214 / 0.32), transparent 45%);
 }
 .tcg:hover .tcg-holo,
 .tcg[data-active='true'] .tcg-holo {
-  opacity: 0.9;
+  opacity: 1;
 }
 
-/* Empty card slot, engraved */
+/* Empty card place: a recess carved in the stone */
 .slot-empty {
   position: relative;
   display: grid;
@@ -419,87 +449,97 @@ body {
   width: 12.6em;
   height: 17.6em;
   flex: none;
-  clip-path: polygon(1.1em 0, 100% 0, 100% calc(100% - 1.1em), calc(100% - 1.1em) 100%, 0 100%, 0 1.1em);
+  border-radius: 0.85em;
   background:
-    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.025) 0 6px, transparent 6px 12px),
-    linear-gradient(180deg, rgb(2 7 22 / 0.6), rgb(2 7 22 / 0.35));
+    var(--engrave),
+    linear-gradient(180deg, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.25));
   box-shadow:
-    inset 0 0 0 1px rgb(159 208 255 / 0.16),
-    inset 0 2px 8px rgb(0 0 0 / 0.6);
+    inset 0 0 0 1px rgb(207 157 76 / 0.22),
+    inset 0 3px 10px rgb(0 0 0 / 0.65),
+    0 1px 0 rgb(255 236 200 / 0.06);
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 700;
-  color: rgb(159 208 255 / 0.2);
+  letter-spacing: 0.06em;
+  color: rgb(207 157 76 / 0.28);
 }
 
 @keyframes tcg-pulse {
   0%,
   100% {
-    filter: drop-shadow(0 0 0.18em var(--color-cyan)) drop-shadow(0 0 0.5em rgb(72 228 255 / 0.45));
+    filter: drop-shadow(0 0 0.12em var(--color-gold)) drop-shadow(0 0 0.4em rgb(232 191 93 / 0.4));
   }
   50% {
-    filter: drop-shadow(0 0 0.22em var(--color-cyan)) drop-shadow(0 0 1.1em rgb(72 228 255 / 0.75));
+    filter: drop-shadow(0 0 0.18em var(--color-gold)) drop-shadow(0 0 0.9em rgb(232 191 93 / 0.7));
   }
 }
 
-/* ---------- ◯ △ ✕ ---------- */
+/* ---------- Furia, Técnica, Instinto ---------- */
 
-[data-slot='circle'] {
-  --a: var(--color-atk-circle);
+[data-action='fury'] {
+  --a: var(--color-fury);
 }
-[data-slot='triangle'] {
-  --a: var(--color-atk-triangle);
+[data-action='technique'] {
+  --a: var(--color-technique);
 }
-[data-slot='cross'] {
-  --a: var(--color-atk-cross);
+[data-action='instinct'] {
+  --a: var(--color-instinct);
 }
 
+/* An attack row: a leather strip with the action's colour bleeding in from its medallion */
 .atk-row {
   position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--a) 55%, #050e2a), color-mix(in srgb, var(--a) 22%, #050e2a) 60%, rgb(5 14 42 / 0.6));
+  border-radius: 6px;
+  color: var(--color-bone);
+  background:
+    var(--grain),
+    linear-gradient(90deg, color-mix(in srgb, var(--a) 52%, #20160f), color-mix(in srgb, var(--a) 16%, #20160f) 55%, rgb(24 17 12 / 0.7));
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--a) 70%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.18);
+    inset 0 0 0 1px color-mix(in srgb, var(--a) 60%, #6f5638),
+    inset 0 1px 0 rgb(255 236 200 / 0.1);
   transition:
     filter 0.15s ease,
     opacity 0.2s ease,
     transform 0.15s ease;
 }
 .atk-row[data-mirror='true'] {
-  background: linear-gradient(270deg, color-mix(in srgb, var(--a) 55%, #050e2a), color-mix(in srgb, var(--a) 22%, #050e2a) 60%, rgb(5 14 42 / 0.6));
+  background:
+    var(--grain),
+    linear-gradient(270deg, color-mix(in srgb, var(--a) 52%, #20160f), color-mix(in srgb, var(--a) 16%, #20160f) 55%, rgb(24 17 12 / 0.7));
 }
 .atk-row[data-state='chosen'] {
-  filter: brightness(1.35) saturate(1.2);
+  filter: brightness(1.15);
   box-shadow:
-    inset 0 0 0 2px #fff,
-    0 0 24px color-mix(in srgb, var(--a) 80%, transparent);
+    inset 0 0 0 2px var(--color-gold),
+    0 0 0 1px #2b1d12,
+    0 0 18px rgb(232 191 93 / 0.45);
 }
 .atk-row[data-state='off'] {
-  opacity: 0.32;
-  filter: grayscale(0.6);
+  opacity: 0.38;
+  filter: sepia(0.4) grayscale(0.5);
 }
 button.atk-row:hover:not(:disabled) {
-  filter: brightness(1.3);
+  filter: brightness(1.22);
   transform: translateX(4px);
 }
 
+/* Action medallion: a coloured disc in a bronze ring, the icon in parchment */
 .glyph {
   display: grid;
   flex: none;
   place-items: center;
   border-radius: 9999px;
-  color: #fff;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--a) 70%, #fff), var(--a) 45%, color-mix(in srgb, var(--a) 45%, #000));
+  color: #f6ead0;
+  background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--a) 72%, #fff3d6), var(--a) 50%, color-mix(in srgb, var(--a) 55%, #120b06));
   box-shadow:
-    inset 0 -2px 0 rgb(0 0 0 / 0.3),
-    0 0 0 2px rgb(2 7 22 / 0.8),
-    0 0 12px color-mix(in srgb, var(--a) 60%, transparent);
+    0 0 0 2px #c9974a,
+    0 0 0 3px #2b1d12,
+    inset 0 -2px 0 rgb(0 0 0 / 0.3);
 }
 
-/* Holographic foil for the research card tiles. Follows the pointer through --mx / --my. */
+/* Research card tiles: a warm sheen following the pointer */
 .holo {
   --mx: 50%;
   --my: 50%;
@@ -512,18 +552,9 @@ button.atk-row:hover:not(:disabled) {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  mix-blend-mode: color-dodge;
   opacity: 0;
   transition: opacity 180ms ease;
-  background:
-    radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.35), transparent 42%),
-    repeating-linear-gradient(115deg, rgb(255 90 78 / 0.22) 0%, rgb(255 212 71 / 0.22) 6%, rgb(73 209 125 / 0.22) 12%, rgb(79 182 255 / 0.22) 18%, rgb(180 140 255 / 0.22) 24%);
-  background-size:
-    100% 100%,
-    300% 300%;
-  background-position:
-    center,
-    var(--mx) var(--my);
+  background: radial-gradient(circle at var(--mx) var(--my), rgb(255 244 214 / 0.18), transparent 45%);
 }
 .holo:hover::after,
 .holo:focus-visible::after {
@@ -534,12 +565,12 @@ button.atk-row:hover:not(:disabled) {
 
 .thin-scroll {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-grid) transparent;
+  scrollbar-color: var(--color-seam) transparent;
 }
 
 .num {
   font-family: var(--font-display);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -574,32 +605,33 @@ button.atk-row:hover:not(:disabled) {
 }
 .vol::-webkit-slider-runnable-track {
   height: 8px;
-  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
-  background: linear-gradient(90deg, var(--color-electric), var(--color-cyan) var(--v), #0a1a44 var(--v));
+  border-radius: 4px;
+  background: linear-gradient(90deg, #a97a32, var(--color-gold) var(--v), #140e09 var(--v));
+  box-shadow: inset 0 0 0 1px #6f5638;
 }
 .vol::-moz-range-track {
   height: 8px;
-  background: linear-gradient(90deg, var(--color-electric), var(--color-cyan) var(--v), #0a1a44 var(--v));
+  border-radius: 4px;
+  background: linear-gradient(90deg, #a97a32, var(--color-gold) var(--v), #140e09 var(--v));
 }
 .vol::-webkit-slider-thumb {
   appearance: none;
-  width: 16px;
-  height: 22px;
-  margin-top: -7px;
-  background: linear-gradient(180deg, #fff, #b8f7ff);
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  box-shadow: 0 0 10px var(--color-cyan);
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 35%, #fff1c6, #c9974a 60%, #6b4a1f);
+  box-shadow: 0 0 0 2px #2b1d12;
 }
 .vol::-moz-range-thumb {
-  width: 16px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border: 0;
-  border-radius: 0;
-  background: linear-gradient(180deg, #fff, #b8f7ff);
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 35%, #fff1c6, #c9974a 60%, #6b4a1f);
 }
 .vol:focus-visible {
-  outline: 2px solid var(--color-cyan);
+  outline: 2px solid var(--color-gold);
   outline-offset: 3px;
 }
 
@@ -608,29 +640,29 @@ button.atk-row:hover:not(:disabled) {
   flex: none;
   width: 44px;
   height: 22px;
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-  background: #0a1a44;
-  box-shadow: inset 0 0 0 1px rgb(159 208 255 / 0.35);
+  border-radius: 11px;
+  background: #140e09;
+  box-shadow: inset 0 0 0 1px #6f5638;
   transition: background 0.18s ease;
 }
 .switch > span {
   position: absolute;
   top: 3px;
-  left: 5px;
+  left: 4px;
   width: 16px;
   height: 16px;
-  background: var(--color-haze);
-  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  border-radius: 9999px;
+  background: var(--color-faded);
   transition:
     transform 0.18s ease,
     background 0.18s ease;
 }
 .switch[data-on] {
-  background: linear-gradient(90deg, var(--color-electric), var(--color-cyan));
+  background: linear-gradient(90deg, #a97a32, var(--color-gold));
 }
 .switch[data-on] > span {
-  transform: translateX(18px);
-  background: #fff;
+  transform: translateX(19px);
+  background: #fff6dc;
 }
 
 /* ---------- research docs ---------- */
@@ -638,26 +670,26 @@ button.atk-row:hover:not(:disabled) {
 .prose-doc {
   max-width: 76ch;
   line-height: 1.65;
-  font-size: 1rem;
+  font-size: 1.04rem;
 }
 .prose-doc h1 {
   font-family: var(--font-display);
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   line-height: 1.1;
   margin: 0 0 1.25rem;
 }
 .prose-doc h2 {
   font-family: var(--font-display);
-  font-size: 1.55rem;
+  font-size: 1.6rem;
   margin: 2.5rem 0 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-grid);
+  border-top: 1px solid var(--color-seam);
 }
 .prose-doc h3 {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   margin: 1.75rem 0 0.5rem;
-  color: var(--color-ice);
+  color: var(--color-gold);
 }
 .prose-doc p,
 .prose-doc ul,
@@ -673,20 +705,20 @@ button.atk-row:hover:not(:disabled) {
   padding-left: 1.25rem;
 }
 .prose-doc a {
-  color: var(--color-ice);
+  color: var(--color-gold);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 .prose-doc code {
   font-family: var(--font-code);
   font-size: 0.85em;
-  background: var(--color-deep);
+  background: var(--color-leather);
   padding: 0.1em 0.35em;
   border-radius: 4px;
 }
 .prose-doc pre {
-  background: var(--color-deep);
-  border: 1px solid var(--color-grid);
+  background: var(--color-leather);
+  border: 1px solid var(--color-seam);
   padding: 0.9rem 1rem;
   border-radius: 8px;
   overflow-x: auto;
@@ -701,24 +733,24 @@ button.atk-row:hover:not(:disabled) {
   overflow-x: auto;
   border-collapse: collapse;
   margin: 1rem 0;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   max-width: 100%;
 }
 .prose-doc th,
 .prose-doc td {
-  border: 1px solid var(--color-grid);
+  border: 1px solid var(--color-seam);
   padding: 0.45rem 0.6rem;
   text-align: left;
   vertical-align: top;
 }
 .prose-doc th {
-  background: var(--color-panel);
+  background: var(--color-hide);
   font-family: var(--font-display);
   font-weight: 600;
 }
 .prose-doc blockquote {
   border-left: 3px solid var(--color-probable);
   padding-left: 1rem;
-  color: var(--color-haze);
+  color: var(--color-faded);
 }
 }

@@ -4,15 +4,16 @@
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { animate, AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { CROSS_EFFECT_LABEL } from '../../engine/cards/db';
-import type { AttackSlot, Card, DigimonCard, Level, Specialty } from '../../engine/cards/types';
+import type { Card, DigimonCard, Level, Specialty } from '../../engine/cards/types';
 import { playerDp } from '../../engine/game/digivolve';
 import type { GameState, PlayerId } from '../../engine/game/types';
 import { count } from '../../engine/game/zones';
 import { battleStat, DP_CAP } from '../../engine/rules/primitives';
-import { SPECIALTY_COLOR, SPECIALTY_NAME } from '../theme';
+import { SPECIALTY_COLOR, SPECIALTY_NAME, SPECIALTY_TEXT } from '../theme';
+import { ACTIONS, powerIndex, slotOf, type ActionKind } from '../vocab/actions';
+import { crossEffectLabel, TERMS } from '../vocab/terms';
 import { CardArt } from './CardFace';
-import { SLOTS, SlotDisc } from './glyphs';
+import { ActionDisc } from './glyphs';
 import { activeRef, cardAt } from './util';
 
 /** What a Battle Slot shows. Built from the board, or from a battle being replayed. */
@@ -86,25 +87,24 @@ export function HpGauge({ hp, max, height = 12, delay = 0 }: { hp: number; max: 
   return (
     <div
       className="relative w-full overflow-hidden"
-      style={{ height, background: 'linear-gradient(180deg, #020716, #0a1a44)', boxShadow: 'inset 0 0 0 1px rgb(159 208 255 / 0.35)' }}
+      style={{ height, borderRadius: height / 2, background: 'linear-gradient(180deg, #0c0805, #2a1d13)', boxShadow: 'inset 0 0 0 1px #6f5638, inset 0 2px 3px rgb(0 0 0 / 0.6)' }}
       role="meter"
       aria-valuenow={hp}
       aria-valuemin={0}
       aria-valuemax={max}
       aria-label="HP"
     >
-      <motion.div className="absolute inset-y-0 left-0 bg-white/80" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, delay: delay + 0.45, ease: 'easeOut' }} />
+      <motion.div className="absolute inset-y-0 left-0 bg-[#f1e5ca]/75" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, delay: delay + 0.45, ease: 'easeOut' }} />
       <motion.div
         className="absolute inset-y-0 left-0"
         style={{
-          background: low ? 'linear-gradient(180deg, #ff8a9a, var(--color-crimson) 55%, #9e0f26)' : 'linear-gradient(180deg, #b8f7ff, var(--color-cyan) 40%, var(--color-electric) 100%)',
-          boxShadow: low ? '0 0 10px var(--color-crimson)' : '0 0 10px rgb(72 228 255 / 0.6)',
+          background: low ? 'linear-gradient(180deg, #e58a72, var(--color-blood) 55%, #6f1810)' : 'linear-gradient(180deg, #cfe39a, var(--color-vital) 50%, #46661f)',
         }}
         initial={false}
         animate={{ width: `${pct}%` }}
         transition={{ duration: 0.45, delay, ease: 'easeOut' }}
       />
-      <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(90deg, transparent 0 9px, rgb(2 7 22 / 0.55) 9px 10px)' }} />
+      <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(90deg, transparent 0 11px, rgb(20 14 9 / 0.5) 11px 12px)' }} />
     </div>
   );
 }
@@ -112,25 +112,24 @@ export function HpGauge({ hp, max, height = 12, delay = 0 }: { hp: number; max: 
 function DpColumn({ dp, mirrored }: { dp: number; mirrored: boolean }) {
   const shown = useCountTo(dp);
   return (
-    <div className={`flex w-[78px] shrink-0 flex-col items-center gap-1.5 py-1 ${mirrored ? '' : ''}`} aria-label={`DP ${dp} de ${DP_CAP}`}>
-      <span className="font-display text-[15px] font-bold text-gold italic">DP</span>
-      <span className="num text-[40px] leading-none font-extrabold text-ink italic">{shown}</span>
+    <div className={`flex w-[78px] shrink-0 flex-col items-center gap-1.5 py-1 ${mirrored ? '' : ''}`} aria-label={`${TERMS.dpLong}: ${dp} de ${DP_CAP}`} title={TERMS.dpLong}>
+      <span className="font-display text-[16px] font-bold text-gold">{TERMS.dp}</span>
+      <span className="num text-[40px] leading-none font-extrabold text-bone ">{shown}</span>
       <div className="flex flex-col-reverse gap-[3px]" aria-hidden>
         {Array.from({ length: 9 }, (_, i) => (
           <motion.span
             key={i}
-            className="h-[9px] w-[34px]"
-            style={{ clipPath: 'polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)' }}
+            className="h-[9px] w-[34px] rounded-[3px]"
             initial={false}
             animate={{
-              background: dp >= (i + 1) * 10 ? 'linear-gradient(90deg, #fff1b8, #ffc934)' : 'linear-gradient(90deg, #12285e, #0a1a44)',
-              boxShadow: dp >= (i + 1) * 10 ? '0 0 8px rgb(255 201 52 / 0.7)' : '0 0 0 rgb(0 0 0 / 0)',
+              background: dp >= (i + 1) * 10 ? 'linear-gradient(180deg, #f6dc98, #c9974a)' : 'linear-gradient(180deg, #0f0a06, #241911)',
+              boxShadow: dp >= (i + 1) * 10 ? '0 0 0 1px #2b1d12, 0 0 7px rgb(232 191 93 / 0.55)' : '0 0 0 1px #4a3725',
             }}
             transition={{ duration: 0.25, delay: i * 0.03 }}
           />
         ))}
       </div>
-      <span className="num text-[12px] text-haze">/ {DP_CAP}</span>
+      <span className="num text-[12px] text-faded">/ {DP_CAP}</span>
     </div>
   );
 }
@@ -154,7 +153,7 @@ export function ActivePanel({
   player: PlayerId;
   view: ActiveView;
   label: string;
-  chosen?: AttackSlot | null;
+  chosen?: ActionKind | null;
   hiddenChoice?: boolean;
   fx?: FighterFx;
   emptyText: string;
@@ -169,20 +168,20 @@ export function ActivePanel({
 
   return (
     <section
-      aria-label={`Battle Slot de ${label}`}
+      aria-label={`${TERMS.activeCreature} de ${label}`}
       className={`frame h-full ${mirrored ? 'side-rival' : 'side-player'}`}
       style={{ '--c': '20px', filter: 'drop-shadow(0 14px 24px rgb(0 0 0 / 0.5))' } as CSSProperties}
     >
       <div className={`fill flex flex-col`}>
         {/* header */}
         <div className={`relative z-[1] flex h-[34px] shrink-0 items-center gap-3 px-4 ${mirrored ? 'flex-row-reverse' : ''}`}>
-          <span className="plate h-[26px] text-[19px] font-extrabold italic">
-            <span className="font-display tracking-wide uppercase">{card ? card.name : 'Sin Digimon'}</span>
+          <span className="plate h-[26px] text-[19px] font-extrabold ">
+            <span className="font-display tracking-wide">{card ? card.name : `Sin ${TERMS.creature.toLowerCase()}`}</span>
           </span>
           {card && (
-            <span className="font-display text-[15px] font-semibold" style={{ color }}>
-              {SPECIALTY_NAME[view.specialty]}
-              {view.specialty !== card.specialty ? ' (cambiada)' : ''} · Nivel {card.level}
+            <span className="font-display text-[16px] font-semibold" style={{ color: SPECIALTY_TEXT[view.specialty] }}>
+              {TERMS.faction} {SPECIALTY_NAME[view.specialty]}
+              {view.specialty !== card.specialty ? ' (cambiada)' : ''} · {TERMS.levels[card.level]}
             </span>
           )}
           <span className="flex-1" />
@@ -190,43 +189,44 @@ export function ActivePanel({
             <motion.span
               initial={{ scale: 1.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="num grid size-[26px] rotate-45 place-items-center bg-gold text-[16px] font-extrabold text-abyss"
+              className="num grid size-[26px] place-items-center rounded-full bg-gold text-[17px] font-extrabold text-ink shadow-[0_0_0_2px_#2b1d12]"
               title="Ya eligió su ataque"
             >
-              <span className="-rotate-45">?</span>
+              <span>?</span>
             </motion.span>
           )}
-          {view.below > 0 && <span className="text-[13px] text-haze">{view.below} debajo</span>}
+          {view.below > 0 && <span className="text-[13px] text-faded">{view.below} debajo</span>}
         </div>
 
         {card ? (
           <div className={`relative z-[1] flex min-h-0 flex-1 items-stretch gap-3 px-3 pb-3 ${mirrored ? 'flex-row-reverse' : ''}`}>
             <DpColumn dp={view.dp} mirrored={mirrored} />
 
-            {/* ◯ △ ✕ */}
+            {/* Furia, Técnica, Instinto */}
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-[7px]">
-              {SLOTS.map((s, i) => (
+              {ACTIONS.map((a) => (
                 <div
-                  key={s}
-                  data-slot={s}
+                  key={a}
+                  data-action={a}
                   data-mirror={mirrored || undefined}
-                  data-state={chosen ? (chosen === s ? 'chosen' : 'off') : undefined}
+                  data-state={chosen ? (chosen === a ? 'chosen' : 'off') : undefined}
                   className={`atk-row h-[46px] px-2 ${mirrored ? 'flex-row-reverse' : ''}`}
+                  title={`${TERMS.actions[a]}: ${card.attacks[slotOf(a)].name}`}
                 >
-                  <SlotDisc slot={s} size={32} />
-                  <span className={`min-w-0 flex-1 truncate font-display text-[15px] font-semibold text-ink/85 ${mirrored ? 'text-right' : ''}`}>{card.attacks[s].name}</span>
-                  <span className="num w-[64px] text-[30px] leading-none font-extrabold italic" style={{ textAlign: mirrored ? 'left' : 'right' }}>
-                    <Count value={view.powers[i]} delay={fx.delay} />
+                  <ActionDisc action={a} size={32} />
+                  <span className={`min-w-0 flex-1 truncate font-display text-[16px] font-semibold text-bone/90 ${mirrored ? 'text-right' : ''}`}>{card.attacks[slotOf(a)].name}</span>
+                  <span className="num w-[64px] text-[30px] leading-none font-extrabold" style={{ textAlign: mirrored ? 'left' : 'right' }}>
+                    <Count value={view.powers[powerIndex(a)]} delay={fx.delay} />
                   </span>
                 </div>
               ))}
-              <div className={`flex items-center gap-2 text-[13px] ${mirrored ? 'flex-row-reverse' : ''}`}>
-                <span data-slot="cross" className="font-display font-semibold" style={{ color: 'var(--a)' }}>
-                  ✕ {CROSS_EFFECT_LABEL[card.crossEffect]}
+              <div className={`flex items-center gap-2 text-[14px] ${mirrored ? 'flex-row-reverse' : ''}`}>
+                <span data-action="instinct" className="flex items-center gap-1 font-display font-semibold text-[#a9c6dc]" title={TERMS.instinctEffect}>
+                  {TERMS.actions.instinct}: {crossEffectLabel(card.crossEffect)}
                 </span>
                 {view.enteredAs && (
-                  <span className="bg-gold/15 px-1.5 font-display font-semibold text-gold" title="Entró directo desde la mano">
-                    Entró como {view.enteredAs}: {view.enteredAs === 'C' ? 'mitad' : view.enteredAs === 'U' ? 'un cuarto' : 'normal'}
+                  <span className="rounded-sm bg-gold/15 px-1.5 font-display font-semibold text-gold" title="Entró directo desde la mano">
+                    Entró como {TERMS.levels[view.enteredAs]}: {view.enteredAs === 'C' ? 'mitad' : view.enteredAs === 'U' ? 'un cuarto' : 'normal'}
                   </span>
                 )}
               </div>
@@ -239,19 +239,19 @@ export function ActivePanel({
                 onClick={() => onInspect(card)}
                 aria-label={`Ver ${card.name}, ${view.hp} HP`}
                 className="cut relative h-[170px] w-full overflow-hidden [--c:16px]"
-                style={{ background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${color} 45%, #020716), #020716 75%)`, boxShadow: `inset 0 0 0 2px ${color}` }}
+                style={{ background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${color} 45%, #140e09), #140e09 75%)`, boxShadow: `0 0 0 2px #2b1d12, 0 0 0 4px ${color}` }}
                 animate={reduce ? {} : fx.lunge ? { x: [0, 54 * toward, 0], scale: [1, 1.08, 1] } : fx.hurt ? { x: [0, -10 * toward, 10 * toward, -5 * toward, 0] } : { x: 0, scale: 1 }}
                 transition={{ duration: fx.lunge ? 0.45 : 0.4, delay: fx.hurt ? fx.delay : 0 }}
               >
                 <CardArt card={card} flip={mirrored} className={`h-full w-full ${fx.ko ? 'grayscale' : ''}`} />
-                <span className="tcg-badge" style={{ '--spec': color, fontSize: 15 } as CSSProperties}>
-                  {card.level}
+                <span className="tcg-badge" style={{ '--f-main': color, '--f-dark': '#20140c', '--f-light': '#f1e5ca', fontSize: 15 } as CSSProperties} title={TERMS.levels[card.level]}>
+                  {TERMS.levelShort[card.level]}
                 </span>
                 <AnimatePresence>
                   {fx.hurt && (
                     <motion.span
                       key="flash"
-                      className="fx-intense absolute inset-0 bg-crimson mix-blend-screen"
+                      className="fx-intense absolute inset-0 bg-blood mix-blend-screen"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: [0, 0.8, 0] }}
                       exit={{ opacity: 0 }}
@@ -265,8 +265,8 @@ export function ActivePanel({
                       animate={{ y: -18, opacity: 1, scale: 1.15 }}
                       exit={{ opacity: 0, y: -40 }}
                       transition={{ duration: 0.5, delay: fx.delay }}
-                      className="num absolute inset-x-0 top-[34%] text-center text-[54px] font-black text-white italic"
-                      style={{ textShadow: '0 3px 0 #9e0f26, 0 0 18px rgb(255 61 88 / 0.9)' }}
+                      className="num absolute inset-x-0 top-[34%] text-center text-[56px] font-black text-[#fff3dc]"
+                      style={{ textShadow: '0 3px 0 #6f1810, 0 0 2px #2b1d12, 2px 0 0 #2b1d12, -2px 0 0 #2b1d12' }}
                     >
                       −{fx.dmg}
                     </motion.span>
@@ -278,8 +278,8 @@ export function ActivePanel({
                       animate={{ y: -12, opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ delay: fx.delay + 0.42 }}
-                      className="num absolute inset-x-0 top-[12%] text-center text-[38px] font-black italic"
-                      style={{ color: 'var(--color-atk-triangle)', textShadow: '0 2px 0 #02331a, 0 0 14px rgb(47 212 124 / 0.8)' }}
+                      className="num absolute inset-x-0 top-[12%] text-center text-[38px] font-black "
+                      style={{ color: '#d6ec9c', textShadow: '0 2px 0 #2c3f12, 2px 0 0 #2b1d12, -2px 0 0 #2b1d12' }}
                     >
                       +{fx.heal}
                     </motion.span>
@@ -289,16 +289,16 @@ export function ActivePanel({
                       key="ko"
                       initial={{ scale: 2.4, opacity: 0, rotate: -12 }}
                       animate={{ scale: 1, opacity: 1, rotate: -8 }}
-                      className="absolute inset-0 grid place-items-center bg-abyss/45 font-display text-[64px] font-black text-crimson italic"
-                      style={{ textShadow: '0 3px 0 #000, 0 0 20px rgb(255 61 88 / 0.8)' }}
+                      className="absolute inset-0 grid place-items-center bg-soot/45 font-display text-[64px] font-black text-blood "
+                      style={{ textShadow: '0 3px 0 #000, 2px 0 0 #1a0f08, -2px 0 0 #1a0f08' }}
                     >
                       KO
                     </motion.span>
                   )}
                 </AnimatePresence>
                 <span className={`absolute bottom-1 flex items-baseline gap-1 ${mirrored ? 'left-2' : 'right-2'}`}>
-                  <span className="font-display text-[15px] font-bold text-gold italic">HP</span>
-                  <span className="num text-[38px] leading-none font-black italic" style={{ textShadow: '0 2px 0 #000, 0 0 12px rgb(0 0 0 / 0.9)' }}>
+                  <span className="font-display text-[16px] font-bold text-gold" style={{ textShadow: '0 1px 0 #000' }}>{TERMS.hp}</span>
+                  <span className="num text-[38px] leading-none font-black" style={{ textShadow: '0 2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 0 0 10px rgb(0 0 0 / 0.8)' }}>
                     {hp}
                   </span>
                 </span>
@@ -308,10 +308,10 @@ export function ActivePanel({
           </div>
         ) : (
           <div className="relative z-[1] flex flex-1 items-center justify-center px-6 pb-4">
-            <div className="slot-empty !h-full !w-full text-[44px]" style={{ width: '100%', height: '100%' }}>
+            <div className="slot-empty !h-full !w-full text-[40px]" style={{ width: '100%', height: '100%' }}>
               <span className="flex flex-col items-center gap-1">
-                DIGIMON
-                <span className="font-body text-[15px] font-medium text-haze not-italic">{emptyText}</span>
+                {TERMS.creature}
+                <span className="font-body text-[15px] font-medium text-faded not-italic">{emptyText}</span>
               </span>
             </div>
           </div>

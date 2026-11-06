@@ -58,7 +58,7 @@ Mecánica común:
 - Los líderes "poseídos" (Veedramon, Garurumon) dan el passcode después de que se vayan los malos [RJ:233-235, 254-256; RY:450-459, 523-527]. King Sukamon "se echa atrás" y obliga a repetir el arena [RJ:273-278; LP:346-352].
 - Tera Area: Ken ya no es malo y te da el tercer partner [RJ:334-336; RY:819-825; LP:532-535]. Wiseman Tower: las parejas de los DigiDestined originales (Togemon...MetalGreymon) [RJ:355-362; RY:826-884]. Infinity Tower: VenomMyotismon y los Dark Masters restantes [RJ:370-383; RY:921-987].
 - Final: tras vencer a VenomMyotismon la torre se corrompe y aparece "A" (Analogman). No se puede guardar ni salir [RJ:382-390; LP:759-762]. Rosemon (programa de seguridad, no un digimon real) te pide que lo derrotes [LP:763-770; RY:1000-1034]. A tiene una trampa colocada por Rosemon [LP:767].
-- Créditos con FMV; se pueden saltar pulsando Start antes de que empiecen [DS:235-236]. Tras los créditos el juego continúa (el LP lo anuncia con Tai) [LP:799-803]; RJ avisa de que solo se ha completado "la primera mitad" [RJ:411-414]; YS habla de "finales" falsos y "verdadero" [YS:356-359]; RY lo divide en "Seasons" 1-3 [RY:156-164] y TM habla de tres seasons para acabar el juego [TM:84].
+- Créditos con FMV; se pueden saltar presionando Start antes de que empiecen [DS:235-236]. Tras los créditos el juego continúa (el LP lo anuncia con Tai) [LP:799-803]; RJ avisa de que solo se ha completado "la primera mitad" [RJ:411-414]; YS habla de "finales" falsos y "verdadero" [YS:356-359]; RY lo divide en "Seasons" 1-3 [RY:156-164] y TM habla de tres seasons para acabar el juego [TM:84].
 - Nota [LP:79-82, 810-812]: los personajes de TV (Davis, etc.) solo se pueden jugar en el postgame.
 
 ---
@@ -404,7 +404,7 @@ Nota adicional: DS indica que antes del Download Digivolve se recibe Rosemon's L
 - Hasta 4 copias de la misma carta por mazo [YS:232; MAN:1967-1968; RJ:92-94 (RJ nota la incoherencia con el máximo 6 en colección)]. Máximo 6 copias por carta en la colección [YS:248-250; MAN:811-812; DS:159-160].
 - Composición recomendada: 10 R, 7 C, 3 U, 10 opciones [YS:234-236; RJ:97-98; LP:986]. El manual: 10+ R, 5-9 C, 0-6 U y 5-8 opciones [MAN:2238-2248]. RY: no más de 7 opciones [RY:444]. YS: máximo 10 [YS:178-179].
 - Máximo 1-3 colores [RJ:109-113; MAN:2229-2230].
-- Se pueden usar mazos de rivales una vez vencidos si tienes las cartas: pulsar cuadrado al elegir mazo [YS:254-265; DS:221-229; LP:1707].
+- Se pueden usar mazos de rivales una vez vencidos si tienes las cartas: presionar cuadrado al elegir mazo [YS:254-265; DS:221-229; LP:1707].
 - Desert Island: no se pueden usar mazos con opciones [RY:1080-1081; RJ:430-433; LP:872].
 - Guardados: se muestra "Save amount" (máx. 255) y horas máx. 999 [YS:793-794; TM:880-891].
 - Una estrella en una carta: YS dice que significa colección completa (6) o solo tener 0-1 [YS:236-238]; DS especula que son cartas obtenidas fuera de los 3 de las batallas [DS:447-455]. Conflicto menor.
