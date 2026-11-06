@@ -8,6 +8,7 @@ import { gameEvents } from '../../audio/bus';
 import type { Card } from '../../engine/cards/types';
 import type { Action, CardRef, GameState, PlayerId } from '../../engine/game/types';
 import { SPECIALTY_TEXT } from '../theme';
+import { m } from '../../i18n';
 import { ACTIONS, powerIndex, slotOf, type ActionKind } from '../vocab/actions';
 import { crossEffectLabel, TERMS } from '../vocab/terms';
 import { Count, type ActiveView } from './Arena';
@@ -15,13 +16,24 @@ import { CardFace } from './CardFace';
 import { ActionDisc } from './glyphs';
 import { cardAt } from './util';
 
-const PLAY_LABEL: Record<string, string> = {
-  entrance: 'Entrar con',
-  dp: `Cargar ${TERMS.dp} con`,
-  digivolveOption: 'Usar',
-  digivolve: 'Evolucionar a',
-  support: 'Usar como soporte',
-};
+/** "Enter with…", "Charge EP with…": what clicking a card does in each phase, in the current language. */
+function playLabel(phase: string): string {
+  const P = m().board.hand.play;
+  switch (phase) {
+    case 'entrance':
+      return P.entrance;
+    case 'dp':
+      return P.dp(TERMS.dp);
+    case 'digivolveOption':
+      return P.digivolveOption;
+    case 'digivolve':
+      return P.digivolve;
+    case 'support':
+      return P.support;
+    default:
+      return P.other;
+  }
+}
 
 const CHOOSING = ['entrance', 'dp', 'digivolveOption', 'digivolve', 'support'];
 
@@ -56,13 +68,13 @@ export function HandRow({
   };
 
   return (
-    <ul className="flex items-center justify-center gap-[14px]" aria-label="Mano">
+    <ul className="flex items-center justify-center gap-[14px]" aria-label={TERMS.hand}>
       {Array.from({ length: 4 }, (_, i) => {
         const ref = hand[i];
         return (
           <li key={i} className="relative" style={{ fontSize: 10 } as CSSProperties}>
             <div className="slot-empty" aria-hidden>
-              <span className="text-[2.3em]">Carta</span>
+              <span className="text-[2.3em]">{TERMS.card}</span>
             </div>
             <AnimatePresence>
               {ref !== null && ref !== undefined && (
@@ -120,7 +132,7 @@ function HandCard({
         data-sfx="none"
         data-sfx-hover={action ? 'card' : undefined}
         onClick={() => (action ? onPlay(ref_, action) : onInspect(card))}
-        aria-label={action ? `${PLAY_LABEL[game.phase.name] ?? 'Jugar'} ${card.name}` : `Ver ${card.name}`}
+        aria-label={action ? `${playLabel(game.phase.name)} ${card.name}` : m().board.hand.view(card.name)}
         className={`block transition-transform duration-150 ${action ? 'hover:-translate-y-3' : ''}`}
       >
         <CardFace card={card} size="hand" playable={!!action} glow={picked} dim={choosing && !action} />
@@ -130,7 +142,7 @@ function HandCard({
           type="button"
           data-sfx="none"
           onClick={() => onInspect(card)}
-          aria-label={`Ver detalle de ${card.name}`}
+          aria-label={m().board.hand.details(card.name)}
           className="num absolute -right-2 -bottom-2 grid size-7 place-items-center rounded-full bg-soot text-[15px] font-bold text-brass opacity-0 shadow-[inset_0_0_0_2px_var(--color-brass)] transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
         >
           i
@@ -180,7 +192,7 @@ export function AttackList({
   if (!card)
     return (
       <p className="self-center font-display text-[20px] text-faded">
-        {name} no tiene {TERMS.creature.toLowerCase()} en la {TERMS.arena.toLowerCase()}.
+        {m().board.attacks.none(name, TERMS.creature.toLowerCase(), TERMS.arena.toLowerCase())}
       </p>
     );
   return (
@@ -188,7 +200,7 @@ export function AttackList({
       className="flex w-[680px] flex-col gap-[6px] self-center"
       initial={{ opacity: 0, y: player === 0 ? 20 : -20 }}
       animate={{ opacity: 1, y: 0 }}
-      aria-label={`Ataques de ${card.name}`}
+      aria-label={m().board.attacks.of(card.name)}
     >
       <div className="flex h-[28px] items-center gap-3">
         <span className="plate h-[26px] text-[18px] font-extrabold">
@@ -205,7 +217,7 @@ export function AttackList({
           {status}
         </motion.span>
         {hidden && (
-          <span className="num grid size-[24px] place-items-center rounded-full bg-gold text-[15px] font-extrabold text-ink shadow-[0_0_0_2px_#2b1d12]" title="Ya eligió">
+          <span className="num grid size-[24px] place-items-center rounded-full bg-gold text-[15px] font-extrabold text-ink shadow-[0_0_0_2px_#2b1d12]" title={m().board.attacks.alreadyChose}>
             ?
           </span>
         )}
@@ -223,7 +235,7 @@ export function AttackList({
             <span className="min-w-0 flex-1 truncate text-left font-display text-[19px] font-bold">{attack}</span>
             {state === 'chosen' && (
               <motion.span initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-sm bg-gold px-1.5 font-display text-[14px] font-extrabold text-ink">
-                Elegido
+                {m().board.attacks.chosen}
               </motion.span>
             )}
             <span className="num w-[70px] text-right text-[30px] leading-none font-black">
@@ -241,7 +253,7 @@ export function AttackList({
             data-state={state}
             onClick={() => onPick(a)}
             className="atk-row h-[40px] cursor-pointer px-2"
-            aria-label={`Atacar con ${TERMS.actions[a]}: ${attack}, ${power}`}
+            aria-label={m().board.attacks.pick(TERMS.actions[a], attack, power)}
           >
             {inner}
           </button>

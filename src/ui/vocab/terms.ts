@@ -1,76 +1,30 @@
 /**
- * Every word the interface uses for game concepts, in one place. Change a term here and it changes
- * everywhere. The rules keep their original names in the code (digimon, dp, digivolve…); only what
- * the player reads is ours.
+ * Every word the interface uses for game concepts, in the current language (src/i18n/locales/<lang>/terms.ts).
+ * `TERMS.dp`, `TERMS.actions.fury`… read the current language on every access. The rules keep their
+ * original names in the code (digimon, dp, digivolve…); only what the player reads is ours.
  */
 import type { CrossEffect, Level } from '../../engine/cards/types';
-import type { ActionKind } from './actions';
+import { getLocale, m, type Messages } from '../../i18n';
+import { CARD_TEXTS } from '../../i18n/cards';
 import { FACTIONS, factionOfSpecialty } from './factions';
 
-export const TERMS = {
-  /** The game's name (shown in the top bar and the browser tab). */
-  game: 'Card Evolution',
-  creature: 'Criatura',
-  creatures: 'Criaturas',
-  activeCreature: 'Criatura activa',
-  /** The Battle Slot. */
-  arena: 'Arena',
-  evolution: 'Evolución',
-  evolve: 'Evolucionar',
-  evolves: 'evoluciona',
-  /** Armor-digivolution: a partner evolving with its egg on entry. */
-  eggEvolution: 'Evolución con huevo',
-  eggEvolves: 'evoluciona con su huevo',
-  levels: { R: 'Novato', C: 'Campeón', U: 'Perfecto', A: 'Armadura' } satisfies Record<Level, string>,
-  levelShort: { R: 'N', C: 'C', U: 'P', A: 'A' } satisfies Record<Level, string>,
-  /** DP */
-  dp: 'PE',
-  dpLong: 'Puntos de evolución',
-  /** +P, what a card adds when charged */
-  dpGiven: '+PE',
-  /** DP Slot */
-  dpZone: 'Reserva',
-  /** Online Deck / Offline Pile */
-  deck: 'Mazo',
-  discard: 'Descarte',
-  hand: 'Mano',
-  hp: 'HP',
-  /** Option card */
-  supportCard: 'Carta de apoyo',
-  supportShort: 'Apoyo',
-  /** Digivolve Option card */
-  evolutionCard: 'Carta de evolución',
-  evolutionShort: 'Evol.',
-  support: 'Soporte',
-  supportEffect: 'Efecto de soporte',
-  /** The ✕ special effect */
-  instinctEffect: 'Efecto de Instinto',
-  gamble: 'Apostar',
-  partner: 'Compañero',
-  /** Digi-Egg */
-  egg: 'Huevo',
-  /** Digi-Parts */
-  parts: 'Reliquias',
-  part: 'Reliquia',
-  round: 'Ronda',
-  rounds: 'Rondas',
-  firstAttack: '1.er ataque',
-  secondAttack: '2.º ataque',
-  faction: 'Facción',
-  habitat: 'Hábitat',
-  element: 'Elemento',
-  actions: { fury: 'Furia', technique: 'Técnica', instinct: 'Instinto' } satisfies Record<ActionKind, string>,
-  phases: { prep: 'Preparación', dp: 'Puntos de evolución', evolutionCard: 'Carta de evolución', evolution: 'Evolución', battle: 'Batalla' },
-};
+type Terms = Messages['terms'];
+
+/** The current language's terms (always fresh: never cache it in a module constant). */
+export const TERMS: Terms = new Proxy({} as Terms, {
+  get: (_, key) => m().terms[key as keyof Terms],
+});
 
 export const levelName = (l: Level) => TERMS.levels[l];
 export const factionName = (s: Parameters<typeof factionOfSpecialty>[0]) => FACTIONS[factionOfSpecialty(s)].name;
 
 /**
- * A card's text as the disc wrote it, shown with our names: ◯ △ ✕ become Furia, Técnica and Instinto,
- * DP becomes PE. The card data itself is untouched.
+ * A card's text in the current language and our vocabulary. The card data (the disc's text) is the key;
+ * a text not translated yet is shown with our names: ◯ △ ✕ become the action kinds, DP the points.
  */
 export function cardText(raw: string): string {
+  const own = CARD_TEXTS[getLocale()][raw];
+  if (own) return own;
   return raw
     .replace(/◯/g, TERMS.actions.fury)
     .replace(/△/g, TERMS.actions.technique)
@@ -81,38 +35,39 @@ export function cardText(raw: string): string {
 /** The special effect of the Instinto attack (the rules' cross effect). */
 export function crossEffectLabel(e: CrossEffect): string {
   const A = TERMS.actions;
+  const C = TERMS.crossEffects;
   switch (e) {
     case 'none':
-      return 'Sin efecto';
+      return C.none;
     case 'firstAttack':
-      return 'Primer golpe';
+      return C.firstAttack;
     case 'circleTo0':
-      return `Anula ${A.fury}`;
+      return C.nullify(A.fury);
     case 'triangleTo0':
-      return `Anula ${A.technique}`;
+      return C.nullify(A.technique);
     case 'crossTo0':
-      return `Anula ${A.instinct}`;
+      return C.nullify(A.instinct);
     case 'counterCircle':
-      return `Contra ${A.fury}`;
+      return C.counter(A.fury);
     case 'counterTriangle':
-      return `Contra ${A.technique}`;
+      return C.counter(A.technique);
     case 'counterCross':
-      return `Contra ${A.instinct}`;
+      return C.counter(A.instinct);
     case 'crash':
-      return 'Embestida';
+      return C.crash;
     case 'eatUpHp':
-      return 'Absorber HP';
+      return C.eatUpHp;
     case 'jamming':
-      return 'Interferencia';
+      return C.jamming;
     case 'foeX3Fire':
-      return `×3 contra ${factionName('fire')}`;
+      return C.foeX3(factionName('fire'));
     case 'foeX3Ice':
-      return `×3 contra ${factionName('ice')}`;
+      return C.foeX3(factionName('ice'));
     case 'foeX3Nature':
-      return `×3 contra ${factionName('nature')}`;
+      return C.foeX3(factionName('nature'));
     case 'foeX3Darkness':
-      return `×3 contra ${factionName('darkness')}`;
+      return C.foeX3(factionName('darkness'));
     case 'foeX3Rare':
-      return `×3 contra ${factionName('rare')}`;
+      return C.foeX3(factionName('rare'));
   }
 }

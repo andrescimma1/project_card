@@ -4,7 +4,10 @@
  */
 import { useState } from 'react';
 import { cards } from '../../engine/cards/db';
+import type { Specialty } from '../../engine/cards/types';
 import { TERMS } from '../vocab/terms';
+import { SPECIALTY_NAME } from '../theme';
+import { m } from '../../i18n';
 import { PARTNER_IDS, partnerCards } from '../../engine/game/partner';
 import { expNeeded, MAX_LEVEL } from '../../engine/progression/partnerExp';
 import type { SaveData } from '../../engine/progression/save';
@@ -16,43 +19,45 @@ import { Button, Notice, PartName } from './common';
 
 const act = () => storyStore.getState();
 
-const SPECIALTY_LABEL = ['Fire', 'Ice', 'Nature', 'Darkness', 'Rare'];
+/** Auto Deck's specialty choice, in the original's order (its index is the option's value). */
+const SPECIALTIES: Specialty[] = ['fire', 'ice', 'nature', 'darkness', 'rare'];
 
 /** SUBSEG 0x801F0024: Specialty, Offensive / Defensive, Option Cards Many / Few → Create. */
 function AutoDeckForm({ onCreate, onCancel }: { onCreate: (ids: number[]) => void; onCancel: () => void }) {
   const [o, setO] = useState({ specialty: 0, defensive: false, few: false });
+  const t = m().story;
   return (
-    <div className="flex flex-col gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4" aria-label="Auto Deck">
-      <h4 className="font-display text-xl font-bold ">Auto Deck</h4>
+    <div className="flex flex-col gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4" aria-label={t.menus.autoDeck}>
+      <h4 className="font-display text-xl font-bold ">{t.menus.autoDeck}</h4>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-sm text-faded">Especialidad</span>
-        {SPECIALTY_LABEL.map((l, i) => (
-          <Chip key={l} on={o.specialty === i} onClick={() => setO({ ...o, specialty: i })}>
-            {l}
+        <span className="mr-1 text-sm text-faded">{TERMS.faction}</span>
+        {SPECIALTIES.map((s, i) => (
+          <Chip key={s} on={o.specialty === i} onClick={() => setO({ ...o, specialty: i })}>
+            {SPECIALTY_NAME[s]}
           </Chip>
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-sm text-faded">Cartas de apoyo</span>
+        <span className="mr-1 text-sm text-faded">{t.menus.supportCards}</span>
         <Chip on={!o.defensive} onClick={() => setO({ ...o, defensive: false })}>
-          Ofensivas
+          {t.menus.offensive}
         </Chip>
         <Chip on={o.defensive} onClick={() => setO({ ...o, defensive: true })}>
-          Defensivas
+          {t.menus.defensive}
         </Chip>
         <span className="mx-1 text-faded">·</span>
         <Chip on={!o.few} onClick={() => setO({ ...o, few: false })}>
-          Muchas
+          {t.menus.many}
         </Chip>
         <Chip on={o.few} onClick={() => setO({ ...o, few: true })}>
-          Pocas
+          {t.menus.few}
         </Chip>
       </div>
       <div className="flex gap-2">
         <Button primary onClick={() => onCreate(act().autoDeck(o))}>
-          Crear
+          {t.menus.create}
         </Button>
-        <Button onClick={onCancel}>Cancelar</Button>
+        <Button onClick={onCancel}>{t.shared.cancel}</Button>
       </div>
     </div>
   );
@@ -61,13 +66,12 @@ function AutoDeckForm({ onCreate, onCancel }: { onCreate: (ids: number[]) => voi
 /** SUBSEG 0x801E11D4: start from a known deck you have every card of. */
 function BaseDeckPicker({ onPick, onCancel }: { onPick: (ids: number[]) => void; onCancel: () => void }) {
   const [list] = useState(() => act().baseDecks());
+  const t = m().story;
   return (
-    <div className="flex flex-col gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4" aria-label="Mazo base">
-      <h4 className="font-display text-xl font-bold ">Empezar desde un mazo conocido</h4>
+    <div className="flex flex-col gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4" aria-label={t.menus.baseDeck}>
+      <h4 className="font-display text-xl font-bold ">{t.menus.baseDeckTitle}</h4>
       {list.length === 0 ? (
-        <p className="text-sm text-faded">
-          Aparecen aquí los mazos contra los que jugaste cuando tienes todas sus cartas. Los mazos con una carta Partner no se pueden usar.
-        </p>
+        <p className="text-sm text-faded">{t.menus.baseDeckEmpty(TERMS.partner)}</p>
       ) : (
         <ul className="flex flex-wrap gap-2">
           {list.map((d) => (
@@ -80,7 +84,7 @@ function BaseDeckPicker({ onPick, onCancel }: { onPick: (ids: number[]) => void;
         </ul>
       )}
       <div>
-        <Button onClick={onCancel}>Cancelar</Button>
+        <Button onClick={onCancel}>{t.shared.cancel}</Button>
       </div>
     </div>
   );
@@ -88,7 +92,7 @@ function BaseDeckPicker({ onPick, onCancel }: { onPick: (ids: number[]) => void;
 
 function StoryDeckEditor({ k, onClose }: { k: number; onClose: () => void }) {
   const save = useStory((s) => s.save)!;
-  const [draft, setDraft] = useState(() => ({ name: save.decks[k].name || `Mazo ${k + 1}`, cards: [...save.decks[k].cards] }));
+  const [draft, setDraft] = useState(() => ({ name: save.decks[k].name || m().game.deck.defaultName(k + 1), cards: [...save.decks[k].cards] }));
   const [notice, setNotice] = useState<string | null>(null);
   const [tool, setTool] = useState<'auto' | 'base' | null>(null);
   const dirty = draft.name !== save.decks[k].name || draft.cards.join() !== save.decks[k].cards.join();
@@ -97,13 +101,14 @@ function StoryDeckEditor({ k, onClose }: { k: number; onClose: () => void }) {
     setTool(null);
     setNotice(null);
   };
+  const t = m().story;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => setTool(tool === 'auto' ? null : 'auto')}>Auto Deck</Button>
-        <Button onClick={() => setTool(tool === 'base' ? null : 'base')}>Mazo base</Button>
+        <Button onClick={() => setTool(tool === 'auto' ? null : 'auto')}>{t.menus.autoDeck}</Button>
+        <Button onClick={() => setTool(tool === 'base' ? null : 'base')}>{t.menus.baseDeck}</Button>
         <Button disabled={!draft.cards.length} onClick={() => fill([])}>
-          Vaciar
+          {t.menus.clear}
         </Button>
       </div>
       {tool === 'auto' && <AutoDeckForm onCreate={fill} onCancel={() => setTool(null)} />}
@@ -123,9 +128,9 @@ function StoryDeckEditor({ k, onClose }: { k: number; onClose: () => void }) {
         footer={
           <>
             <Button primary disabled={!dirty} onClick={() => setNotice(act().saveDeck(k, draft.name, draft.cards))}>
-              {dirty ? 'Guardar mazo' : 'Guardado'}
+              {dirty ? t.menus.saveDeck : t.shared.saved}
             </Button>
-            <Button onClick={() => (!dirty || confirm('Hay cambios sin guardar. ¿Salir igual?')) && onClose()}>Volver</Button>
+            <Button onClick={() => (!dirty || confirm(t.menus.unsaved)) && onClose()}>{t.shared.back}</Button>
           </>
         }
       />
@@ -135,28 +140,27 @@ function StoryDeckEditor({ k, onClose }: { k: number; onClose: () => void }) {
 
 function DeckSlots({ save, onEdit }: { save: SaveData; onEdit: (k: number) => void }) {
   const [notice, setNotice] = useState<string | null>(null);
+  const t = m().story;
   return (
-    <section className="flex flex-col gap-3" aria-label="Mazos">
-      <h3 className="font-display text-2xl font-bold ">Mazos</h3>
+    <section className="flex flex-col gap-3" aria-label={t.menus.decks}>
+      <h3 className="font-display text-2xl font-bold ">{t.menus.decks}</h3>
       <Notice text={notice} />
       <ul className="grid gap-3 sm:grid-cols-3">
         {save.decks.map((d, k) => {
           const active = save.selectedDeck === k;
           return (
             <li key={k} className="flex flex-col gap-2 cut [--c:16px] border-2 bg-leather p-4" style={{ borderColor: active ? 'var(--color-rare)' : 'var(--color-seam)' }}>
-              <span className="font-display text-xl font-bold ">{d.cards.length ? d.name : 'Vacío'}</span>
-              <span className="text-sm text-faded">
-                {d.cards.length}/30 cartas{d.cards.length ? `, ${d.wins} victorias, ${d.losses} derrotas` : ''}
-              </span>
+              <span className="font-display text-xl font-bold ">{d.cards.length ? d.name : t.menus.empty}</span>
+              <span className="text-sm text-faded">{t.menus.deckInfo(d.cards.length, d.wins, d.losses)}</span>
               <div className="mt-auto flex flex-wrap gap-2">
-                <Button onClick={() => onEdit(k)}>{d.cards.length ? 'Editar' : 'Armar'}</Button>
+                <Button onClick={() => onEdit(k)}>{d.cards.length ? t.menus.edit : t.menus.build}</Button>
                 {active ? (
                   <span className="self-center text-sm" style={{ color: 'var(--color-rare)' }}>
-                    Mazo activo
+                    {t.menus.activeDeck}
                   </span>
                 ) : (
                   <Button disabled={d.cards.length !== 30} onClick={() => setNotice(act().selectDeck(k))}>
-                    Usar
+                    {t.menus.use}
                   </Button>
                 )}
               </div>
@@ -174,6 +178,7 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
   const { card, armor } = partnerCards(p.slot);
   const free = save.ownedParts.flatMap((owned, id) => (owned && !save.partners.some((q) => q.slot.parts.includes(id)) ? [id] : []));
   const max = p.slot.level >= MAX_LEVEL;
+  const t = m().story;
   return (
     <li className="flex flex-col gap-4 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4 md:flex-row">
       <div className="flex shrink-0 gap-2">
@@ -184,13 +189,13 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h4 className="font-display text-xl font-bold ">{cards[p.slot.id].name}</h4>
           <span className="text-sm text-faded tabular-nums">
-            Nivel {p.slot.level} · {max ? 'RANK MAX' : `${p.exp} / ${expNeeded(p.slot.level)} EXP`}
+            {t.menus.level(p.slot.level)} · {max ? t.shared.rankMax : t.menus.expProgress(p.exp, expNeeded(p.slot.level))}
           </span>
         </div>
         <Notice text={notice} />
         <div className="flex flex-col gap-1">
-          <span className="text-sm text-faded">{TERMS.parts} equipadas ({p.slot.parts.length}/3)</span>
-          {p.slot.parts.length === 0 && <span className="text-sm">Ninguna.</span>}
+          <span className="text-sm text-faded">{t.menus.equipped(TERMS.parts, p.slot.parts.length)}</span>
+          {p.slot.parts.length === 0 && <span className="text-sm">{t.menus.noParts}</span>}
           <ul className="flex flex-wrap gap-2">
             {p.slot.parts.map((id) => (
               <li key={id} className="flex items-center gap-2 cut [--c:10px] bg-leather py-1 pr-1 pl-3 text-sm">
@@ -198,7 +203,7 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
                 <button
                   type="button"
                   onClick={() => setNotice(act().partnerAction({ kind: 'unequip', partner: k, part: id }))}
-                  aria-label={`Quitar ${TERMS.part.toLowerCase()}`}
+                  aria-label={t.menus.unequip(TERMS.part)}
                   className="grid size-7 place-items-center cut [--c:6px] border border-seam hover:bg-hide"
                 >
                   −
@@ -208,7 +213,7 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
           </ul>
         </div>
         <details className="text-sm">
-          <summary className="cursor-pointer text-faded">Equipar una {TERMS.part.toLowerCase()} ({free.length} libres)</summary>
+          <summary className="cursor-pointer text-faded">{t.menus.equip(TERMS.part, free.length)}</summary>
           <ul className="mt-2 flex max-h-56 flex-wrap gap-2 overflow-y-auto">
             {free.map((id) => (
               <li key={id}>
@@ -225,8 +230,8 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
           </ul>
         </details>
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-faded">{TERMS.egg}s</span>
-          {p.eggs.every((e) => !e) && <span>todavía ninguno.</span>}
+          <span className="text-faded">{TERMS.eggs}</span>
+          {p.eggs.every((e) => !e) && <span>{t.menus.noEggs}</span>}
           {p.eggs.map((armorId, egg) =>
             armorId ? (
               <button
@@ -252,11 +257,12 @@ export function StoryMenu({ onClose }: { onClose: () => void }) {
   const save = useStory((s) => s.save)!;
   const [editing, setEditing] = useState<number | null>(null);
   if (editing !== null) return <StoryDeckEditor k={editing} onClose={() => setEditing(null)} />;
+  const t = m().story;
   return (
     <div className="flex flex-col gap-6">
       <DeckSlots save={save} onEdit={setEditing} />
-      <section className="flex flex-col gap-3" aria-label="Compañeros">
-        <h3 className="font-display text-2xl font-bold ">Compañeros</h3>
+      <section className="flex flex-col gap-3" aria-label={t.menus.partners}>
+        <h3 className="font-display text-2xl font-bold ">{t.menus.partners}</h3>
         <ul className="flex flex-col gap-3">
           {save.partners.map((p, k) => (
             <PartnerCard key={p.slot.id} save={save} k={k} />
@@ -265,7 +271,7 @@ export function StoryMenu({ onClose }: { onClose: () => void }) {
       </section>
       <div>
         <Button primary onClick={onClose}>
-          Volver
+          {t.shared.back}
         </Button>
       </div>
     </div>
@@ -275,9 +281,10 @@ export function StoryMenu({ onClose }: { onClose: () => void }) {
 /** PARTNER GET / Is this Partner OK? (SAISEG 0x801F2ABC). Candidates are indices in SLUS order. */
 export function PartnerGet({ candidates }: { candidates: number[] }) {
   const [pick, setPick] = useState<number | null>(null);
+  const t = m().story;
   return (
     <div className="flex flex-col gap-4 cut [--c:16px] border-2 bg-leather p-5" style={{ borderColor: 'var(--color-rare)' }}>
-      <h3 className="font-display text-2xl font-bold">Partner Get</h3>
+      <h3 className="font-display text-2xl font-bold">{t.menus.partnerGet}</h3>
       <div className="flex flex-wrap gap-4">
         {candidates.map((idx) => {
           const id = PARTNER_IDS[idx];
@@ -298,11 +305,11 @@ export function PartnerGet({ candidates }: { candidates: number[] }) {
       </div>
       {pick !== null && (
         <div className="flex flex-wrap items-center gap-3">
-          <span>¿Este compañero está bien?</span>
+          <span>{t.menus.confirmPartner}</span>
           <Button primary onClick={() => act().reply({ kind: 'choice', value: pick })}>
-            Sí
+            {t.shared.yes}
           </Button>
-          <Button onClick={() => setPick(null)}>No</Button>
+          <Button onClick={() => setPick(null)}>{t.shared.no}</Button>
         </div>
       )}
     </div>

@@ -1,0 +1,76 @@
+/**
+ * Messages of the game layer (deck rules, story mode) and the rules engine's messages, in neutral Latin
+ * American Spanish. The engine keeps its own strings; i18n/engineMessages.ts recognises them and shows
+ * these instead.
+ */
+export const game = {
+  deck: {
+    full: (n: number) => `El mazo ya tiene ${n} cartas.`,
+    maxCopies: (n: number, name: string) => `Máximo ${n} copias de ${name}.`,
+    size: (n: number, has: number) => `El mazo debe tener ${n} cartas (tiene ${has}).`,
+    unknownCard: (id: string) => `Carta desconocida: ${id}.`,
+    tooMany: (n: number, name: string) => `Más de ${n} copias de ${name}.`,
+    needsCreatures: (creatures: string) => `El mazo necesita ${creatures}.`,
+    invalid: (k: string, why: string) => `Mazo ${k} inválido: ${why}`,
+    defaultName: (k: number) => `Mazo ${k}`,
+  },
+  illegalAction: (phase: string) => `Esa acción no está permitida ahora (fase "${phase}").`,
+  story: {
+    maxCards: 'Un mazo tiene 30 cartas como máximo.',
+    eggOnly: (armor: string, egg: string) => `Las cartas de nivel ${armor} solo aparecen con un ${egg}.`,
+    maxCopiesPerDeck: (n: number) => `Máximo ${n} copias por mazo.`,
+    youOnlyHave: (n: number) => `Solo tienes ${n} de esa carta.`,
+    youOnlyHaveOf: (n: number, name: string) => `Solo tienes ${n} de ${name}.`,
+    noScripts: 'No están los guiones de las ciudades. Ejecuta `npm run extract:scripts -- "<carpeta del disco>"`.',
+    invalidActiveDeck: (menu: string) => `Tu mazo activo no es válido (30 cartas). Elige otro en ${menu}.`,
+    activeDeckMenu: 'Menú → Mazos',
+    nameRequired: 'Escribe un nombre para tu partida.',
+    activeDeck30: 'El mazo activo debe tener 30 cartas.',
+    only30: 'Solo se puede elegir un mazo de 30 cartas.',
+    twoDifferentSaves: 'Elige dos partidas distintas.',
+    twoSaves: 'Elige dos partidas.',
+    duelInvalidDeck: (name: string, k: number) => `El mazo activo de ${name} (jugador ${k}) no tiene 30 cartas válidas.`,
+  },
+  fusion: {
+    cannot: 'Esa carta no se puede fusionar.',
+    level: 'Esta tienda no fusiona cartas de ese nivel.',
+    noFreeCopies: 'No te quedan copias libres: las demás están en un mazo.',
+    maxed: 'Ya tienes el máximo de esa carta.',
+  },
+  parts: {
+    notOwned: (part: string) => `No tienes esa ${part}.`,
+    equipped: (part: string) => `Esa ${part} ya está equipada.`,
+    max: (n: number, partner: string, parts: string) => `Cada ${partner} lleva ${n} ${parts} como máximo.`,
+    sameType: (part: string, partner: string) => `No se puede repetir el tipo de ${part} en un ${partner}.`,
+    noEgg: (egg: string) => `No tienes ese ${egg}.`,
+  },
+  trade: {
+    sameSave: 'No se puede intercambiar con la misma partida.',
+    disabled: 'El intercambio está desactivado.',
+    playerLocked: (k: number) => `El jugador ${k} todavía no puede intercambiar.`,
+    unidentified: 'Esta carta no está identificada.',
+    cannot: 'Esta carta no se puede intercambiar.',
+    maxOffer: (n: number) => `Solo puedes ofrecer ${n} cartas.`,
+    noMoreCopies: 'No puedes transferir más copias de esta carta.',
+    nothing: 'No se puede intercambiar 0 cartas.',
+  },
+  /** Places and options of the story menus (CMD11.1 ids). */
+  places: {
+    0: 'Sala del jugador',
+    1: 'Menú',
+    2: 'Café de batallas',
+    7: 'Tienda de fusión',
+    8: 'Entrar',
+    9: 'No entrar',
+    12: 'Hablar',
+    13: 'Combatir',
+    14: 'Información',
+    15: 'Guardar',
+    16: 'Sí',
+    17: 'No',
+    18: 'Mazos',
+    19: 'Compañero',
+  } as Record<number, string>,
+  option: (id: number) => `Opción ${id}`,
+  arena: 'Arena',
+};

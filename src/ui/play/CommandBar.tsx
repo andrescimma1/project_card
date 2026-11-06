@@ -9,6 +9,7 @@ import { legalActions } from '../../engine/game/turn';
 import type { Action, GameState, PlayerId } from '../../engine/game/types';
 import { count } from '../../engine/game/zones';
 import { describeEvent } from '../../game/describe';
+import { m } from '../../i18n';
 import { TERMS } from '../vocab/terms';
 import type { Playback } from './Playback';
 import { activeRef, cardAt } from './util';
@@ -20,8 +21,8 @@ export interface Seats {
   twoPlayer: boolean;
 }
 
-/** Phase groups of a turn (state machine SLUS 0x80034260). */
-const STEPS = [
+/** Phase groups of a turn (state machine SLUS 0x80034260). Labels in the current language. */
+const steps = () => [
   { label: TERMS.phases.prep, phases: ['turnStart', 'mulligan', 'entrance', 'armorDigivolve'] },
   { label: TERMS.dp, phases: ['dp'] },
   { label: TERMS.evolutionCard, phases: ['digivolveOption'] },
@@ -29,26 +30,38 @@ const STEPS = [
   { label: TERMS.phases.battle, phases: ['attack', 'support'] },
 ];
 
-const PHASE_TITLE: Record<string, [string, string]> = {
-  turnStart: ['Preparación', 'robando cartas'],
-  mulligan: ['Preparación', 'preparando la mano'],
-  entrance: ['Preparación', `entrada de la ${TERMS.creature.toLowerCase()}`],
-  armorDigivolve: ['Preparación', TERMS.eggEvolution.toLowerCase()],
-  dp: [TERMS.evolution, `carga de ${TERMS.dp}`],
-  digivolveOption: [TERMS.evolution, TERMS.evolutionCard.toLowerCase()],
-  digivolve: [TERMS.evolution, 'evolucionar'],
-  attack: ['Batalla', 'decidiendo el ataque'],
-  support: ['Batalla', 'carta de soporte'],
-  gameOver: ['Fin de la partida', ''],
-};
-
 export function phaseTitle(game: GameState, playback: Playback | null): [string, string] {
-  if (playback) return ['Batalla', 'resolución'];
-  return PHASE_TITLE[game.phase.name] ?? [game.phase.name, ''];
+  const P = m().board.phaseTitle;
+  const pair = (x: string[]) => [x[0], x[1]] as [string, string];
+  if (playback) return pair(P.playback);
+  switch (game.phase.name) {
+    case 'turnStart':
+      return pair(P.turnStart);
+    case 'mulligan':
+      return pair(P.mulligan);
+    case 'entrance':
+      return pair(P.entrance(TERMS.creature.toLowerCase()));
+    case 'armorDigivolve':
+      return pair(P.armorDigivolve(TERMS.eggEvolution.toLowerCase()));
+    case 'dp':
+      return pair(P.dp(TERMS.evolution, TERMS.dp));
+    case 'digivolveOption':
+      return pair(P.digivolveOption(TERMS.evolution, TERMS.evolutionCard.toLowerCase()));
+    case 'digivolve':
+      return pair(P.digivolve(TERMS.evolution));
+    case 'attack':
+      return pair(P.attack);
+    case 'support':
+      return pair(P.support);
+    case 'gameOver':
+      return pair(P.gameOver);
+  }
 }
 
 export function PhaseBar({ game, playback, logOpen, onLog, onLeave }: { game: GameState; playback: Playback | null; logOpen: boolean; onLog: () => void; onLeave?: () => void }) {
+  const B = m().board;
   const [title, sub] = phaseTitle(game, playback);
+  const STEPS = steps();
   const current = playback ? STEPS.length - 1 : STEPS.findIndex((s) => s.phases.includes(game.phase.name));
   return (
     <header className="frame side-player h-[46px]" style={{ '--c': '14px' } as CSSProperties}>
@@ -62,7 +75,7 @@ export function PhaseBar({ game, playback, logOpen, onLog, onLeave }: { game: Ga
           </AnimatePresence>
         </h2>
         <span className="flex-1" />
-        <ol className="relative z-[1] flex items-center gap-1.5" aria-label="Fases del turno">
+        <ol className="relative z-[1] flex items-center gap-1.5" aria-label={B.phaseSteps}>
           {STEPS.map((s, i) => (
             <li key={s.label} className="flex items-center gap-1.5">
               <span
@@ -76,14 +89,14 @@ export function PhaseBar({ game, playback, logOpen, onLog, onLeave }: { game: Ga
           ))}
         </ol>
         <span className="num relative z-[1] text-[20px] font-bold ">
-          <span className="text-faded">Turno</span> {game.turnNumber}
+          <span className="text-faded">{B.turn}</span> {game.turnNumber}
         </span>
         <button type="button" data-sfx="none" onClick={onLog} aria-expanded={logOpen} className="cmd relative z-[1] !py-1 !text-[15px]">
-          <span>Registro</span>
+          <span>{B.log}</span>
         </button>
         {onLeave && (
           <button type="button" onClick={onLeave} className="relative z-[1] font-display text-[15px] font-semibold text-faded underline-offset-4 hover:text-bone hover:underline">
-            Abandonar
+            {B.leave}
           </button>
         )}
       </div>
@@ -108,16 +121,21 @@ function Dots() {
   return <span className="inline-block w-6 text-left">{'.'.repeat(n)}</span>;
 }
 
-const HINT: Record<string, string> = {
-  mulligan: 'Quédate con estas cartas o descarta la mano entera y roba 4 nuevas.',
-  entrance: `Elige una ${TERMS.creature.toLowerCase()} de tu mano. Si entra un ${TERMS.levels.C}, su HP y sus ataques quedan a la mitad; un ${TERMS.levels.U}, a un cuarto.`,
-  armorDigivolve: `Tu ${TERMS.partner.toLowerCase()} tiene un ${TERMS.egg.toLowerCase()}: puede evolucionar ahora a su forma ${TERMS.levels.A}.`,
-  dp: `Puedes poner UNA ${TERMS.creature.toLowerCase()} de tu mano en la ${TERMS.dpZone.toLowerCase()}. Suma sus ${TERMS.dp}.`,
-  digivolveOption: `Puedes jugar una ${TERMS.evolutionCard.toLowerCase()} antes de evolucionar.`,
-  digivolve: `Las cartas que brillan son evoluciones válidas. Al evolucionar, la ${TERMS.dpZone.toLowerCase()} va al ${TERMS.discard.toLowerCase()}.`,
-  attack: `Elige ${TERMS.actions.fury}, ${TERMS.actions.technique} o ${TERMS.actions.instinct} en tu lista de ataques (teclas 1, 2 y 3).`,
-  support: 'Elige una carta de tu mano, apuesta con la de arriba de tu mazo o juega sin soporte.',
-};
+/** What to do in each phase, in the current language. */
+function hints(): Record<string, string> {
+  const H = m().board.hints;
+  const T = TERMS;
+  return {
+    mulligan: H.mulligan,
+    entrance: H.entrance(T.creature.toLowerCase(), T.levels.C, T.levels.U),
+    armorDigivolve: H.armorDigivolve(T.partner.toLowerCase(), T.egg.toLowerCase(), T.levels.A),
+    dp: H.dp(T.creature.toLowerCase(), T.dpZone.toLowerCase(), T.dp),
+    digivolveOption: H.digivolveOption(T.evolutionCard.toLowerCase()),
+    digivolve: H.digivolve(T.dpZone.toLowerCase(), T.discard.toLowerCase()),
+    attack: H.attack(T.actions.fury, T.actions.technique, T.actions.instinct),
+    support: H.support,
+  };
+}
 
 export function CommandBar({
   game,
@@ -142,7 +160,10 @@ export function CommandBar({
   const waiting = !playback && actions.length === 0 && ph.name !== 'gameOver';
   const me = game.players[who];
   const rival = game.players[them];
-  const rivalName = twoPlayer ? names[them] : 'La CPU';
+  const B = m().board;
+  const C = B.commands;
+  const HINT = hints();
+  const rivalName = twoPlayer ? names[them] : B.seats.theCpu;
   const actor: PlayerId = waiting ? them : who;
 
   let hint: React.ReactNode = HINT[ph.name] ?? '';
@@ -156,15 +177,15 @@ export function CommandBar({
           {playback.index + 1} / {playback.steps.length}
         </span>
         <Cmd primary onClick={playback.next}>
-          {playback.finished ? 'Continuar' : 'Siguiente'}
+          {playback.finished ? C.continue : C.next}
         </Cmd>
-        <Cmd onClick={playback.skip}>Saltar</Cmd>
+        <Cmd onClick={playback.skip}>{C.skip}</Cmd>
       </>
     );
   } else if (waiting) {
     hint = (
       <>
-        {twoPlayer ? `Le toca a ${names[them]}` : 'La CPU está pensando'}
+        {twoPlayer ? B.hints.turnOf(names[them]) : B.hints.cpuThinking}
         <Dots />
       </>
     );
@@ -172,9 +193,9 @@ export function CommandBar({
     commands = (
       <>
         <Cmd primary onClick={() => act(find('keepHand')!)}>
-          Quedarme con esta mano
+          {C.keepHand}
         </Cmd>
-        {find('changeHand') && <Cmd onClick={() => act(find('changeHand')!)}>Cambiar toda la mano</Cmd>}
+        {find('changeHand') && <Cmd onClick={() => act(find('changeHand')!)}>{C.changeHand}</Cmd>}
       </>
     );
   } else if (ph.name === 'armorDigivolve') {
@@ -184,33 +205,33 @@ export function CommandBar({
     commands = (
       <>
         <Cmd primary onClick={() => act(find('armorDigivolve')!)}>
-          Evolucionar con el {TERMS.egg.toLowerCase()}{armor ? ` a ${armor.name}` : ''}
+          {C.eggEvolve(TERMS.egg.toLowerCase(), armor ? armor.name : null)}
         </Cmd>
-        <Cmd onClick={() => act(find('skipArmorDigivolve')!)}>Seguir con {ref === null ? `esta ${TERMS.creature.toLowerCase()}` : cardAt(game, who, ref).name}</Cmd>
+        <Cmd onClick={() => act(find('skipArmorDigivolve')!)}>{C.keepGoing(ref === null ? C.thisCreature(TERMS.creature.toLowerCase()) : cardAt(game, who, ref).name)}</Cmd>
       </>
     );
   } else if (ph.name === 'dp') {
-    commands = <Cmd onClick={() => act(find('skipDp')!)}>No cargar {TERMS.dp}</Cmd>;
+    commands = <Cmd onClick={() => act(find('skipDp')!)}>{C.noDp(TERMS.dp)}</Cmd>;
   } else if (ph.name === 'digivolveOption') {
-    commands = <Cmd onClick={() => act(find('skipDigivolveOption')!)}>No usar {TERMS.evolutionCard.toLowerCase()}</Cmd>;
+    commands = <Cmd onClick={() => act(find('skipDigivolveOption')!)}>{C.noEvolutionCard(TERMS.evolutionCard.toLowerCase())}</Cmd>;
   } else if (ph.name === 'digivolve') {
     const can = actions.some((a) => a.type === 'digivolve');
-    if (!can) hint = 'Ahora no hay evoluciones posibles.';
+    if (!can) hint = B.hints.noEvolution;
     commands = (
       <Cmd primary={!can} onClick={() => act(find('skipDigivolve')!)}>
-        {can ? 'No evolucionar' : 'Ir a la batalla'}
+        {can ? C.noEvolve : C.toBattle}
       </Cmd>
     );
   } else if (ph.name === 'attack') {
-    hint = rival.attack !== null ? `${HINT.attack} ${rivalName} ya eligió.` : HINT.attack;
-    commands = <Cmd onClick={onPeek}>{peek ? 'Ver ataques' : 'Ver cartas'}</Cmd>;
+    hint = rival.attack !== null ? `${HINT.attack} ${B.hints.rivalChose(rivalName)}` : HINT.attack;
+    commands = <Cmd onClick={onPeek}>{peek ? C.showAttacks : C.showCards}</Cmd>;
   } else if (ph.name === 'support') {
     if (rival.support)
       hint = (
         <>
-          {rivalName} eligió primero:{' '}
+          {B.hints.rivalChoseFirst(rivalName)}{' '}
           <strong className="text-gold">
-            {rival.support.kind === 'none' ? 'sin soporte' : rival.support.kind === 'gamble' ? 'la carta de arriba de su mazo, boca abajo' : cardAt(game, them, rival.support.card).name}
+            {rival.support.kind === 'none' ? B.hints.noSupport : rival.support.kind === 'gamble' ? B.hints.faceDown : cardAt(game, them, rival.support.card).name}
           </strong>
           . {HINT.support}
         </>
@@ -222,7 +243,7 @@ export function CommandBar({
             {TERMS.gamble} ({count(me.online)})
           </Cmd>
         )}
-        <Cmd onClick={() => act({ type: 'chooseSupport', player: who, choice: { from: 'none' } })}>Sin soporte</Cmd>
+        <Cmd onClick={() => act({ type: 'chooseSupport', player: who, choice: { from: 'none' } })}>{C.noSupport}</Cmd>
       </>
     );
   }
@@ -231,7 +252,7 @@ export function CommandBar({
     <footer className={`frame h-[60px] ${actor === 0 ? 'side-player' : 'side-rival'}`} style={{ '--c': '14px' } as CSSProperties}>
       <div className="fill flex items-center gap-5 px-5">
         <span className="plate relative z-[1] h-[30px] min-w-[150px] justify-center text-[19px] font-extrabold ">
-          <span className="font-display">{playback ? 'Batalla' : names[actor]}</span>
+          <span className="font-display">{playback ? C.battle : names[actor]}</span>
         </span>
         <AnimatePresence mode="wait">
           <motion.p

@@ -4,16 +4,16 @@
  */
 import type { Card, Confidence, Level, Specialty } from '../engine/cards/types';
 import { FACTIONS, factionOfSpecialty, paletteOf } from './vocab/factions';
+import { m } from '../i18n';
 import { TERMS } from './vocab/terms';
 
-/** Faction name of a specialty ("Roja"). */
-export const SPECIALTY_NAME: Record<Specialty, string> = {
-  fire: FACTIONS[factionOfSpecialty('fire')].name,
-  ice: FACTIONS[factionOfSpecialty('ice')].name,
-  nature: FACTIONS[factionOfSpecialty('nature')].name,
-  darkness: FACTIONS[factionOfSpecialty('darkness')].name,
-  rare: FACTIONS[factionOfSpecialty('rare')].name,
-};
+/** A record whose values are read from the current language on every access. */
+function live<K extends string, V>(read: (k: K) => V): Record<K, V> {
+  return new Proxy({} as Record<K, V>, { get: (_, k) => read(k as K) });
+}
+
+/** Faction name of a specialty ("Roja" / "Red"), in the current language. */
+export const SPECIALTY_NAME: Record<Specialty, string> = live((s: Specialty) => FACTIONS[factionOfSpecialty(s)].name);
 
 /** Faction colour of a specialty. */
 export const SPECIALTY_COLOR: Record<Specialty, string> = {
@@ -33,19 +33,14 @@ export const SPECIALTY_TEXT: Record<Specialty, string> = {
   rare: FACTIONS.gold.palette.light,
 };
 
-export const LEVEL_NAME: Record<Level, string> = TERMS.levels;
+export const LEVEL_NAME: Record<Level, string> = live((l: Level) => TERMS.levels[l]);
 
 export function frameColor(card: Card): string {
   return paletteOf(card).main;
 }
 
-export const CONFIDENCE_LABEL: Record<Confidence, string> = {
-  code: 'Código del juego',
-  rom: 'ROM',
-  'rom+text': 'ROM + texto',
-  inferred: 'Inferido',
-  unknown: 'Desconocido',
-};
+/** How each decoded value was verified, in the current language. */
+export const CONFIDENCE_LABEL: Record<Confidence, string> = live((c: Confidence) => m().research.confidence[c]);
 
 export const CONFIDENCE_COLOR: Record<Confidence, string> = {
   code: 'var(--color-verified)',

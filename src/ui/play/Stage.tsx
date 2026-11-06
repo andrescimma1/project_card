@@ -4,6 +4,7 @@
  * and wider screens instead of leaving bars.
  */
 import { useLayoutEffect, useRef, useState } from 'react';
+import { m } from '../../i18n';
 
 export const STAGE_H = 900;
 const MIN_W = 1440;
@@ -41,7 +42,7 @@ export function GameStage({ children }: { children: React.ReactNode }) {
       {box.portrait && (
         <p className="absolute inset-x-4 top-4 z-20 flex items-center justify-center gap-3 bg-soot/90 px-4 py-3 text-center font-display text-[17px] font-bold shadow-[inset_0_0_0_1px_var(--color-brass)]">
           <span aria-hidden className="text-[22px] text-brass">⟳</span>
-          Gira el dispositivo: el tablero está pensado en horizontal.
+          {m().common.rotate}
         </p>
       )}
     </div>

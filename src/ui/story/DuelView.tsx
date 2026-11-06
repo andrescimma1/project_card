@@ -5,6 +5,8 @@
  */
 import { useState } from 'react';
 import type { GameState } from '../../engine/game/types';
+import { m } from '../../i18n';
+import { TERMS } from '../vocab/terms';
 import { useSession } from '../../game/useSession';
 import { storyStore, useStory } from '../../game/useStory';
 import { BattleBoard } from '../play/PlayScreen';
@@ -18,19 +20,17 @@ function DuelSetup() {
   const used = slots.flatMap((s, i) => (s ? [i] : []));
   const [pair, setPair] = useState<[number, number]>([used[0] ?? 0, used[1] ?? 1]);
   const [notice, setNotice] = useState<string | null>(null);
+  const t = m().story;
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5 py-4">
       <div>
-        <h2 className="font-display text-5xl font-black ">Batalla 2P</h2>
-        <p className="mt-2 max-w-[62ch] text-faded">
-          Dos de tus partidas se enfrentan en esta pantalla, cada una con su mazo activo y sus compañeros. No da EXP ni sobres: cuenta para las victorias 2P,
-          el título 2P y los récords de cada mazo y carta.
-        </p>
+        <h2 className="font-display text-5xl font-black ">{t.duel.title}</h2>
+        <p className="mt-2 max-w-[62ch] text-faded">{t.duel.intro}</p>
       </div>
       <Notice text={notice} />
       <div className="flex flex-wrap items-end gap-3">
-        {(['Jugador 1', 'Jugador 2'] as const).map((label, side) => (
-          <label key={label} className="flex flex-col gap-1 text-sm">
+        {t.shared.players.map((label, side) => (
+          <label key={side} className="flex flex-col gap-1 text-sm">
             <span className="text-faded">{label}</span>
             <select
               value={pair[side]}
@@ -39,16 +39,16 @@ function DuelSetup() {
             >
               {used.map((i) => (
                 <option key={i} value={i}>
-                  Partida {'ABC'[i]}: {slots[i]!.name} con {slots[i]!.partner}
+                  {t.shared.slotOption('ABC'[i], slots[i]!.name, slots[i]!.partner)}
                 </option>
               ))}
             </select>
           </label>
         ))}
         <Button primary onClick={() => setNotice(act().startDuel(pair[0], pair[1]))}>
-          Empezar
+          {t.shared.start}
         </Button>
-        <Button onClick={() => act().toSlots()}>Volver</Button>
+        <Button onClick={() => act().toSlots()}>{t.shared.back}</Button>
       </div>
     </div>
   );
@@ -57,23 +57,22 @@ function DuelSetup() {
 function DuelEnd({ game }: { game: GameState }) {
   const duel = useStory((s) => s.duel);
   const log = useSession((s) => s.log);
-  const names = useSession((s) => s.names) ?? ['Jugador 1', 'Jugador 2'];
+  const t = m().story;
+  const names = useSession((s) => s.names) ?? t.shared.players;
   const winner = game.winner ?? 0;
   const recorded = duel?.winner !== null && duel?.winner !== undefined;
   return (
-    <EndBanner tone="win" title={`Gana ${names[winner]}`} subtitle={`Rondas: ${names[0]} ${game.players[0].rounds}, ${names[1]} ${game.players[1].rounds}`}>
+    <EndBanner tone="win" title={t.duel.winner(names[winner])} subtitle={t.duel.rounds(TERMS.rounds, names[0], game.players[0].rounds, names[1], game.players[1].rounds)}>
       {recorded ? (
         <div className="flex flex-col items-center gap-3">
-          <p className="text-[18px] text-bone/85">
-            Victorias 2P: {duel!.saves[0].name} {duel!.saves[0].wins2p}, {duel!.saves[1].name} {duel!.saves[1].wins2p}. Guardado en las dos partidas.
-          </p>
+          <p className="text-[18px] text-bone/85">{t.duel.wins2p(duel!.saves[0].name, duel!.saves[0].wins2p, duel!.saves[1].name, duel!.saves[1].wins2p)}</p>
           <Button primary onClick={() => act().closeDuel()}>
-            Terminar
+            {t.shared.finish}
           </Button>
         </div>
       ) : (
         <Button primary onClick={() => act().finishDuel(game, log.map((l) => l.event))}>
-          Guardar el resultado
+          {t.duel.saveResult}
         </Button>
       )}
     </EndBanner>
@@ -84,5 +83,5 @@ export function DuelView() {
   const duel = useStory((s) => s.duel);
   const game = useSession((s) => s.game);
   if (!duel || !game) return <DuelSetup />;
-  return <BattleBoard game={game} endScreen={(g) => <DuelEnd game={g} />} onLeave={() => confirm('¿Abandonar la batalla? No se guarda nada.') && act().closeDuel()} />;
+  return <BattleBoard game={game} endScreen={(g) => <DuelEnd game={g} />} onLeave={() => confirm(m().story.duel.confirmLeave) && act().closeDuel()} />;
 }

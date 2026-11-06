@@ -8,6 +8,7 @@ import { emitCues, gameEvents } from '../audio/bus';
 import { audio } from '../audio/manager';
 import { useAudioSettings, usePanelCue } from '../audio/react';
 import type { AudioSettings } from '../audio/settings';
+import { m } from '../i18n';
 
 function SpeakerIcon({ muted, level }: { muted: boolean; level: number }) {
   return (
@@ -41,7 +42,7 @@ function Volume({ label, value, onChange, onRelease }: { label: string; value: n
         onChange={(e) => onChange(Number(e.target.value) / 100)}
         onPointerUp={onRelease}
         onKeyUp={onRelease}
-        aria-label={`Volumen ${label.toLowerCase()}`}
+        aria-label={m().audio.volume(label)}
         className="vol"
         style={{ '--v': `${pct}%` } as CSSProperties}
       />
@@ -82,6 +83,7 @@ export function AudioButton() {
   }, [open]);
 
   const set = (patch: Partial<AudioSettings>) => audio.update(patch);
+  const A = m().audio;
   const preview = () => emitCues([{ name: 'ATTACK_RESOLVED', data: { action: 'fury' } }, { name: 'HIT_TAKEN', data: { action: 'fury' }, delay: 220 }]);
 
   return (
@@ -91,11 +93,11 @@ export function AudioButton() {
         data-sfx="none"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label={s.muted ? 'Sonido (silenciado)' : 'Sonido'}
+        aria-label={s.muted ? A.buttonMuted : A.button}
         className={`flex items-center gap-2 px-2 font-display text-[15px] font-semibold transition-colors ${open ? 'text-bone' : 'text-faded/80 hover:text-bone'}`}
       >
         <SpeakerIcon muted={s.muted || s.master === 0} level={s.master} />
-        <span className="hidden lg:inline">Sonido</span>
+        <span className="hidden lg:inline">{A.button}</span>
       </button>
       <AnimatePresence>
         {open && (
@@ -107,23 +109,23 @@ export function AudioButton() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16 }}
             role="dialog"
-            aria-label="Ajustes de sonido"
+            aria-label={A.dialog}
           >
             <div className="fill flex flex-col gap-4 p-5">
-              <h2 className="relative z-[1] font-display text-[24px] leading-none font-black ">Sonido</h2>
-              <Volume label="General" value={s.master} onChange={(v) => set({ master: v })} onRelease={() => gameEvents.emit('UI_CONFIRM')} />
-              <Volume label="Música" value={s.music} onChange={(v) => set({ music: v })} />
-              <Volume label="Efectos" value={s.sfx} onChange={(v) => set({ sfx: v })} onRelease={preview} />
+              <h2 className="relative z-[1] font-display text-[24px] leading-none font-black">{A.title}</h2>
+              <Volume label={A.master} value={s.master} onChange={(v) => set({ master: v })} onRelease={() => gameEvents.emit('UI_CONFIRM')} />
+              <Volume label={A.music} value={s.music} onChange={(v) => set({ music: v })} />
+              <Volume label={A.sfx} value={s.sfx} onChange={(v) => set({ sfx: v })} onRelease={preview} />
               <div className="relative z-[1] h-px bg-brass/20" />
-              <Switch label="Silenciar todo" on={s.muted} onToggle={() => set({ muted: !s.muted })} />
-              <Switch label="Sonidos de interfaz" hint="Cursor, clics, pestañas y paneles." on={s.uiSounds} onToggle={() => set({ uiSounds: !s.uiSounds })} />
+              <Switch label={A.muteAll} on={s.muted} onToggle={() => set({ muted: !s.muted })} />
+              <Switch label={A.uiSounds} hint={A.uiSoundsHint} on={s.uiSounds} onToggle={() => set({ uiSounds: !s.uiSounds })} />
               <Switch
-                label="Reducir efectos intensos"
-                hint="Impactos más suaves, sin sacudidas ni destellos y evolución más breve."
+                label={A.reduce}
+                hint={A.reduceHint}
                 on={s.reduceIntense}
                 onToggle={() => set({ reduceIntense: !s.reduceIntense })}
               />
-              <p className="relative z-[1] text-[13px] leading-snug text-faded">Música y efectos originales, sintetizados en el navegador. Se guarda en este navegador.</p>
+              <p className="relative z-[1] text-[13px] leading-snug text-faded">{A.footnote}</p>
             </div>
           </motion.div>
         )}

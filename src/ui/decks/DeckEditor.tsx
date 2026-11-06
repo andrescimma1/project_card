@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { gameEvents } from '../../audio/bus';
 import { TERMS } from '../vocab/terms';
+import { m } from '../../i18n';
 import { cards } from '../../engine/cards/db';
 import type { Card, Level, Specialty } from '../../engine/cards/types';
 import { DECK_SIZE, deckStats } from '../../game/deckbook';
@@ -11,7 +12,8 @@ import { SPECIALTY_COLOR, SPECIALTY_NAME, frameColor } from '../theme';
 
 const SPECIALTIES: Specialty[] = ['fire', 'ice', 'nature', 'darkness', 'rare'];
 const LEVELS: Level[] = ['R', 'C', 'U', 'A'];
-const KIND_LABEL = { digimon: TERMS.creatures, option: TERMS.supportShort, digivolve: TERMS.evolution } as const;
+/** Label of a card kind, in the current language. */
+const kindLabel = (k: Card['kind']) => ({ digimon: TERMS.creatures, option: TERMS.supportShort, digivolve: TERMS.evolution })[k];
 
 export function Chip({ on, onClick, children, color }: { on: boolean; onClick: () => void; children: React.ReactNode; color?: string }) {
   return (
@@ -52,6 +54,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
   const [message, setMessage] = useState<string | null>(null);
   const [inspect, setInspect] = useState<Card | null>(null);
   const stats = deckStats({ id: '', name, cards: ids });
+  const t = m().decks.editor;
 
   const pool = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -89,16 +92,16 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
-      <section aria-label="Cartas disponibles" className="flex min-w-0 flex-col gap-3">
+      <section aria-label={t.available} className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-faded">Buscar</span>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-seam bg-leather px-3 py-2" />
+            <span className="text-sm text-faded">{t.search}</span>
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.searchPlaceholder} className="cut [--c:6px] border border-seam bg-leather px-3 py-2" />
           </label>
           <div className="flex flex-wrap gap-1.5">
             {(['all', 'digimon', 'option', 'digivolve'] as const).map((k) => (
               <Chip key={k} on={kind === k} onClick={() => setKind(k)}>
-                {k === 'all' ? 'Todas' : KIND_LABEL[k]}
+                {k === 'all' ? t.all : kindLabel(k)}
               </Chip>
             ))}
           </div>
@@ -110,12 +113,12 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
             ))}
             {LEVELS.map((l) => (
               <Chip key={l} on={levels.includes(l)} onClick={() => setLevels((x) => (x.includes(l) ? x.filter((y) => y !== l) : [...x, l]))}>
-                {l}
+                <span title={TERMS.levels[l]}>{TERMS.levelShort[l]}</span>
               </Chip>
             ))}
           </div>
         </div>
-        {pool.length === 0 && <p className="cut [--c:10px] border border-dashed border-seam p-6 text-faded">Ninguna carta coincide con los filtros.</p>}
+        {pool.length === 0 && <p className="cut [--c:10px] border border-dashed border-seam p-6 text-faded">{t.noMatch}</p>}
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-3">
           {pool.map((c) => {
             const n = ids.filter((x) => x === c.id).length;
@@ -128,7 +131,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
                   data-sfx="none"
                   data-sfx-hover="card"
                   onClick={() => add(c.id)}
-                  aria-label={`Añadir ${c.name} (${n} en el mazo${have !== undefined ? `, tienes ${have}` : ''})`}
+                  aria-label={t.addCard(c.name, n, have)}
                   className={`block w-full rounded-xl transition-transform ${blocked ? 'opacity-45' : 'hover:-translate-y-1'}`}
                 >
                   <CardFace card={c} size="sm" glow={n > 0} />
@@ -138,7 +141,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
                 <button
                   type="button"
                   onClick={() => setInspect(c)}
-                  aria-label={`Ver detalle de ${c.name}`}
+                  aria-label={t.details(c.name)}
                   className="absolute top-5 right-1 grid size-6 place-items-center rounded-full border border-seam bg-soot/85 text-[11px] text-faded hover:text-bone"
                 >
                   i
@@ -149,17 +152,17 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
         </ul>
       </section>
 
-      <aside aria-label="Tu mazo" className="flex flex-col gap-3 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7rem)] lg:self-start lg:overflow-y-auto">
+      <aside aria-label={t.yourDeck} className="flex flex-col gap-3 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7rem)] lg:self-start lg:overflow-y-auto">
         <input
           value={name}
           maxLength={nameMaxLength}
           onChange={(e) => onChange(e.target.value, ids)}
-          aria-label="Nombre del mazo"
+          aria-label={t.deckName}
           className="cut [--c:6px] border border-seam bg-leather px-3 py-2 font-display text-xl font-bold "
         />
         <div>
           <div className="flex items-baseline justify-between">
-            <span className="text-sm text-faded">Cartas</span>
+            <span className="text-sm text-faded">{t.cards}</span>
             <span className="font-display text-2xl font-bold tabular-nums">
               {stats.total}
               <span className="text-sm font-normal text-faded"> / {DECK_SIZE}</span>
@@ -170,9 +173,17 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
           </div>
         </div>
         <p className="text-sm text-faded">
-          {stats.digimon} {TERMS.creatures.toLowerCase()} ({LEVELS.map((l) => `${stats.levels[l]} ${TERMS.levels[l]}`).join(', ')}), {stats.option} de apoyo, {stats.digivolve} de evolución.
+          {t.composition({
+            creatures: stats.digimon,
+            creatureWord: TERMS.creatures.toLowerCase(),
+            levels: LEVELS.map((l) => `${stats.levels[l]} ${TERMS.levels[l]}`).join(', '),
+            support: stats.option,
+            supportWord: TERMS.supportShort.toLowerCase(),
+            evolution: stats.digivolve,
+            evolutionWord: TERMS.evolution.toLowerCase(),
+          })}
         </p>
-        <div className="flex h-2 overflow-hidden rounded-full" aria-label="Reparto por especialidad">
+        <div className="flex h-2 overflow-hidden rounded-full" aria-label={t.factionSplit(TERMS.faction)}>
           {SPECIALTIES.map((s) => (
             <span key={s} style={{ flex: stats.specialties[s], background: SPECIALTY_COLOR[s] }} title={`${SPECIALTY_NAME[s]}: ${stats.specialties[s]}`} />
           ))}
@@ -197,10 +208,10 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
                 {card.name}
               </span>
               <span className="font-display text-sm tabular-nums">×{n}</span>
-              <button type="button" data-sfx="none" onClick={() => remove(card.id)} aria-label={`Quitar una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-seam hover:bg-hide">
+              <button type="button" data-sfx="none" onClick={() => remove(card.id)} aria-label={t.removeCopy(card.name)} className="grid size-7 place-items-center rounded-md border border-seam hover:bg-hide">
                 −
               </button>
-              <button type="button" onClick={() => add(card.id)} aria-label={`Añadir una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-seam hover:bg-hide">
+              <button type="button" onClick={() => add(card.id)} aria-label={t.addCopy(card.name)} className="grid size-7 place-items-center rounded-md border border-seam hover:bg-hide">
                 +
               </button>
             </li>

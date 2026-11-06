@@ -1,0 +1,86 @@
+/** Texts of the research screens in English. Same keys as the Spanish file (the compiler checks it). */
+import type { research as es } from '../es/research';
+
+export const research: typeof es = {
+  confidence: {
+    code: 'Game code',
+    rom: 'ROM',
+    'rom+text': 'ROM + text',
+    inferred: 'Inferred',
+    unknown: 'Unknown',
+  },
+  browser: {
+    filters: 'Filters',
+    search: 'Search name, attack or effect',
+    searchPlaceholder: 'WarGreymon, Eat-up, Draw…',
+    kind: 'Card type',
+    all: 'All',
+    level: 'Level',
+    any: 'Any',
+    onlyIssues: 'Only cards with open questions or mismatched text',
+    count: (shown: number, total: number) => `${shown} of ${total} cards`,
+    clear: 'Clear',
+    cards: 'Cards',
+    noMatch: 'No card matches these filters. Remove one or use “Clear”.',
+  },
+  tile: {
+    label: (name: string, number: string) => `${name}, card ${number}`,
+    issues: (n: number) => (n === 1 ? '1 point to verify' : `${n} points to verify`),
+    mismatch: "Text doesn't match the game",
+  },
+  detail: {
+    label: (name: string) => `${name} details`,
+    ids: (number: string, id: number) => `#${number}, ROM id ${id}`,
+    factionLevel: (faction: string, name: string, level: string) => `${name} ${faction.toLowerCase()}, ${level}`,
+    close: 'Close',
+    dpToEvolve: (dp: string) => `${dp} to evolve`,
+    dpGiven: (dp: string) => `Gives ${dp}`,
+    attacks: 'Attacks',
+    cardText: 'Card text',
+    supportText: (supportEffect: string) => `${supportEffect} (game text)`,
+    noText: 'No text.',
+    speed: 'Support speed',
+    speedNone: (none: string) => `At speed “${none}” the effect never applies.`,
+    speedOrder: (supportCard: string, creature: string, instinctEffect: string) =>
+      `Effects apply from high to low speed; at equal speed: ${supportCard}, then ${creature} support, then ${instinctEffect}, and the player whose turn it is first.`,
+    bytecode: 'Decoded original bytecode',
+    confidenceHint: 'The coloured dot shows how sure each variable is: green, read from the game’s interpreter; amber, inferred; grey, not decoded.',
+    behaviour: 'Behaviour',
+    noBytecode: (typeRaw: number, type: string) =>
+      `Evolution cards carry no bytecode: their logic lives in the game’s code (type ${typeRaw}, ${type}). The engine will need a dedicated handler.`,
+    notes: 'The text says one thing, the game does another',
+    notesHint: 'The remake reproduces what the game runs, not what the text says.',
+    issues: 'Points to verify',
+    source: 'Data source',
+    sourceText: (file: string, offset: string, size: number, composite: number, result: number) =>
+      `${file}, offset 0x${offset}, ${size} bytes. Fusion values (story mode): ${composite} / ${result}.`,
+    unknownFields: 'Undecoded fields:',
+    program: {
+      empty: 'The record has no active conditions or actions.',
+      condition: (n: number) => `Condition ${n}`,
+      disabled: '(disabled in the ROM)',
+      never: (code: number) => `never (code ${code})`,
+      action: (n: number) => `Action ${n}`,
+      amount: 'amount =',
+    },
+  },
+  docs: {
+    nav: 'Documents',
+    titles: {
+      'mecanicas-originales': 'Original game mechanics (PS1, SLUS-01328)',
+      'formato-rom': 'ROM data format (reverse engineering)',
+      'fuentes-externas': 'External sources checked against the ROM',
+      'motor-original': 'The original engine, read from the code',
+      'motor-implementado': 'The implemented engine (stage 3)',
+      'ia-original': 'The original CPU AI (ported)',
+      progresion: 'Progression in the original (story mode)',
+    },
+    legend: {
+      verified: 'Verified in the game',
+      probable: 'Probable',
+      unknown: 'Unknown, not implemented',
+      conflict: 'Conflict between sources',
+    },
+    languageNote: 'The research documents are written in Spanish.',
+  },
+};

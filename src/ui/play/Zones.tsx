@@ -4,6 +4,7 @@ import type { Card } from '../../engine/cards/types';
 import type { GameState, PlayerId } from '../../engine/game/types';
 import { cardsIn, count, top } from '../../engine/game/zones';
 import { frameColor } from '../theme';
+import { m } from '../../i18n';
 import { TERMS } from '../vocab/terms';
 import { CardArt, CardBack } from './CardFace';
 import { cardAt } from './util';
@@ -12,7 +13,7 @@ import { cardAt } from './util';
 export function DpSlot({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
   const refs = cardsIn(game.players[player].dp);
   return (
-    <div className="flex w-[196px] shrink-0 flex-col gap-1.5 self-center" aria-label={`${TERMS.dpZone} de ${TERMS.dpLong.toLowerCase()}`} title={TERMS.dpLong}>
+    <div className="flex w-[196px] shrink-0 flex-col gap-1.5 self-center" aria-label={m().board.zones.reserveOf(TERMS.dpZone, TERMS.dpLong.toLowerCase())} title={TERMS.dpLong}>
       <span className="font-display text-[16px] font-bold text-gold">
         {TERMS.dpZone} <span className="font-semibold text-faded">· {TERMS.dp}</span>
       </span>
@@ -44,7 +45,7 @@ export function DpSlot({ game, player, onInspect }: { game: GameState; player: P
 /** Rounds won: three wax seals, as many pressed as KOs. */
 export function RoundCrests({ rounds, label }: { rounds: number; label: string }) {
   return (
-    <span className="flex items-center gap-1.5" role="img" aria-label={`${label}: ${rounds} de 3 rondas`}>
+    <span className="flex items-center gap-1.5" role="img" aria-label={m().board.zones.roundsOf(label, rounds)}>
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
@@ -70,7 +71,7 @@ export function Piles({ game, player, onInspect, onDeck }: { game: GameState; pl
   return (
     <div className={`flex shrink-0 items-start gap-3 self-center ${player === 1 ? 'flex-row-reverse' : ''}`}>
       {onDeck ? (
-        <button type="button" onClick={onDeck} className="rounded-sm drop-shadow-[0_0_10px_rgb(232_191_93_/0.8)] transition-transform hover:-translate-y-1" aria-label={`${TERMS.gamble} con la carta de arriba del ${TERMS.deck.toLowerCase()} (${count(p.online)} cartas)`}>
+        <button type="button" onClick={onDeck} className="rounded-sm drop-shadow-[0_0_10px_rgb(232_191_93_/0.8)] transition-transform hover:-translate-y-1" aria-label={m().board.zones.gamble(TERMS.gamble, TERMS.deck.toLowerCase(), count(p.online))}>
           {deck}
         </button>
       ) : (
@@ -83,7 +84,7 @@ export function Piles({ game, player, onInspect, onDeck }: { game: GameState; pl
             onClick={() => onInspect(topCard)}
             className="relative overflow-hidden rounded-[0.85em]"
             style={{ width: '12.6em', height: '17.6em', boxShadow: `0 0 0 1px #2b1d12, inset 0 0 0 3px ${frameColor(topCard)}` }}
-            title={`Arriba: ${topCard.name}`}
+            title={m().board.zones.top(topCard.name)}
           >
             <CardArt card={topCard} className="h-full w-full opacity-70 sepia-[40%]" />
             <span className="num absolute inset-x-0 bottom-0 bg-[#1d130c]/85 py-0.5 text-center text-[2.6em] font-extrabold">{count(p.offline)}</span>

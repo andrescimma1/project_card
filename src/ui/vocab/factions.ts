@@ -7,6 +7,7 @@
  *   of the Red Faction have no fire at all.
  */
 import type { Card, Specialty } from '../../engine/cards/types';
+import { m, type Messages } from '../../i18n';
 
 export type FactionId = 'red' | 'blue' | 'green' | 'shadow' | 'gold';
 
@@ -21,19 +22,31 @@ export interface Palette {
 
 export interface Faction {
   id: FactionId;
-  /** "Roja" (shown as "Facción Roja"). */
-  name: string;
-  temperament: string;
+  /** "Roja" / "Red" (shown as "Facción Roja"), in the current language. */
+  readonly name: string;
+  readonly temperament: string;
   palette: Palette;
 }
 
-/** Only the Red Faction is defined by design so far; the other four are provisional and easy to rename. */
+/** Only the Red Faction is defined by design so far; the other four are provisional. Names and temperaments
+ * come from the current language (i18n terms.factions); colours are the same in every language. */
+const faction = (id: FactionId, palette: Palette): Faction => ({
+  id,
+  palette,
+  get name() {
+    return m().terms.factions[id].name;
+  },
+  get temperament() {
+    return m().terms.factions[id].temperament;
+  },
+});
+
 export const FACTIONS: Record<FactionId, Faction> = {
-  red: { id: 'red', name: 'Roja', temperament: 'Agresividad, valentía, orgullo y ataque frontal', palette: { main: '#b23a2c', dark: '#5a1b13', light: '#efb48e' } },
-  blue: { id: 'blue', name: 'Azul', temperament: 'Calma, paciencia y control (provisional)', palette: { main: '#3e6f91', dark: '#1a3347', light: '#a9c9dd' } },
-  green: { id: 'green', name: 'Verde', temperament: 'Resistencia, crecimiento y defensa (provisional)', palette: { main: '#5c7f37', dark: '#2a3d17', light: '#c1d692' } },
-  shadow: { id: 'shadow', name: 'Sombría', temperament: 'Astucia, engaño y desgaste (provisional)', palette: { main: '#634c80', dark: '#2a1f3a', light: '#c3b1dc' } },
-  gold: { id: 'gold', name: 'Dorada', temperament: 'Rareza, nobleza y equilibrio (provisional)', palette: { main: '#b6862c', dark: '#59400f', light: '#efd690' } },
+  red: faction('red', { main: '#b23a2c', dark: '#5a1b13', light: '#efb48e' }),
+  blue: faction('blue', { main: '#3e6f91', dark: '#1a3347', light: '#a9c9dd' }),
+  green: faction('green', { main: '#5c7f37', dark: '#2a3d17', light: '#c1d692' }),
+  shadow: faction('shadow', { main: '#634c80', dark: '#2a1f3a', light: '#c3b1dc' }),
+  gold: faction('gold', { main: '#b6862c', dark: '#59400f', light: '#efd690' }),
 };
 
 const OF_SPECIALTY: Record<Specialty, FactionId> = { fire: 'red', ice: 'blue', nature: 'green', darkness: 'shadow', rare: 'gold' };
@@ -55,6 +68,6 @@ export function paletteOf(card: Card): Palette {
   return card.kind === 'digivolve' ? EVOLUTION_PALETTE : SUPPORT_PALETTE;
 }
 
-/** Elements a creature can have (presentation only, optional). */
-export const ELEMENTS = ['Fuego', 'Agua', 'Hielo', 'Tierra', 'Roca', 'Aire', 'Planta', 'Rayo', 'Metal', 'Luz', 'Sombra'] as const;
-export type Element = (typeof ELEMENTS)[number];
+/** Elements a creature can have (presentation only, optional); their names are in i18n terms.elements. */
+export type Element = keyof Messages['terms']['elements'];
+export const elementName = (e: Element) => m().terms.elements[e];

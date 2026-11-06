@@ -15,6 +15,7 @@ import { sessionStore, useSession } from '../../game/useSession';
 import { frameColor } from '../theme';
 import { Count } from './Arena';
 import { CardFace } from './CardFace';
+import { m } from '../../i18n';
 import { ACTIONS } from '../vocab/actions';
 import { TERMS } from '../vocab/terms';
 import { ActionDisc } from './glyphs';
@@ -97,7 +98,8 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
 
   const color = frameColor(to);
   const c = TERMS.creature.toLowerCase();
-  const who = twoPlayer ? `La ${c} de ${names[scene.player]}` : scene.player === 0 ? `Tu ${c}` : `La ${c} de la CPU`;
+  const E = m().board.evolution;
+  const who = twoPlayer ? E.of(c, names[scene.player]) : scene.player === 0 ? E.yours(c) : E.cpus(c);
   const charging = stage === 'charge';
   const showFrom = from && !at('burst');
 
@@ -212,11 +214,11 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
         className="max-w-[900px] text-center font-display text-[48px] leading-tight font-black "
         style={{ color: '#fff1c6', textShadow: '0 4px 0 #1a120c, 3px 0 0 #1a120c, -3px 0 0 #1a120c' } as CSSProperties}
       >
-        {from ? `${from.name} ${scene.armor ? TERMS.eggEvolves : TERMS.evolves} a ${to.name}` : `${TERMS.evolves[0].toUpperCase()}${TERMS.evolves.slice(1)} a ${to.name}`}
+        {from ? E.title(from.name, scene.armor ? TERMS.eggEvolves : TERMS.evolves, to.name) : E.titleAlone(TERMS.evolves, to.name)}
       </motion.h2>
 
       {/* stats, from the old values to the new ones */}
-      <div className="flex h-[64px] items-stretch gap-3" aria-label="Estadísticas nuevas">
+      <div className="flex h-[64px] items-stretch gap-3" aria-label={E.newStats}>
         {to.kind === 'digimon' &&
           (['hp', ...ACTIONS] as const).map((k, i) => {
             const old = k === 'hp' ? before.hp : before.powers[i - 1];
@@ -256,7 +258,7 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
       </div>
 
       <button type="button" data-sfx="cancel" onClick={onDone} className="cmd absolute top-6 right-6">
-        <span>Saltar</span>
+        <span>{E.skip}</span>
       </button>
     </motion.div>
   );

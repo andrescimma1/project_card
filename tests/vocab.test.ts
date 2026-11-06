@@ -10,6 +10,7 @@ import type { CrossEffect, Specialty } from '../src/engine/cards/types';
 import { ACTIONS, actionOf, powerIndex, slotOf } from '../src/ui/vocab/actions';
 import { FACTIONS, factionOf, factionOfSpecialty } from '../src/ui/vocab/factions';
 import { cardText, crossEffectLabel, levelName, TERMS } from '../src/ui/vocab/terms';
+import { messages } from '../src/i18n';
 
 const SPECIALTIES: Specialty[] = ['fire', 'ice', 'nature', 'darkness', 'rare'];
 const CROSS: CrossEffect[] = [
@@ -82,7 +83,7 @@ describe('terms', () => {
   });
 
   it('carries no Digimon vocabulary and no controller symbols', () => {
-    expect(JSON.stringify(TERMS)).not.toMatch(FORBIDDEN);
+    for (const l of ['es', 'en'] as const) expect(JSON.stringify(messages(l).terms)).not.toMatch(FORBIDDEN);
     for (const e of CROSS) expect(crossEffectLabel(e), e).not.toMatch(FORBIDDEN);
   });
 
