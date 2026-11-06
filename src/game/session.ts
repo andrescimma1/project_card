@@ -30,8 +30,10 @@ export interface StartOptions {
   partners?: [PartnerSlot[], PartnerSlot[]];
   /** Two people play: player 2 is not the CPU. */
   twoPlayer?: boolean;
-  /** Player names shown by the board (2P). */
+  /** Player names shown by the board (2P; the story rival). */
   names?: [string, string];
+  /** Deck names shown by the board, as the original prints them over each hand. */
+  deckNames?: [string, string];
 }
 
 /** Who the board asks now: vs the CPU always player 1; in 2P player 1 while it has to act, then player 2. */
@@ -57,6 +59,7 @@ export interface SessionState {
   cpu: AiCtx | null;
   twoPlayer: boolean;
   names: [string, string] | null;
+  deckNames: [string, string] | null;
   start: (opts: StartOptions) => void;
   act: (action: Action) => void;
   dismissReport: () => void;
@@ -77,13 +80,16 @@ export function createSession() {
   return createStore<SessionState>((set, get) => {
     let nextId = 0;
 
-    const advance = (game: GameState, events: GameEvent[]) => {
+    /** `before` is the state the first events came from; each scene keeps the board it plays over. */
+    const advance = (before: GameState, game: GameState, events: GameEvent[]) => {
       let g = game;
       const all = [...events];
+      const scenes = buildScenes(events, { before, after: game });
       let guard = 0;
       const ai = get().cpu;
       while (ai && cpuShouldAct(g) && guard++ < 500) {
         const r = applyAction(g, chooseAiAction(g, CPU, ai));
+        scenes.push(...buildScenes(r.events, { before: g, after: r.state }));
         g = r.state;
         all.push(...r.events);
       }
@@ -94,7 +100,7 @@ export function createSession() {
         const end = all.findIndex((e, i) => i > reveal && e.type === 'turnStart');
         battleReport = all.slice(reveal, end < 0 ? undefined : end);
       }
-      set({ game: g, log, battleReport, scenes: [...get().scenes, ...buildScenes(all)], error: null });
+      set({ game: g, log, battleReport, scenes: [...get().scenes, ...scenes], error: null });
     };
 
     return {
@@ -108,26 +114,27 @@ export function createSession() {
       cpu: null,
       twoPlayer: false,
       names: null,
+      deckNames: null,
       start: (opts) => {
         nextId = 0;
         const cpu = opts.twoPlayer ? null : createAi(opts.cpuAi ?? [0, 0, 0, 0], opts.seed * 7919);
-        set({ log: [], battleReport: null, scenes: [], error: null, seed: opts.seed, cpu, twoPlayer: !!opts.twoPlayer, names: opts.names ?? null });
+        set({ log: [], battleReport: null, scenes: [], error: null, seed: opts.seed, cpu, twoPlayer: !!opts.twoPlayer, names: opts.names ?? null, deckNames: opts.deckNames ?? null });
         const r = createGame({ decks: [opts.human, opts.cpu], seed: opts.seed, firstPlayer: opts.humanFirst ? HUMAN : CPU, eggs: [0, opts.cpuEgg ?? 0], partners: opts.partners });
-        advance(r.state, r.events);
+        advance(r.state, r.state, r.events);
       },
       act: (action) => {
         const game = get().game;
         if (!game) return;
         try {
           const r = applyAction(game, action);
-          advance(r.state, r.events);
+          advance(game, r.state, r.events);
         } catch (e) {
           set({ error: e instanceof Error ? e.message : String(e) });
         }
       },
       dismissReport: () => set({ battleReport: null }),
       popScene: () => set({ scenes: get().scenes.slice(1), sceneSeq: get().sceneSeq + 1 }),
-      reset: () => set({ game: null, log: [], battleReport: null, scenes: [], error: null, cpu: null, twoPlayer: false, names: null }),
+      reset: () => set({ game: null, log: [], battleReport: null, scenes: [], error: null, cpu: null, twoPlayer: false, names: null, deckNames: null }),
     };
   });
 }

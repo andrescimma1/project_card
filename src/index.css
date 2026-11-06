@@ -1,26 +1,38 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Barlow', ui-sans-serif, system-ui, sans-serif;
   --font-code: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
-  /* Digital ocean base */
-  --color-abyss: #0d1333;
-  --color-deep: #121a42;
-  --color-panel: #18215a;
-  --color-grid: #2b3878;
-  --color-ink: #e9edff;
-  --color-haze: #9ba7da;
+  /* Blue technology: the original's board, 25 years later */
+  --color-void: #020716;
+  --color-abyss: #050e2a;
+  --color-deep: #0a1c4a;
+  --color-panel: #0e2a66;
+  --color-grid: #23468c;
+  --color-ink: #eef5ff;
+  --color-haze: #8eaedf;
 
-  /* The five specialties, as the game colours them */
+  --color-electric: #2f7dff;
+  --color-cyan: #48e4ff;
+  --color-gold: #ffc934;
+  --color-crimson: #ff3d58;
+  --color-copper: #ff8a3c;
+
+  /* ◯ △ ✕ as the original colours its attack rows */
+  --color-atk-circle: #ff4561;
+  --color-atk-triangle: #2fd47c;
+  --color-atk-cross: #3a88ff;
+
+  /* The five specialties */
   --color-fire: #ff5a4e;
   --color-ice: #4fb6ff;
   --color-nature: #49d17d;
   --color-darkness: #b48cff;
   --color-rare: #ffd447;
 
-  /* Verification states */
+  /* Verification states (research views) */
   --color-verified: #3ee6c4;
   --color-probable: #ffb547;
   --color-unknown: #7d89bd;
@@ -33,24 +45,461 @@ body,
   height: 100%;
 }
 
+/* A game, not a page: the document never scrolls; long lists scroll inside their own panel. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
-  background-color: var(--color-abyss);
-  background-image:
-    linear-gradient(var(--color-deep) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-deep) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-color: var(--color-void);
   color: var(--color-ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-verified);
+  outline: 2px solid var(--color-cyan);
   outline-offset: 2px;
 }
 
-/* Holographic foil: the one loud element. Follows the pointer through --mx / --my. */
+/* ---------- surfaces ---------- */
+
+:root {
+  --circuit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' fill='none' stroke='%2348e4ff' stroke-width='1.2' stroke-opacity='.09'%3E%3Cpath d='M0 26h40l14 14h46M100 40h80M0 104h24l18-18h34M76 86V60M128 180v-38l16-16h36M128 0v22l-14 14M46 180v-28l14-14h44l12-12M156 60v24l-12 12H96'/%3E%3Cg fill='%2348e4ff' fill-opacity='.2' stroke='none'%3E%3Ccircle cx='100' cy='40' r='2.6'/%3E%3Ccircle cx='76' cy='60' r='2.6'/%3E%3Ccircle cx='116' cy='126' r='2.6'/%3E%3Ccircle cx='144' cy='126' r='2'/%3E%3Ccircle cx='96' cy='96' r='2.6'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Custom classes live in the components layer so Tailwind utilities can still override them. */
+@layer components {
+
+.circuit {
+  background-image: var(--circuit);
+}
+
+/* App background behind every screen */
+.app-bg {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 45%, rgb(47 125 255 / 0.2), transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 120%, rgb(72 228 255 / 0.1), transparent 60%),
+    linear-gradient(180deg, #04102f, var(--color-void) 70%);
+}
+
+/* The board itself */
+.board-bg {
+  background:
+    radial-gradient(ellipse 46% 30% at 50% 50%, rgb(72 228 255 / 0.2), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgb(47 125 255 / 0.18), transparent 75%),
+    linear-gradient(180deg, #071640 0%, #030a24 48%, #030a24 52%, #071640 100%);
+}
+
+/* Two-corner chamfer, the cut used by every frame and card */
+.cut {
+  clip-path: polygon(var(--c, 14px) 0, 100% 0, 100% calc(100% - var(--c, 14px)), calc(100% - var(--c, 14px)) 100%, 0 100%, 0 var(--c, 14px));
+}
+
+/* Metal frame: the outer element is the bevel, `.fill` is the panel. */
+.frame {
+  --c: 16px;
+  --edge-a: #d6ecff;
+  --edge-b: #3d7de4;
+  --edge-c: #0a2466;
+  --fill-a: #0d2763;
+  --fill-b: #06123a;
+  --tint: rgb(47 125 255 / 0.16);
+  position: relative;
+  padding: 2px;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  background: linear-gradient(165deg, var(--edge-a), var(--edge-b) 20%, var(--edge-c) 50%, var(--edge-b) 80%, var(--edge-a));
+}
+.frame > .fill {
+  --c2: calc(var(--c) - 1px);
+  position: relative;
+  height: 100%;
+  clip-path: polygon(var(--c2) 0, 100% 0, 100% calc(100% - var(--c2)), calc(100% - var(--c2)) 100%, 0 100%, 0 var(--c2));
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent 18%),
+    radial-gradient(ellipse 80% 120% at 50% 0%, var(--tint), transparent 70%),
+    linear-gradient(180deg, var(--fill-a), var(--fill-b));
+}
+.frame > .fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  background-image: var(--circuit);
+}
+.side-player {
+  --edge-a: #d6ecff;
+  --edge-b: #3d7de4;
+  --edge-c: #0a2466;
+  --fill-a: #0c2766;
+  --fill-b: #061340;
+  --tint: rgb(47 125 255 / 0.22);
+  --side: var(--color-electric);
+  --side-hi: #9fd0ff;
+}
+.side-rival {
+  --edge-a: #ffe3c4;
+  --edge-b: #e8702e;
+  --edge-c: #571b08;
+  --fill-a: #271a42;
+  --fill-b: #0b1236;
+  --tint: rgb(255 138 60 / 0.16);
+  --side: var(--color-copper);
+  --side-hi: #ffc79a;
+}
+
+/* Slanted name plate */
+.plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.15em 1.1em;
+  transform: skewX(-14deg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--side, #2f7dff) 85%, #fff), var(--side, #2f7dff) 45%, color-mix(in srgb, var(--side, #2f7dff) 55%, #000));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 2px 0 rgb(0 0 0 / 0.4);
+  color: #fff;
+}
+.plate > * {
+  transform: skewX(14deg);
+}
+
+/* Command buttons */
+.cmd {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.45em 1.15em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  color: var(--color-ink);
+  background: linear-gradient(180deg, #1b4596, #0c2560);
+  box-shadow:
+    inset 0 0 0 1px rgb(159 208 255 / 0.55),
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    0 3px 0 #020a24;
+  transform: skewX(-10deg);
+  transition:
+    filter 0.15s ease,
+    transform 0.12s ease;
+}
+.cmd > * {
+  transform: skewX(10deg);
+}
+.cmd:hover:not(:disabled) {
+  filter: brightness(1.25);
+}
+.cmd:active:not(:disabled) {
+  transform: skewX(-10deg) translateY(2px);
+}
+.cmd:disabled {
+  opacity: 0.4;
+}
+.cmd[data-primary='true'] {
+  color: #10110a;
+  background: linear-gradient(180deg, #ffe58a, var(--color-gold) 45%, #c98a00);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 245 200 / 0.8),
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 3px 0 #4a3200,
+    0 0 18px rgb(255 201 52 / 0.35);
+}
+
+/* ---------- cards ---------- */
+
+.tcg {
+  --spec: #4fb6ff;
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  width: 12.6em;
+  height: 17.6em;
+  flex: none;
+  transform: perspective(46em) rotateX(var(--rx)) rotateY(var(--ry));
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+  filter: drop-shadow(0 0.55em 0.8em rgb(0 0 0 / 0.6));
+}
+.tcg[data-playable='true'] {
+  filter: drop-shadow(0 0 0.18em var(--color-cyan)) drop-shadow(0 0 0.8em rgb(72 228 255 / 0.6));
+  animation: tcg-pulse 1.8s ease-in-out infinite;
+}
+.tcg[data-active='true'] {
+  filter: drop-shadow(0 0 0.2em var(--color-gold)) drop-shadow(0 0 0.7em rgb(255 201 52 / 0.5));
+}
+.tcg[data-dim='true'] {
+  filter: grayscale(0.7) brightness(0.55);
+}
+.tcg-edge,
+.tcg-body {
+  position: absolute;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+.tcg-edge {
+  --c: 1.1em;
+  inset: 0;
+  background: linear-gradient(155deg, #fff 0%, var(--spec) 16%, color-mix(in srgb, var(--spec) 30%, #020716) 50%, var(--spec) 82%, #fff 100%);
+}
+.tcg-body {
+  --c: 0.95em;
+  inset: 0.3em;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0b1d4d, #040c26);
+}
+.tcg-art {
+  position: relative;
+  flex: none;
+  height: 12em;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--spec) 40%, #020716), #020716 75%);
+}
+.tcg-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(2 7 22 / 0.35), transparent 22%, transparent 58%, rgb(2 7 22 / 0.92));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+.tcg-name {
+  position: absolute;
+  z-index: 1;
+  left: 0.45em;
+  right: 0.45em;
+  bottom: 0.25em;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.32em;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1.05;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow:
+    0 1px 0 #000,
+    0 0 0.4em rgb(0 0 0 / 0.9);
+}
+.tcg-badge {
+  position: absolute;
+  z-index: 1;
+  top: 0.35em;
+  left: 0.35em;
+  display: grid;
+  place-items: center;
+  min-width: 2.2em;
+  height: 2.2em;
+  padding: 0 0.35em;
+  font-family: var(--font-display);
+  font-size: 1.05em;
+  font-weight: 800;
+  font-style: italic;
+  color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--spec) 80%, #fff), var(--spec) 40%, color-mix(in srgb, var(--spec) 45%, #000));
+  clip-path: polygon(0.5em 0, 100% 0, 100% calc(100% - 0.5em), calc(100% - 0.5em) 100%, 0 100%, 0 0.5em);
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.5);
+}
+.tcg-chip {
+  position: absolute;
+  z-index: 1;
+  top: 0.45em;
+  right: 0.45em;
+  padding: 0.15em 0.4em;
+  font-family: var(--font-display);
+  font-size: 0.95em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-gold);
+  background: rgb(2 7 22 / 0.8);
+  box-shadow: inset 0 0 0 1px rgb(255 201 52 / 0.55);
+}
+.tcg-foot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3em;
+  padding: 0.2em 0.5em 0.4em;
+}
+.tcg-hp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+.tcg-hp b {
+  font-size: 1.75em;
+  font-weight: 800;
+  font-style: italic;
+}
+.tcg-hp small {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--color-haze);
+}
+.tcg-atk {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25em;
+}
+.tcg-atk > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  height: 1.65em;
+  font-family: var(--font-display);
+  font-size: 1.02em;
+  font-weight: 700;
+  line-height: 1;
+  background: color-mix(in srgb, var(--a) 28%, #040c26);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a) 75%, transparent);
+}
+.tcg-atk svg {
+  width: 0.8em;
+  height: 0.8em;
+  color: var(--a);
+}
+.tcg-text {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.92em;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #c3d5f3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.tcg[data-size='xs'] .tcg-atk,
+.tcg[data-size='xs'] .tcg-text,
+.tcg[data-size='xs'] .tcg-hp small {
+  display: none;
+}
+.tcg-holo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.45), transparent 40%),
+    repeating-linear-gradient(115deg, rgb(255 90 78 / 0.2) 0%, rgb(255 212 71 / 0.2) 5%, rgb(73 209 125 / 0.2) 10%, rgb(79 182 255 / 0.2) 15%, rgb(180 140 255 / 0.2) 20%);
+  background-size:
+    100% 100%,
+    300% 300%;
+  background-position:
+    center,
+    var(--mx) var(--my);
+}
+.tcg:hover .tcg-holo,
+.tcg[data-active='true'] .tcg-holo {
+  opacity: 0.9;
+}
+
+/* Empty card slot, engraved */
+.slot-empty {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 12.6em;
+  height: 17.6em;
+  flex: none;
+  clip-path: polygon(1.1em 0, 100% 0, 100% calc(100% - 1.1em), calc(100% - 1.1em) 100%, 0 100%, 0 1.1em);
+  background:
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.025) 0 6px, transparent 6px 12px),
+    linear-gradient(180deg, rgb(2 7 22 / 0.6), rgb(2 7 22 / 0.35));
+  box-shadow:
+    inset 0 0 0 1px rgb(159 208 255 / 0.16),
+    inset 0 2px 8px rgb(0 0 0 / 0.6);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  color: rgb(159 208 255 / 0.2);
+}
+
+@keyframes tcg-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0.18em var(--color-cyan)) drop-shadow(0 0 0.5em rgb(72 228 255 / 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 0.22em var(--color-cyan)) drop-shadow(0 0 1.1em rgb(72 228 255 / 0.75));
+  }
+}
+
+/* ---------- ◯ △ ✕ ---------- */
+
+[data-slot='circle'] {
+  --a: var(--color-atk-circle);
+}
+[data-slot='triangle'] {
+  --a: var(--color-atk-triangle);
+}
+[data-slot='cross'] {
+  --a: var(--color-atk-cross);
+}
+
+.atk-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--a) 55%, #050e2a), color-mix(in srgb, var(--a) 22%, #050e2a) 60%, rgb(5 14 42 / 0.6));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--a) 70%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
+  transition:
+    filter 0.15s ease,
+    opacity 0.2s ease,
+    transform 0.15s ease;
+}
+.atk-row[data-mirror='true'] {
+  background: linear-gradient(270deg, color-mix(in srgb, var(--a) 55%, #050e2a), color-mix(in srgb, var(--a) 22%, #050e2a) 60%, rgb(5 14 42 / 0.6));
+}
+.atk-row[data-state='chosen'] {
+  filter: brightness(1.35) saturate(1.2);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 24px color-mix(in srgb, var(--a) 80%, transparent);
+}
+.atk-row[data-state='off'] {
+  opacity: 0.32;
+  filter: grayscale(0.6);
+}
+button.atk-row:hover:not(:disabled) {
+  filter: brightness(1.3);
+  transform: translateX(4px);
+}
+
+.glyph {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 9999px;
+  color: #fff;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--a) 70%, #fff), var(--a) 45%, color-mix(in srgb, var(--a) 45%, #000));
+  box-shadow:
+    inset 0 -2px 0 rgb(0 0 0 / 0.3),
+    0 0 0 2px rgb(2 7 22 / 0.8),
+    0 0 12px color-mix(in srgb, var(--a) 60%, transparent);
+}
+
+/* Holographic foil for the research card tiles. Follows the pointer through --mx / --my. */
 .holo {
   --mx: 50%;
   --my: 50%;
@@ -68,14 +517,7 @@ body {
   transition: opacity 180ms ease;
   background:
     radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.35), transparent 42%),
-    repeating-linear-gradient(
-      115deg,
-      rgb(255 90 78 / 0.22) 0%,
-      rgb(255 212 71 / 0.22) 6%,
-      rgb(73 209 125 / 0.22) 12%,
-      rgb(79 182 255 / 0.22) 18%,
-      rgb(180 140 255 / 0.22) 24%
-    );
+    repeating-linear-gradient(115deg, rgb(255 90 78 / 0.22) 0%, rgb(255 212 71 / 0.22) 6%, rgb(73 209 125 / 0.22) 12%, rgb(79 182 255 / 0.22) 18%, rgb(180 140 255 / 0.22) 24%);
   background-size:
     100% 100%,
     300% 300%;
@@ -84,16 +526,114 @@ body {
     var(--mx) var(--my);
 }
 .holo:hover::after,
-.holo:focus-visible::after,
-.holo[data-active='true']::after {
+.holo:focus-visible::after {
   opacity: 1;
 }
 
+/* ---------- misc ---------- */
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-grid) transparent;
+}
+
+.num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .holo::after {
+  .tcg,
+  .tcg-holo,
+  .atk-row,
+  .cmd {
     transition: none;
   }
+  .tcg[data-playable='true'] {
+    animation: none;
+  }
 }
+
+/* "Reduce intense effects" (sound settings): no flashes, calmer pulses */
+:root[data-reduce-fx] .fx-intense {
+  display: none;
+}
+:root[data-reduce-fx] .tcg[data-playable='true'] {
+  animation-duration: 3.6s;
+}
+
+/* ---------- sound settings ---------- */
+
+.vol {
+  --v: 50%;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+.vol::-webkit-slider-runnable-track {
+  height: 8px;
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  background: linear-gradient(90deg, var(--color-electric), var(--color-cyan) var(--v), #0a1a44 var(--v));
+}
+.vol::-moz-range-track {
+  height: 8px;
+  background: linear-gradient(90deg, var(--color-electric), var(--color-cyan) var(--v), #0a1a44 var(--v));
+}
+.vol::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 22px;
+  margin-top: -7px;
+  background: linear-gradient(180deg, #fff, #b8f7ff);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  box-shadow: 0 0 10px var(--color-cyan);
+}
+.vol::-moz-range-thumb {
+  width: 16px;
+  height: 22px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(180deg, #fff, #b8f7ff);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.vol:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 22px;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  background: #0a1a44;
+  box-shadow: inset 0 0 0 1px rgb(159 208 255 / 0.35);
+  transition: background 0.18s ease;
+}
+.switch > span {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-haze);
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+.switch[data-on] {
+  background: linear-gradient(90deg, var(--color-electric), var(--color-cyan));
+}
+.switch[data-on] > span {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+/* ---------- research docs ---------- */
 
 .prose-doc {
   max-width: 76ch;
@@ -102,20 +642,20 @@ body {
 }
 .prose-doc h1 {
   font-family: var(--font-display);
-  font-size: 2rem;
-  line-height: 1.15;
+  font-size: 2.2rem;
+  line-height: 1.1;
   margin: 0 0 1.25rem;
 }
 .prose-doc h2 {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   margin: 2.5rem 0 0.75rem;
   padding-top: 1rem;
   border-top: 1px solid var(--color-grid);
 }
 .prose-doc h3 {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   margin: 1.75rem 0 0.5rem;
   color: var(--color-ice);
 }
@@ -180,4 +720,5 @@ body {
   border-left: 3px solid var(--color-probable);
   padding-left: 1rem;
   color: var(--color-haze);
+}
 }

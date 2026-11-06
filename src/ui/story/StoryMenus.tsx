@@ -21,8 +21,8 @@ const SPECIALTY_LABEL = ['Fire', 'Ice', 'Nature', 'Darkness', 'Rare'];
 function AutoDeckForm({ onCreate, onCancel }: { onCreate: (ids: number[]) => void; onCancel: () => void }) {
   const [o, setO] = useState({ specialty: 0, defensive: false, few: false });
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-grid bg-panel/70 p-4" aria-label="Auto Deck">
-      <h4 className="font-display text-lg font-semibold">Auto Deck</h4>
+    <div className="flex flex-col gap-3 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4" aria-label="Auto Deck">
+      <h4 className="font-display text-xl font-bold italic">Auto Deck</h4>
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-sm text-haze">Especialidad</span>
         {SPECIALTY_LABEL.map((l, i) => (
@@ -61,8 +61,8 @@ function AutoDeckForm({ onCreate, onCancel }: { onCreate: (ids: number[]) => voi
 function BaseDeckPicker({ onPick, onCancel }: { onPick: (ids: number[]) => void; onCancel: () => void }) {
   const [list] = useState(() => act().baseDecks());
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-grid bg-panel/70 p-4" aria-label="Mazo base">
-      <h4 className="font-display text-lg font-semibold">Empezar desde un mazo conocido</h4>
+    <div className="flex flex-col gap-3 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4" aria-label="Mazo base">
+      <h4 className="font-display text-xl font-bold italic">Empezar desde un mazo conocido</h4>
       {list.length === 0 ? (
         <p className="text-sm text-haze">
           Aparecen aquí los mazos contra los que jugaste cuando tienes todas sus cartas. Los mazos con una carta Partner no se pueden usar.
@@ -136,14 +136,14 @@ function DeckSlots({ save, onEdit }: { save: SaveData; onEdit: (k: number) => vo
   const [notice, setNotice] = useState<string | null>(null);
   return (
     <section className="flex flex-col gap-3" aria-label="Mazos">
-      <h3 className="font-display text-xl font-semibold">Mazos</h3>
+      <h3 className="font-display text-2xl font-bold italic">Mazos</h3>
       <Notice text={notice} />
       <ul className="grid gap-3 sm:grid-cols-3">
         {save.decks.map((d, k) => {
           const active = save.selectedDeck === k;
           return (
-            <li key={k} className="flex flex-col gap-2 rounded-2xl border-2 bg-deep p-4" style={{ borderColor: active ? 'var(--color-rare)' : 'var(--color-grid)' }}>
-              <span className="font-display text-lg font-semibold">{d.cards.length ? d.name : 'Vacío'}</span>
+            <li key={k} className="flex flex-col gap-2 cut [--c:16px] border-2 bg-deep p-4" style={{ borderColor: active ? 'var(--color-rare)' : 'var(--color-grid)' }}>
+              <span className="font-display text-xl font-bold italic">{d.cards.length ? d.name : 'Vacío'}</span>
               <span className="text-sm text-haze">
                 {d.cards.length}/30 cartas{d.cards.length ? `, ${d.wins} victorias, ${d.losses} derrotas` : ''}
               </span>
@@ -174,14 +174,14 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
   const free = save.ownedParts.flatMap((owned, id) => (owned && !save.partners.some((q) => q.slot.parts.includes(id)) ? [id] : []));
   const max = p.slot.level >= MAX_LEVEL;
   return (
-    <li className="flex flex-col gap-4 rounded-2xl border border-grid bg-panel/70 p-4 md:flex-row">
+    <li className="flex flex-col gap-4 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4 md:flex-row">
       <div className="flex shrink-0 gap-2">
         <CardFace card={card} size="sm" />
         {armor && <CardFace card={armor} size="sm" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h4 className="font-display text-lg font-semibold">{cards[p.slot.id].name}</h4>
+          <h4 className="font-display text-xl font-bold italic">{cards[p.slot.id].name}</h4>
           <span className="text-sm text-haze tabular-nums">
             Nivel {p.slot.level} · {max ? 'RANK MAX' : `${p.exp} / ${expNeeded(p.slot.level)} EXP`}
           </span>
@@ -192,13 +192,13 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
           {p.slot.parts.length === 0 && <span className="text-sm">Ninguna.</span>}
           <ul className="flex flex-wrap gap-2">
             {p.slot.parts.map((id) => (
-              <li key={id} className="flex items-center gap-2 rounded-xl bg-deep py-1 pr-1 pl-3 text-sm">
+              <li key={id} className="flex items-center gap-2 cut [--c:10px] bg-deep py-1 pr-1 pl-3 text-sm">
                 <PartName id={id} />
                 <button
                   type="button"
                   onClick={() => setNotice(act().partnerAction({ kind: 'unequip', partner: k, part: id }))}
                   aria-label="Quitar Digi-Part"
-                  className="grid size-7 place-items-center rounded-lg border border-grid hover:bg-panel"
+                  className="grid size-7 place-items-center cut [--c:6px] border border-grid hover:bg-panel"
                 >
                   −
                 </button>
@@ -215,7 +215,7 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
                   type="button"
                   disabled={p.slot.parts.length >= 3}
                   onClick={() => setNotice(act().partnerAction({ kind: 'equip', partner: k, part: id }))}
-                  className="rounded-xl border border-grid px-3 py-1 text-left enabled:hover:bg-deep disabled:opacity-40"
+                  className="cut [--c:10px] border border-grid px-3 py-1 text-left enabled:hover:bg-deep disabled:opacity-40"
                 >
                   <PartName id={id} />
                 </button>
@@ -233,7 +233,7 @@ function PartnerCard({ save, k }: { save: SaveData; k: number }) {
                 type="button"
                 aria-pressed={p.slot.armorId === armorId}
                 onClick={() => setNotice(act().partnerAction({ kind: 'egg', partner: k, egg }))}
-                className="rounded-full border px-3 py-1"
+                className="cut border px-3 py-1 font-display font-semibold italic [--c:6px]"
                 style={{ borderColor: p.slot.armorId === armorId ? 'var(--color-rare)' : 'var(--color-grid)' }}
               >
                 {cards[armorId].name}
@@ -255,7 +255,7 @@ export function StoryMenu({ onClose }: { onClose: () => void }) {
     <div className="flex flex-col gap-6">
       <DeckSlots save={save} onEdit={setEditing} />
       <section className="flex flex-col gap-3" aria-label="Compañeros">
-        <h3 className="font-display text-xl font-semibold">Compañeros</h3>
+        <h3 className="font-display text-2xl font-bold italic">Compañeros</h3>
         <ul className="flex flex-col gap-3">
           {save.partners.map((p, k) => (
             <PartnerCard key={p.slot.id} save={save} k={k} />
@@ -275,7 +275,7 @@ export function StoryMenu({ onClose }: { onClose: () => void }) {
 export function PartnerGet({ candidates }: { candidates: number[] }) {
   const [pick, setPick] = useState<number | null>(null);
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border-2 bg-deep p-5" style={{ borderColor: 'var(--color-rare)' }}>
+    <div className="flex flex-col gap-4 cut [--c:16px] border-2 bg-deep p-5" style={{ borderColor: 'var(--color-rare)' }}>
       <h3 className="font-display text-2xl font-bold">Partner Get</h3>
       <div className="flex flex-wrap gap-4">
         {candidates.map((idx) => {
@@ -286,7 +286,7 @@ export function PartnerGet({ candidates }: { candidates: number[] }) {
               type="button"
               aria-pressed={pick === idx}
               onClick={() => setPick(idx)}
-              className="flex flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-colors"
+              className="flex flex-col items-center gap-2 cut [--c:16px] border-2 p-3 transition-colors"
               style={{ borderColor: pick === idx ? 'var(--color-rare)' : 'var(--color-grid)' }}
             >
               <CardFace card={cards[id]} size="sm" />

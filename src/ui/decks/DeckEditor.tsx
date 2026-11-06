@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import { gameEvents } from '../../audio/bus';
 import { cards } from '../../engine/cards/db';
 import type { Card, Level, Specialty } from '../../engine/cards/types';
 import { DECK_SIZE, deckStats } from '../../game/deckbook';
@@ -73,12 +74,16 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
   const add = (id: number) => {
     const why = canAdd(ids, id);
     setMessage(why);
+    gameEvents.emit(why ? 'UI_DENIED' : 'CARD_PLACED');
     if (!why) onChange(name, [...ids, id].sort((a, b) => a - b));
   };
   const remove = (id: number) => {
     const i = ids.indexOf(id);
     setMessage(null);
-    if (i >= 0) onChange(name, ids.filter((_, k) => k !== i));
+    if (i >= 0) {
+      gameEvents.emit('CARD_DISCARDED');
+      onChange(name, ids.filter((_, k) => k !== i));
+    }
   };
 
   return (
@@ -87,7 +92,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1">
             <span className="text-sm text-haze">Buscar</span>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="rounded-lg border border-grid bg-deep px-3 py-2" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-grid bg-deep px-3 py-2" />
           </label>
           <div className="flex flex-wrap gap-1.5">
             {(['all', 'digimon', 'option', 'digivolve'] as const).map((k) => (
@@ -109,7 +114,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
             ))}
           </div>
         </div>
-        {pool.length === 0 && <p className="rounded-xl border border-dashed border-grid p-6 text-haze">Ninguna carta coincide con los filtros.</p>}
+        {pool.length === 0 && <p className="cut [--c:10px] border border-dashed border-grid p-6 text-haze">Ninguna carta coincide con los filtros.</p>}
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-3">
           {pool.map((c) => {
             const n = ids.filter((x) => x === c.id).length;
@@ -119,6 +124,8 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
               <li key={c.id} className="relative">
                 <button
                   type="button"
+                  data-sfx="none"
+                  data-sfx-hover="card"
                   onClick={() => add(c.id)}
                   aria-label={`Añadir ${c.name} (${n} en el mazo${have !== undefined ? `, tienes ${have}` : ''})`}
                   className={`block w-full rounded-xl transition-transform ${blocked ? 'opacity-45' : 'hover:-translate-y-1'}`}
@@ -141,13 +148,13 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
         </ul>
       </section>
 
-      <aside aria-label="Tu mazo" className="flex flex-col gap-3 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto">
+      <aside aria-label="Tu mazo" className="flex flex-col gap-3 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7rem)] lg:self-start lg:overflow-y-auto">
         <input
           value={name}
           maxLength={nameMaxLength}
           onChange={(e) => onChange(e.target.value, ids)}
           aria-label="Nombre del mazo"
-          className="rounded-lg border border-grid bg-deep px-3 py-2 font-display text-lg font-semibold"
+          className="cut [--c:6px] border border-grid bg-deep px-3 py-2 font-display text-xl font-bold italic"
         />
         <div>
           <div className="flex items-baseline justify-between">
@@ -170,7 +177,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
           ))}
         </div>
         {(message ?? notice) && (
-          <p role="alert" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-probable)' }}>
+          <p role="alert" data-sfx="none" className="cut [--c:6px] border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-probable)' }}>
             {message ?? notice}
           </p>
         )}
@@ -183,13 +190,13 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
         )}
         <ul className="flex flex-col gap-1">
           {grouped.map(({ card, n }) => (
-            <li key={card.id} className="flex items-center gap-2 rounded-lg bg-deep/70 py-1 pr-1 pl-1">
+            <li key={card.id} className="flex items-center gap-2 cut [--c:6px] bg-deep/70 py-1 pr-1 pl-1">
               <CardArt card={card} className="size-8 shrink-0 rounded-md" />
               <span className="min-w-0 flex-1 truncate text-sm" style={{ color: frameColor(card) }}>
                 {card.name}
               </span>
               <span className="font-display text-sm tabular-nums">×{n}</span>
-              <button type="button" onClick={() => remove(card.id)} aria-label={`Quitar una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-grid hover:bg-panel">
+              <button type="button" data-sfx="none" onClick={() => remove(card.id)} aria-label={`Quitar una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-grid hover:bg-panel">
                 −
               </button>
               <button type="button" onClick={() => add(card.id)} aria-label={`Añadir una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-grid hover:bg-panel">

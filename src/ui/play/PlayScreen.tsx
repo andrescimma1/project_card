@@ -1,25 +1,27 @@
-import { useMemo, useState } from 'react';
-import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { LayoutGroup, motion, useAnimate, useReducedMotion } from 'motion/react';
+import { gameEvents } from '../../audio/bus';
+import { useAudioSettings, useCue } from '../../audio/react';
 import { cards } from '../../engine/cards/db';
 import { opponentDecks, starterDecks } from '../../engine/cards/decks';
 import type { OriginalDeck } from '../../engine/cards/decodeDecks';
-import type { Card } from '../../engine/cards/types';
-import { legalActions } from '../../engine/game/turn';
-import type { Action, CardRef, GameState, PlayerId } from '../../engine/game/types';
-import { cardsIn } from '../../engine/game/zones';
-import { describeEvent } from '../../game/describe';
-import { controller, CPU, HUMAN } from '../../game/session';
+import type { AttackSlot, Card } from '../../engine/cards/types';
+import { legalActions, validateDeck } from '../../engine/game/turn';
+import type { Action, GameState, PlayerId } from '../../engine/game/types';
+import { controller, HUMAN } from '../../game/session';
 import { sessionStore, useSession } from '../../game/useSession';
-import { CardDetail } from '../CardDetail';
-import { ArenaCard } from './Arena';
-import { CardArt, CardFace } from './CardFace';
 import { useDecks } from '../../game/deckStore';
-import { validateDeck } from '../../engine/game/turn';
+import { CardDetail } from '../CardDetail';
+import { ActivePanel, activeView } from './Arena';
+import { CardArt } from './CardFace';
 import { CinematicHost } from './Cinematics';
-import { PhasePanel, type Seats } from './PhasePanel';
-import { PhaseRail } from './PhaseRail';
-import { cardAt, seatNames } from './util';
-import { DpGauge, Piles } from './Zones';
+import { CommandBar, PhaseBar, type Seats } from './CommandBar';
+import { AttackList, HandRow } from './Hands';
+import { CardPopup, EffectCard, EndBanner, LogDrawer, PhaseBanner } from './Overlays';
+import { usePlayback, type Playback } from './Playback';
+import { GameStage } from './Stage';
+import { boardNames, seatNames } from './util';
+import { DpSlot, Piles, RoundCrests } from './Zones';
 
 const STARTER_LABEL: Record<string, string> = { Red: 'Rojo (Veemon)', Green: 'Verde (Hawkmon)', Yellow: 'Amarillo (Armadillomon)' };
 const STARTER_PARTNER: Record<string, string> = { Red: 'Veemon', Green: 'Hawkmon', Yellow: 'Armadillomon' };
@@ -35,6 +37,19 @@ function deckSummary(d: OriginalDeck) {
   };
 }
 
+function Choice({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`cut px-4 py-2 font-display text-[16px] font-bold italic transition-colors [--c:8px] ${active ? 'bg-cyan text-abyss' : 'bg-deep text-haze hover:text-ink'}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function DeckSetup() {
   const saved = useDecks((s) => s.decks).filter((d) => validateDeck(d.cards).length === 0);
   const [mine, setMine] = useState(0);
@@ -42,7 +57,7 @@ function DeckSetup() {
   const [opp, setOpp] = useState(opponentDecks.findIndex((d) => d.name === 'Tricolor Starter'));
   const [first, setFirst] = useState<'random' | 'me' | 'cpu'>('random');
   const customDeck = saved.find((d) => d.id === custom) ?? null;
-  const my = customDeck ? { cards: customDeck.cards } : starterDecks[mine];
+  const my = customDeck ? { cards: customDeck.cards, name: customDeck.name } : { cards: starterDecks[mine].cards, name: `${starterDecks[mine].name} Deck` };
   const their = opponentDecks[opp];
   const so = deckSummary(their);
   const ownerCard = cards.find((c) => c.name === their.owner);
@@ -50,312 +65,333 @@ function DeckSetup() {
   const start = () => {
     const seed = (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
     const humanFirst = first === 'random' ? seed % 2 === 0 : first === 'me';
-    sessionStore.getState().start({ human: my.cards, cpu: their.cards, cpuAi: their.ai, cpuEgg: their.partnerEgg, seed, humanFirst });
+    sessionStore.getState().start({
+      human: my.cards,
+      cpu: their.cards,
+      cpuAi: their.ai,
+      cpuEgg: their.partnerEgg,
+      seed,
+      humanFirst,
+      names: ['Jugador', their.owner],
+      deckNames: [my.name, `${their.name} Deck`],
+    });
   };
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-7 py-4">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-8">
       <div>
-        <h2 className="font-display text-4xl font-bold">Nueva partida</h2>
-        <p className="mt-2 max-w-[62ch] text-haze">
-          Mazos originales del juego. El rival juega con la IA original de la CPU, portada del código del juego, y con la personalidad que trae su mazo.
-        </p>
+        <h2 className="font-display text-[56px] leading-none font-black italic">Partida libre</h2>
+        <p className="mt-3 max-w-[62ch] text-haze">Mazos originales del juego. El rival juega con la IA original de la CPU, portada del código del juego, y con la personalidad que trae su mazo.</p>
       </div>
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-2 font-display text-lg font-semibold">Tu mazo inicial</legend>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {starterDecks.map((d, i) => {
-            const partner = cards.find((c) => c.name === STARTER_PARTNER[d.name]);
-            const sum = deckSummary(d);
-            return (
-              <button
-                key={d.name}
-                type="button"
-                aria-pressed={!customDeck && mine === i}
-                onClick={() => {
-                  setMine(i);
-                  setCustom(null);
-                }}
-                className={`flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition-colors ${!customDeck && mine === i ? 'border-ink bg-panel' : 'border-grid hover:bg-deep'}`}
-              >
-                {partner && <CardArt card={partner} className="size-16 shrink-0 rounded-xl bg-abyss" />}
-                <span>
-                  <span className="block font-display font-semibold">{STARTER_LABEL[d.name] ?? d.name}</span>
-                  <span className="block text-xs text-haze">
-                    {sum.digimon} Digimon, {sum.options} Option, {sum.digivolve} Digivolve
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        {saved.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {saved.map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                aria-pressed={custom === d.id}
-                onClick={() => setCustom(d.id)}
-                className={`rounded-full border px-4 py-1.5 text-sm ${custom === d.id ? 'border-ink bg-ink text-abyss' : 'border-grid'}`}
-              >
-                {d.name}
-              </button>
-            ))}
-          </div>
-        )}
-        <span className="text-xs text-haze">Tus mazos guardados (pestaña Mazos) aparecen aquí cuando están completos.</span>
-      </fieldset>
-
-      <label className="flex flex-col gap-2">
-        <span className="font-display text-lg font-semibold">Rival</span>
-        <div className="flex items-center gap-3">
-          {ownerCard && <CardArt card={ownerCard} className="size-14 shrink-0 rounded-xl bg-abyss" />}
-          <select value={opp} onChange={(e) => setOpp(Number(e.target.value))} className="min-w-0 flex-1 rounded-lg border border-grid bg-deep px-3 py-2">
-            {opponentDecks.map((d, i) => (
-              <option key={d.index} value={i}>
-                {d.owner}: {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <span className="text-xs text-haze">
-          {so.digimon} Digimon, {so.options} Option, {so.digivolve} Digivolve. Niveles: {so.levels.map(([l, n]) => `${n} ${l}`).join(', ')}.
-        </span>
-        <span className="text-xs text-haze">
-          Personalidad de la CPU: entrada y DP {their.ai[0]}, ataque {their.ai[1]}, cambio de mano {their.ai[2]}, soporte {their.ai[3]} (2 es al azar).
-        </span>
-      </label>
-
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 font-display text-lg font-semibold">Quién empieza</legend>
-        <div className="flex flex-wrap gap-2">
-          {(
-            [
-              ['random', 'Al azar'],
-              ['me', 'Yo'],
-              ['cpu', 'La CPU'],
-            ] as const
-          ).map(([k, label]) => (
-            <button
-              key={k}
-              type="button"
-              aria-pressed={first === k}
-              onClick={() => setFirst(k)}
-              className={`rounded-full border px-4 py-1.5 text-sm ${first === k ? 'border-ink bg-ink text-abyss' : 'border-grid'}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <button type="button" onClick={start} className="self-start rounded-full bg-ink px-7 py-3 font-display text-lg font-semibold text-abyss hover:bg-white">
-        Empezar partida
-      </button>
-    </div>
-  );
-}
-
-const PLAY_LABEL: Record<string, string> = {
-  entrance: 'Entrar con',
-  dp: 'Cargar DP con',
-  digivolveOption: 'Usar',
-  digivolve: 'Digievolucionar a',
-  support: 'Usar como soporte',
-};
-
-function actionForCard(actions: Action[], ref: CardRef): Action | undefined {
-  return actions.find((a) => ('card' in a && a.card === ref) || (a.type === 'chooseSupport' && a.choice.from === 'hand' && a.choice.card === ref));
-}
-
-function Hand({ game, player, seats, actions, act, onInspect }: { game: GameState; player: PlayerId; seats: Seats; actions: Action[]; act: (a: Action) => void; onInspect: (c: Card) => void }) {
-  const refs = cardsIn(game.players[player].hand);
-  const mine = player === seats.me;
-  const big = seats.twoPlayer ? mine : player === HUMAN;
-  const choosing = mine && actions.length > 0 && ['entrance', 'dp', 'digivolveOption', 'digivolve', 'support'].includes(game.phase.name);
-  if (!refs.length)
-    return <p className="py-4 text-sm text-haze">{seats.twoPlayer ? `La mano de ${seats.names[player]} está vacía.` : player === HUMAN ? 'Tu mano está vacía.' : 'La mano de la CPU está vacía.'}</p>;
-  return (
-    <ul className={`flex gap-2.5 overflow-x-auto px-1 pt-3 pb-2 ${player === CPU ? 'justify-end' : ''}`}>
-      <AnimatePresence initial={false}>
-        {refs.map((r) => {
-          const card = cardAt(game, player, r);
-          const a = mine ? actionForCard(actions, r) : undefined;
-          return (
-            <motion.li
-              key={`${player}-${r}`}
-              layoutId={`card-${player}-${r}`}
-              initial={{ opacity: 0, y: player === HUMAN ? 24 : -24 }}
-              animate={{ opacity: choosing && !a ? 0.4 : 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="relative shrink-0"
-            >
-              <button
-                type="button"
-                onClick={() => (a ? act(a) : onInspect(card))}
-                aria-label={a ? `${PLAY_LABEL[game.phase.name] ?? 'Jugar'} ${card.name}` : `Ver ${card.name}`}
-                className={`block rounded-xl transition-transform duration-150 ${a ? 'hover:-translate-y-2' : ''}`}
-              >
-                <CardFace card={card} size={big ? 'md' : 'xs'} glow={!!a} />
-              </button>
-              {big && (
+      <section className="frame side-player" style={{ '--c': '18px' } as CSSProperties}>
+        <div className="fill flex flex-col gap-4 p-5">
+          <h3 className="relative z-[1] font-display text-[24px] font-extrabold italic">Tu mazo</h3>
+          <div className="relative z-[1] grid gap-3 sm:grid-cols-3">
+            {starterDecks.map((d, i) => {
+              const partner = cards.find((c) => c.name === STARTER_PARTNER[d.name]);
+              const sum = deckSummary(d);
+              const active = !customDeck && mine === i;
+              return (
                 <button
+                  key={d.name}
                   type="button"
-                  onClick={() => onInspect(card)}
-                  aria-label={`Ver detalle de ${card.name}`}
-                  className="absolute top-5 right-1 grid size-6 place-items-center rounded-full border border-grid bg-abyss/85 text-[11px] text-haze hover:text-ink"
+                  aria-pressed={active}
+                  onClick={() => {
+                    setMine(i);
+                    setCustom(null);
+                  }}
+                  className={`cut flex items-center gap-3 p-3 text-left transition-colors [--c:12px] ${active ? 'bg-electric/35 shadow-[inset_0_0_0_2px_var(--color-cyan)]' : 'bg-abyss/60 hover:bg-deep'}`}
                 >
-                  i
+                  {partner && <CardArt card={partner} className="size-16 shrink-0 bg-abyss" />}
+                  <span>
+                    <span className="block font-display text-[20px] font-bold italic">{STARTER_LABEL[d.name] ?? d.name}</span>
+                    <span className="block text-sm text-haze">
+                      {sum.digimon} Digimon, {sum.options} Option, {sum.digivolve} Digivolve
+                    </span>
+                  </span>
                 </button>
-              )}
-            </motion.li>
-          );
-        })}
-      </AnimatePresence>
-    </ul>
-  );
-}
+              );
+            })}
+          </div>
+          {saved.length > 0 && (
+            <div className="relative z-[1] flex flex-wrap gap-2">
+              {saved.map((d) => (
+                <Choice key={d.id} active={custom === d.id} onClick={() => setCustom(d.id)}>
+                  {d.name}
+                </Choice>
+              ))}
+            </div>
+          )}
+          <span className="relative z-[1] text-sm text-haze">Tus mazos guardados (pestaña Mazos) aparecen aquí cuando están completos.</span>
+        </div>
+      </section>
 
-function Log({ game, names }: { game: GameState; names?: [string, string] }) {
-  const log = useSession((s) => s.log);
-  const recent = log.filter((l) => l.event.type !== 'cardsDiscarded' && !(l.event.type === 'draw' && l.event.player === CPU && !names)).slice(-80).reverse();
-  return (
-    <section className="flex max-h-[34rem] flex-col gap-2 overflow-y-auto rounded-2xl border border-grid bg-deep/60 p-3" aria-label="Registro de la partida">
-      <h2 className="font-display text-sm font-semibold text-haze">Registro</h2>
-      <ul className="flex flex-col gap-1 text-[13px]">
-        {recent.map((l) => (
-          <li key={l.id} className={l.event.type === 'turnStart' ? 'mt-1.5 font-semibold' : 'text-haze'}>
-            {describeEvent(l.event, game, names)}
-          </li>
+      <section className="frame side-rival" style={{ '--c': '18px' } as CSSProperties}>
+        <label className="fill flex flex-col gap-3 p-5">
+          <span className="relative z-[1] font-display text-[24px] font-extrabold italic">Rival</span>
+          <div className="relative z-[1] flex items-center gap-3">
+            {ownerCard && <CardArt card={ownerCard} className="size-16 shrink-0 bg-abyss" />}
+            <select value={opp} onChange={(e) => setOpp(Number(e.target.value))} className="min-w-0 flex-1 bg-abyss px-3 py-2.5 font-display text-[18px] shadow-[inset_0_0_0_1px_rgb(255_199_154/0.5)]">
+              {opponentDecks.map((d, i) => (
+                <option key={d.index} value={i}>
+                  {d.owner}: {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <span className="relative z-[1] text-sm text-haze">
+            {so.digimon} Digimon, {so.options} Option, {so.digivolve} Digivolve. Niveles: {so.levels.map(([l, n]) => `${n} ${l}`).join(', ')}.
+          </span>
+          <span className="relative z-[1] text-sm text-haze">
+            Personalidad de la CPU: entrada y DP {their.ai[0]}, ataque {their.ai[1]}, cambio de mano {their.ai[2]}, soporte {their.ai[3]} (2 es al azar).
+          </span>
+        </label>
+      </section>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="font-display text-[20px] font-bold italic">Quién empieza</span>
+        {(
+          [
+            ['random', 'Al azar'],
+            ['me', 'Yo'],
+            ['cpu', 'La CPU'],
+          ] as const
+        ).map(([k, label]) => (
+          <Choice key={k} active={first === k} onClick={() => setFirst(k)}>
+            {label}
+          </Choice>
         ))}
-      </ul>
-    </section>
+        <span className="flex-1" />
+        <button type="button" onClick={start} data-primary className="cmd !px-8 !py-3 !text-[22px]">
+          <span>Empezar partida</span>
+        </button>
+      </div>
+    </div>
   );
 }
 
 function GameOver({ game }: { game: GameState }) {
   const won = game.winner === HUMAN;
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-40 grid place-items-center bg-abyss/85 p-4 backdrop-blur" role="dialog" aria-modal="true" aria-label="Fin de la partida">
-      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="flex max-w-md flex-col items-center gap-4 rounded-3xl border-2 bg-panel p-8 text-center" style={{ borderColor: won ? 'var(--color-rare)' : 'var(--color-grid)' }}>
-        <h2 className="font-display text-5xl font-bold" style={{ color: won ? 'var(--color-rare)' : 'var(--color-ink)' }}>
-          {won ? '¡Ganaste!' : 'Ganó la CPU'}
-        </h2>
-        <p className="text-haze">
-          {game.endReason === 'rounds' ? `Rondas: tú ${game.players[HUMAN].rounds}, la CPU ${game.players[CPU].rounds}.` : 'Un jugador se quedó sin Digimon que sacar.'}
-        </p>
-        <button type="button" onClick={() => sessionStore.getState().reset()} className="rounded-full bg-ink px-6 py-2.5 font-semibold text-abyss hover:bg-white">
-          Nueva partida
-        </button>
-      </motion.div>
+    <EndBanner
+      tone={won ? 'win' : 'lose'}
+      title={won ? '¡Victoria!' : 'Derrota'}
+      subtitle={game.endReason === 'rounds' ? `Rondas: tú ${game.players[0].rounds}, la CPU ${game.players[1].rounds}` : 'Un jugador se quedó sin Digimon que sacar'}
+    >
+      <button type="button" onClick={() => sessionStore.getState().reset()} data-primary className="cmd !px-8 !text-[22px]">
+        <span>Nueva partida</span>
+      </button>
+    </EndBanner>
+  );
+}
+
+/** "1st Attack" / "2nd Attack" tab on the edge of each player's area. */
+function AttackTab({ first }: { first: boolean }) {
+  return (
+    <motion.div
+      className="absolute inset-y-3 right-0 z-[2] grid w-[40px] place-items-center"
+      initial={false}
+      animate={{ opacity: 1 }}
+      style={{
+        background: first ? 'linear-gradient(180deg, #fff1b8, #ffc934 40%, #c98a00)' : 'linear-gradient(180deg, #2a3f75, #142552)',
+        clipPath: 'polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 10px)',
+      }}
+    >
+      <motion.span
+        key={String(first)}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="font-display text-[18px] font-black italic [writing-mode:vertical-rl]"
+        style={{ color: first ? '#3a2600' : '#8eaedf' }}
+      >
+        {first ? '1.er ataque' : '2.º ataque'}
+      </motion.span>
     </motion.div>
   );
 }
 
-function Field({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <DpGauge game={game} player={player} onInspect={onInspect} />
-      <Piles game={game} player={player} onInspect={onInspect} />
-    </div>
-  );
+function sideStatus(game: GameState, p: PlayerId, mine: boolean, playback: Playback | null): string {
+  if (playback) return 'Ataque revelado';
+  if (mine) return 'Elige tu ataque';
+  return game.players[p].attack !== null ? 'Ya eligió' : 'Eligiendo…';
 }
 
-/** The match board. `endScreen` replaces the default end dialog (story mode); `onLeave` the abandon button. */
+/** The match board. `endScreen` replaces the default end banner (story mode); `onLeave` the abandon button. */
 export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: GameState; endScreen?: (game: GameState) => React.ReactNode; onLeave?: () => void; hideLeave?: boolean }) {
   const [inspect, setInspect] = useState<Card | null>(null);
+  const [detail, setDetail] = useState<Card | null>(null);
+  const [logOpen, setLogOpen] = useState(false);
+  const [peek, setPeek] = useState(false);
   const error = useSession((s) => s.error);
-  const report = useSession((s) => s.battleReport);
-  const cinematic = useSession((s) => s.scenes.length > 0);
+  const scene = useSession((s) => s.scenes[0]);
   const twoPlayer = useSession((s) => s.twoPlayer);
   const sessionNames = useSession((s) => s.names);
+  const deckNames = useSession((s) => s.deckNames);
+  const playback = usePlayback(game);
+  const board = playback?.board ?? (scene?.kind === 'digivolve' && scene.state ? scene.state : game);
+  const busy = !!scene;
   const seats: Seats = { me: controller(game, twoPlayer), names: seatNames(twoPlayer, sessionNames), twoPlayer };
+  const labels = boardNames(twoPlayer, sessionNames);
   const logNames = twoPlayer ? seats.names : undefined;
-  const actions = useMemo(() => legalActions(game, seats.me), [game, seats.me]);
+  const actions = useMemo(() => (busy ? [] : legalActions(game, seats.me)), [game, seats.me, busy]);
   const act = (a: Action) => sessionStore.getState().act(a);
+  useEffect(() => setPeek(false), [game.phase.name, game.turnNumber]);
+
+  const first = playback?.first ?? board.turn;
+  const deciding = !busy && board.phase.name === 'attack' && !peek;
+
+  // the board answers the hits it hears: a shake as strong as the blow, a flash when the fight starts
+  const reduceFx = useAudioSettings().reduceIntense;
+  const reduceMotion = useReducedMotion();
+  const [scope, animateBoard] = useAnimate<HTMLDivElement>();
+  const [clash, setClash] = useState(0);
+  useCue(['HIT_TAKEN', 'CLASH_START', 'MONSTER_DEFEATED', 'EVOLUTION_BURST'], (d, name) => {
+    if (name === 'CLASH_START') setClash((c) => c + 1);
+    if (reduceFx || reduceMotion || !scope.current) return;
+    const amp =
+      name === 'CLASH_START' ? 4 : name === 'MONSTER_DEFEATED' ? 6 : name === 'EVOLUTION_BURST' ? 8 : d.lethal ? 13 : d.slot === 'circle' ? (d.heavy ? 11 : 8) : d.slot === 'cross' ? 5 : 3;
+    void animateBoard(scope.current, { x: [0, -amp, amp * 0.8, -amp * 0.5, amp * 0.25, 0], y: [0, amp * 0.45, -amp * 0.3, amp * 0.15, 0, 0] }, { duration: 0.36, ease: 'easeOut' });
+  });
+
+  const content = (p: PlayerId) => {
+    const mine = !busy && p === seats.me;
+    if (playback || deciding) {
+      const view = playback ? playback.views[p] : activeView(board, p);
+      const own = board.players[p].attack;
+      const revealed: AttackSlot | null = playback ? (playback.attacks?.[p] ?? null) : !twoPlayer && p === 0 ? own : null;
+      const canPick = mine && actions.some((a) => a.type === 'chooseAttack');
+      const pick = (slot: AttackSlot) => {
+        // in 2P the other player is watching: the confirmation must not tell which attack it was
+        gameEvents.emit('ATTACK_SELECTED', { player: p, slot: twoPlayer ? undefined : slot });
+        act(actions.find((a) => a.type === 'chooseAttack' && a.slot === slot)!);
+      };
+      return (
+        <AttackList
+          player={p}
+          view={view}
+          name={labels[p]}
+          chosen={revealed}
+          hidden={!playback && own !== null && revealed === null}
+          status={sideStatus(board, p, canPick, playback)}
+          onPick={canPick ? pick : undefined}
+          delay={playback?.fx[p].delay}
+        />
+      );
+    }
+    return <HandRow game={board} player={p} actions={mine ? actions : []} act={act} onInspect={setInspect} />;
+  };
+
+  const gambleAction = (p: PlayerId) => (!busy && p === seats.me ? actions.find((a) => a.type === 'chooseSupport' && a.choice.from === 'gamble') : undefined);
+
+  const frame = (p: PlayerId) => {
+    const header = (
+      <div className={`relative z-[1] flex h-[30px] shrink-0 items-center gap-4 px-5 ${p === 1 ? 'pt-1' : 'pb-1'}`}>
+        <span className="plate h-[24px] text-[17px] font-extrabold italic">
+          <span className="font-display">{labels[p]}</span>
+        </span>
+        {deckNames && <span className="font-display text-[16px] font-semibold text-ink/70 italic">{deckNames[p]}</span>}
+        <RoundCrests rounds={playback ? playback.rounds[p] : board.players[p].rounds} label={`Rondas de ${labels[p]}`} />
+        <span className="flex-1" />
+      </div>
+    );
+    const gamble = gambleAction(p);
+    return (
+      <section aria-label={`Zona de ${labels[p]}`} className={`frame h-[230px] ${p === 0 ? 'side-player' : 'side-rival'}`} style={{ '--c': '20px' } as CSSProperties}>
+        <div className="fill flex flex-col pr-[44px]">
+          {p === 1 && header}
+          <div className={`relative z-[1] flex min-h-0 flex-1 items-center gap-6 px-5 ${p === 1 ? 'flex-row-reverse' : ''}`}>
+            <Piles game={board} player={p} onInspect={setInspect} onDeck={gamble ? () => act(gamble) : undefined} />
+            <div className="flex min-w-0 flex-1 justify-center">{content(p)}</div>
+            <DpSlot game={board} player={p} onInspect={setInspect} />
+          </div>
+          {p === 0 && header}
+          <AttackTab first={first === p} />
+        </div>
+      </section>
+    );
+  };
+
+  const chosenOnBoard = (p: PlayerId): AttackSlot | null => {
+    if (playback) return playback.attacks?.[p] ?? null;
+    return !twoPlayer && p === 0 ? board.players[0].attack : null;
+  };
 
   return (
-    <LayoutGroup>
-      <div className="grid gap-5 xl:grid-cols-[1fr_21rem]">
-        <div
-          className="flex min-w-0 flex-col gap-4 rounded-3xl border border-grid p-3 sm:p-4"
-          style={{ background: 'linear-gradient(180deg, rgb(24 33 90 / 0.55), rgb(13 19 51 / 0.2) 45%, rgb(24 33 90 / 0.55))' }}
-        >
-          <section aria-label={seats.names[CPU]} className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="font-display text-sm font-semibold text-haze">{twoPlayer ? `Mano de ${seats.names[CPU]}` : 'CPU, mano abierta como en el original'}</h2>
-            </div>
-            <Hand game={game} player={CPU} seats={seats} actions={seats.me === CPU ? actions : []} act={act} onInspect={setInspect} />
-            <Field game={game} player={CPU} onInspect={setInspect} />
-          </section>
+    <GameStage>
+      <LayoutGroup>
+        <div ref={scope} className="flex h-full flex-col gap-2 px-4 py-[10px]">
+          <PhaseBar game={board} playback={playback} logOpen={logOpen} onLog={() => setLogOpen((o) => !o)} onLeave={hideLeave ? undefined : () => (onLeave ? onLeave() : sessionStore.getState().reset())} />
+          {frame(1)}
 
-          <section aria-label="Arena" className="grid grid-cols-1 items-center gap-2 py-2 sm:grid-cols-[1fr_auto_1fr] sm:gap-4">
-            <div className="order-3 flex justify-center sm:order-1 sm:justify-end">
-              <ArenaCard game={game} player={HUMAN} onInspect={setInspect} />
+          <div className="relative grid h-[266px] shrink-0 grid-cols-[1fr_110px_1fr]">
+            {([0, 1] as PlayerId[]).map((p) => (
+              <div key={p} className={p === 0 ? 'col-start-1' : 'col-start-3'}>
+                <ActivePanel
+                  player={p}
+                  view={playback ? playback.views[p] : activeView(board, p)}
+                  label={labels[p]}
+                  chosen={chosenOnBoard(p)}
+                  hiddenChoice={!playback && board.players[p].attack !== null && chosenOnBoard(p) === null}
+                  fx={playback?.fx[p]}
+                  emptyText={!busy && p === seats.me && board.phase.name === 'entrance' ? 'Elige un Digimon de tu mano' : 'Battle Slot vacío'}
+                  onInspect={setInspect}
+                />
+              </div>
+            ))}
+            <div className="col-start-2 row-start-1 flex flex-col items-center justify-center gap-2">
+              <div className="h-[60px] w-[2px] bg-gradient-to-b from-transparent to-cyan/80" />
+              <motion.span
+                key={clash}
+                className="grid size-[74px] rotate-45 place-items-center"
+                style={{ background: 'linear-gradient(135deg, #2f7dff, #061340 60%)' }}
+                initial={false}
+                animate={
+                  clash
+                    ? { scale: [1, 1.4, 1], boxShadow: ['0 0 0 2px #9fd0ff, 0 0 30px rgb(72 228 255 / 0.55)', '0 0 0 3px #fff, 0 0 70px rgb(255 255 255 / 0.95)', '0 0 0 2px #9fd0ff, 0 0 30px rgb(72 228 255 / 0.55)'] }
+                    : { boxShadow: '0 0 0 2px #9fd0ff, 0 0 30px rgb(72 228 255 / 0.55)' }
+                }
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+              >
+                <span className="-rotate-45 font-display text-[34px] font-black text-white italic">VS</span>
+              </motion.span>
+              <div className="h-[60px] w-[2px] bg-gradient-to-t from-transparent to-cyan/80" />
             </div>
-            <div className="order-2 flex flex-col items-center gap-1">
-              <span className="font-display text-xl font-bold text-haze sm:text-3xl">VS</span>
-              <span className="text-center text-[10px] text-haze">{twoPlayer ? `${seats.names[game.turn]} ataca primero` : game.turn === HUMAN ? 'Atacas primero' : 'La CPU ataca primero'}</span>
-            </div>
-            <div className="order-1 flex justify-center sm:order-3 sm:justify-start">
-              <ArenaCard game={game} player={CPU} onInspect={setInspect} mirrored />
-            </div>
-          </section>
-
-          <div className="flex flex-col gap-3">
-            <PhaseRail game={game} />
-            <PhasePanel game={game} act={act} seats={seats} />
-            {error && (
-              <p role="alert" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-conflict)' }}>
-                {error}
-              </p>
+            {clash > 0 && !reduceFx && (
+              <motion.div
+                key={`flash${clash}`}
+                aria-hidden
+                className="fx-intense pointer-events-none absolute inset-x-0 top-1/2 z-10 h-[3px] -translate-y-1/2"
+                style={{ background: 'linear-gradient(90deg, transparent, #fff 35%, var(--color-cyan) 50%, #fff 65%, transparent)', boxShadow: '0 0 24px var(--color-cyan)' }}
+                initial={{ scaleX: 0, opacity: 1 }}
+                animate={{ scaleX: 1, opacity: 0 }}
+                transition={{ duration: 0.55, ease: 'easeOut' }}
+              />
             )}
+            <EffectCard playback={playback} />
           </div>
 
-          <section aria-label={seats.names[HUMAN]} className="flex flex-col gap-2">
-            <Field game={game} player={HUMAN} onInspect={setInspect} />
-            <h2 className="mt-1 font-display text-sm font-semibold text-haze">{twoPlayer ? `Mano de ${seats.names[HUMAN]}` : 'Tu mano'}</h2>
-            <Hand game={game} player={HUMAN} seats={seats} actions={seats.me === HUMAN ? actions : []} act={act} onInspect={setInspect} />
-          </section>
+          {frame(0)}
+          <CommandBar game={game} act={act} seats={seats} playback={playback} peek={peek} onPeek={() => setPeek((x) => !x)} />
         </div>
 
-        <aside className="flex flex-col gap-3">
-          {report && (
-            <section className="flex flex-col gap-2 rounded-2xl border-2 bg-deep p-3" style={{ borderColor: 'var(--color-rare)' }} aria-label="Última batalla">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-sm font-semibold">Última batalla</h2>
-                <button type="button" onClick={() => sessionStore.getState().dismissReport()} className="text-xs text-haze underline underline-offset-4 hover:text-ink">
-                  Ocultar
-                </button>
-              </div>
-              <ol className="flex list-decimal flex-col gap-1 pl-5 text-[13px]">
-                {report
-                  .filter((e) => e.type !== 'cardsDiscarded')
-                  .map((e, i) => (
-                    <li key={i}>{describeEvent(e, game, logNames)}</li>
-                  ))}
-              </ol>
-            </section>
-          )}
-          <Log game={game} names={logNames} />
-          {!hideLeave && (
-            <button type="button" onClick={() => (onLeave ? onLeave() : sessionStore.getState().reset())} className="self-start text-sm text-haze underline underline-offset-4 hover:text-ink">
-              Abandonar partida
-            </button>
-          )}
-        </aside>
-
-        {inspect && (
-          <div className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[28rem] p-3">
-            <CardDetail card={inspect} onClose={() => setInspect(null)} />
+        {error && (
+          <p role="alert" className="absolute bottom-[86px] left-1/2 z-30 -translate-x-1/2 bg-abyss px-4 py-2 text-[15px] shadow-[inset_0_0_0_2px_var(--color-conflict)]">
+            {error}
+          </p>
+        )}
+        <PhaseBanner game={board} paused={busy} names={labels} twoPlayer={twoPlayer} />
+        <LogDrawer open={logOpen} onClose={() => setLogOpen(false)} game={game} names={logNames} />
+        <CardPopup card={inspect} onClose={() => setInspect(null)} onDetail={(c) => setDetail(c)} />
+        {detail && (
+          <div className="absolute inset-y-0 right-0 z-50 flex w-[480px] p-3">
+            <CardDetail card={detail} onClose={() => setDetail(null)} />
           </div>
         )}
         <CinematicHost game={game} />
-        {game.phase.name === 'gameOver' && !cinematic && (endScreen ? endScreen(game) : <GameOver game={game} />)}
-      </div>
-    </LayoutGroup>
+        {game.phase.name === 'gameOver' && !scene && (endScreen ? endScreen(game) : <GameOver game={game} />)}
+      </LayoutGroup>
+    </GameStage>
   );
 }
 

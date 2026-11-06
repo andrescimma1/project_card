@@ -9,6 +9,7 @@ import { useSession } from '../../game/useSession';
 import { storyStore, useStory } from '../../game/useStory';
 import { CardFace } from '../play/CardFace';
 import { BattleBoard } from '../play/PlayScreen';
+import { EndBanner } from '../play/Overlays';
 import type { GameState } from '../../engine/game/types';
 import { Button, PartName, Text } from './common';
 import { PartnerGet, StoryMenu } from './StoryMenus';
@@ -29,7 +30,7 @@ const permille = (v: number) => `${Math.floor(v / 10)}.${v % 10} %`;
 function ErrorNote() {
   const error = useStory((s) => s.error);
   return error ? (
-    <p role="alert" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-conflict)' }}>
+    <p role="alert" className="cut [--c:6px] border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-conflict)' }}>
       {error}
     </p>
   ) : null;
@@ -43,7 +44,7 @@ function SlotsView() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
       <div>
-        <h2 className="font-display text-4xl font-bold">Modo historia</h2>
+        <h2 className="font-display text-5xl font-black italic">Modo historia</h2>
         <p className="mt-2 max-w-[62ch] text-haze">
           Las ciudades, los torneos y los diálogos son los guiones originales del juego, leídos de tu disco. Hay tres partidas, como los tres archivos
           de la tarjeta de memoria. Se guarda cuando eliges Guardar, igual que en el original.
@@ -52,9 +53,9 @@ function SlotsView() {
       <ErrorNote />
       <ol className="flex flex-col gap-3">
         {slots.map((s, i) => (
-          <li key={i} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-grid bg-panel/70 p-4">
+          <li key={i} className="flex flex-wrap items-center justify-between gap-3 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4">
             <div>
-              <p className="font-display text-lg font-semibold">Partida {'ABC'[i]}</p>
+              <p className="font-display text-xl font-bold italic">Partida {'ABC'[i]}</p>
               <p className="text-sm text-haze">{s ? `${s.name} con ${s.partner} · ${s.tamer} · ${s.winsCom} victorias · ${permille(Math.floor((s.storyPoints * 1000) / 166))}` : 'Vacía'}</p>
             </div>
             <div className="flex gap-2">
@@ -104,7 +105,7 @@ function NewGameView() {
         }}
       >
         <div>
-          <h2 className="font-display text-4xl font-bold">Registro</h2>
+          <h2 className="font-display text-5xl font-black italic">Registro</h2>
           <p className="mt-2 text-haze">Elige tu nombre para este mundo. Los personajes te llaman así en los diálogos.</p>
         </div>
         <label className="flex flex-col gap-1">
@@ -114,7 +115,7 @@ function NewGameView() {
             maxLength={12}
             autoFocus
             onChange={(e) => setName(e.target.value)}
-            className="rounded-lg border border-grid bg-deep px-3 py-2 font-display text-xl"
+            className="cut [--c:6px] border border-grid bg-deep px-3 py-2 font-display text-xl"
           />
         </label>
         {error && (
@@ -123,8 +124,8 @@ function NewGameView() {
           </p>
         )}
         <div className="flex gap-2">
-          <button type="submit" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-abyss hover:bg-white">
-            Este nombre está bien
+          <button type="submit" data-primary className="cmd">
+            <span>Este nombre está bien</span>
           </button>
           <Button onClick={() => act().toSlots()}>Volver</Button>
         </div>
@@ -133,7 +134,7 @@ function NewGameView() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
       <div>
-        <h2 className="font-display text-4xl font-bold">Elige tu compañero</h2>
+        <h2 className="font-display text-5xl font-black italic">Elige tu compañero</h2>
         <p className="mt-2 text-haze">Empiezas con su mazo y cinco cartas más, elegidas al azar entre parejas fijas como en el original.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
@@ -142,10 +143,10 @@ function NewGameView() {
             key={s.id}
             type="button"
             onClick={() => void act().newGame(slot ?? 0, i as 0 | 1 | 2, name)}
-            className="flex flex-col items-center gap-3 rounded-2xl border border-grid bg-panel/70 p-4 transition-colors hover:border-ink"
+            className="flex flex-col items-center gap-3 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4 transition-colors hover:border-ink"
           >
             <CardFace card={cards[s.id]} size="md" />
-            <span className="font-display text-lg font-semibold">{cards[s.id].name}</span>
+            <span className="font-display text-xl font-bold italic">{cards[s.id].name}</span>
             <span className="text-sm text-haze">{s.deck}</span>
           </button>
         ))}
@@ -161,9 +162,9 @@ function PlayerPanel({ save }: { save: SaveData }) {
   const t = rankTitles(save.ranks);
   const p = percentages({ storyPoints: save.story.points, collection: save.collection, ownedParts: save.ownedParts });
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-grid bg-panel/70 p-4" aria-label="Datos del jugador">
+    <section className="flex flex-col gap-3 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4" aria-label="Datos del jugador">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display text-lg font-semibold">{save.name}</h3>
+        <h3 className="font-display text-xl font-bold italic">{save.name}</h3>
         <span className="text-sm text-haze">
           {save.winsCom} victorias, {save.lossesCom} derrotas
         </span>
@@ -177,7 +178,7 @@ function PlayerPanel({ save }: { save: SaveData }) {
       </dl>
       <ul className="flex flex-wrap gap-3">
         {save.partners.map((pt) => (
-          <li key={pt.slot.id} className="flex items-center gap-2 rounded-xl bg-deep px-3 py-2 text-sm">
+          <li key={pt.slot.id} className="flex items-center gap-2 cut [--c:10px] bg-deep px-3 py-2 text-sm">
             <strong>{cards[pt.slot.id].name}</strong>
             <span className="text-haze">nivel {pt.slot.level}, {pt.exp} EXP</span>
           </li>
@@ -195,7 +196,7 @@ function MapView() {
   if (menu)
     return (
       <div className="mx-auto flex max-w-6xl flex-col gap-5 py-4">
-        <h2 className="font-display text-3xl font-bold">Mazos y compañeros</h2>
+        <h2 className="font-display text-4xl font-black italic">Mazos y compañeros</h2>
         <StoryMenu
           onClose={() => {
             setMenu(false);
@@ -207,7 +208,7 @@ function MapView() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-3xl font-bold">Mapa de Digi-land</h2>
+        <h2 className="font-display text-4xl font-black italic">Mapa de Digi-land</h2>
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => setMenu(true)}>Mazos y compañeros</Button>
           <Button
@@ -238,10 +239,10 @@ function MapView() {
                     setSaved(false);
                     void act().enterCity(c);
                   }}
-                  className="flex min-h-20 flex-col justify-between rounded-2xl border-2 bg-deep px-4 py-3 text-left transition-colors enabled:hover:border-ink disabled:opacity-35"
+                  className="flex min-h-20 flex-col justify-between cut [--c:16px] border-2 bg-deep px-4 py-3 text-left transition-colors enabled:hover:border-ink disabled:opacity-35"
                   style={{ borderColor: save.story.city === c ? 'var(--color-rare)' : 'var(--color-grid)' }}
                 >
-                  <span className="font-display text-lg font-semibold">{visible ? progression.world.cities[c] : '???'}</span>
+                  <span className="font-display text-xl font-bold italic">{visible ? progression.world.cities[c] : '???'}</span>
                   <span className="text-xs text-haze">{visible ? (save.story.city === c ? 'Estás aquí' : 'Entrar') : 'Sin passcode'}</span>
                 </button>
               );
@@ -270,9 +271,9 @@ function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: 
   const speaker = decoded[0]?.startsWith('*c') ? decoded[0] : null;
   const body = speaker ? decoded.slice(1) : decoded;
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border-2 border-grid bg-deep p-5" role="dialog" aria-live="polite">
+    <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-grid bg-deep p-5" role="dialog" aria-live="polite">
       {speaker && (
-        <p className="font-display text-lg font-semibold">
+        <p className="font-display text-xl font-bold italic">
           <Text segments={storySegments(speaker, playerName)} />
         </p>
       )}
@@ -294,10 +295,10 @@ function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: 
 
 function Reward({ req }: { req: Extract<StoryRequest, { kind: 'reward' }> }) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border-2 bg-deep p-5" style={{ borderColor: 'var(--color-rare)' }}>
-      {req.pack !== undefined && <p className="font-display text-xl font-semibold">Recibiste un {progression.packs[req.pack].name}</p>}
+    <div className="flex flex-col gap-4 cut [--c:16px] border-2 bg-deep p-5" style={{ borderColor: 'var(--color-rare)' }}>
+      {req.pack !== undefined && <p className="font-display text-2xl font-bold italic">Recibiste un {progression.packs[req.pack].name}</p>}
       {req.part !== undefined && (
-        <p className="font-display text-xl font-semibold">
+        <p className="font-display text-2xl font-bold italic">
           Digi-Part: <PartName id={req.part} />
         </p>
       )}
@@ -328,7 +329,7 @@ function Keyword() {
   };
   return (
     <form
-      className="flex flex-wrap items-end gap-3 rounded-2xl border-2 border-grid bg-deep p-5"
+      className="flex flex-wrap items-end gap-3 cut [--c:16px] border-2 border-grid bg-deep p-5"
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -336,7 +337,7 @@ function Keyword() {
     >
       <label className="flex flex-col gap-1 text-sm">
         <span className="text-haze">Palabra clave</span>
-        <input value={word} onChange={(e) => setWord(e.target.value)} maxLength={12} className="rounded-lg border border-grid bg-abyss px-3 py-2 uppercase" autoFocus />
+        <input value={word} onChange={(e) => setWord(e.target.value)} maxLength={12} className="cut [--c:6px] border border-grid bg-abyss px-3 py-2 uppercase" autoFocus />
       </label>
       <Button primary onClick={submit}>
         Decir
@@ -378,7 +379,7 @@ function PlayerDataScreen({ save, onDone }: { save: SaveData; onDone: () => void
 function Ending() {
   const [saved, setSaved] = useState(false);
   return (
-    <div className="flex flex-col items-center gap-5 rounded-3xl border-2 bg-deep px-6 py-12 text-center" style={{ borderColor: 'var(--color-rare)' }}>
+    <div className="flex flex-col items-center gap-5 cut [--c:24px] border-2 bg-deep px-6 py-12 text-center" style={{ borderColor: 'var(--color-rare)' }}>
       <h3 className="font-display text-5xl font-bold" style={{ color: 'var(--color-rare)' }}>
         Fin
       </h3>
@@ -421,13 +422,13 @@ function CityView() {
   return (
     <div className={`mx-auto flex ${req.kind === 'screen' && req.screen !== 'playerData' ? 'max-w-6xl' : 'max-w-3xl'} flex-col gap-4 py-4`}>
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-display text-3xl font-bold">{progression.world.cities[city]}</h2>
+        <h2 className="font-display text-4xl font-black italic">{progression.world.cities[city]}</h2>
         <span className="text-sm text-haze">{host?.place === 1 ? 'Battle Cafe' : host?.place === 2 ? 'Arena' : ''}</span>
       </div>
       <ErrorNote />
       {req.kind === 'say' && <Dialogue lines={req.lines} playerName={save.name} onNext={() => act().reply({ kind: 'ack' })} />}
       {req.kind === 'menu' && (
-        <div className="flex flex-wrap gap-2 rounded-2xl border-2 border-grid bg-deep p-5">
+        <div className="flex flex-wrap gap-2 cut [--c:16px] border-2 border-grid bg-deep p-5">
           {req.options.map((id, i) => (
             <Button key={i} primary={i === 0} onClick={() => act().reply({ kind: 'choice', value: i + 1 })}>
               {menuLabel(id, city)}
@@ -437,7 +438,7 @@ function CityView() {
         </div>
       )}
       {req.kind === 'talkTo' && (
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-grid bg-deep p-5">
+        <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-grid bg-deep p-5">
           <p className="text-haze">¿Con quién quieres hablar?</p>
           <div className="flex flex-wrap gap-2">
             {req.npcs.map((n) => (
@@ -450,8 +451,8 @@ function CityView() {
         </div>
       )}
       {req.kind === 'rival' && (
-        <div className="flex flex-col gap-2 rounded-2xl border-2 bg-deep p-5" style={{ borderColor: 'var(--color-fire)' }}>
-          <p className="font-display text-xl font-semibold">
+        <div className="flex flex-col gap-2 cut [--c:16px] border-2 bg-deep p-5" style={{ borderColor: 'var(--color-fire)' }}>
+          <p className="font-display text-2xl font-bold italic">
             <Text segments={storySegments(decodeScriptString(req.name), save.name)} />
           </p>
           <p className="text-sm text-haze">
@@ -478,16 +479,11 @@ function BattleEnd({ game }: { game: GameState }) {
   const won = game.winner === 0;
   const log = useSession((s) => s.log);
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-abyss/85 p-4 backdrop-blur" role="dialog" aria-modal="true" aria-label="Fin de la batalla">
-      <div className="flex max-w-md flex-col items-center gap-4 rounded-3xl border-2 bg-panel p-8 text-center" style={{ borderColor: won ? 'var(--color-rare)' : 'var(--color-grid)' }}>
-        <h2 className="font-display text-5xl font-bold" style={{ color: won ? 'var(--color-rare)' : undefined }}>
-          {won ? '¡Ganaste!' : 'Perdiste'}
-        </h2>
-        <Button primary onClick={() => act().finishBattle(game, log.map((l) => l.event))}>
-          Ver resultados
-        </Button>
-      </div>
-    </div>
+    <EndBanner tone={won ? 'win' : 'lose'} title={won ? '¡Victoria!' : 'Derrota'} subtitle={`Rondas: ${game.players[0].rounds} a ${game.players[1].rounds}`}>
+      <Button primary onClick={() => act().finishBattle(game, log.map((l) => l.event))}>
+        Ver resultados
+      </Button>
+    </EndBanner>
   );
 }
 
@@ -502,12 +498,12 @@ function ResultView() {
   const won = useStory((s) => s.won);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5 py-4">
-      <h2 className="font-display text-4xl font-bold">{won ? 'Victoria' : 'Derrota'}</h2>
+      <h2 className="font-display text-5xl font-black italic">{won ? 'Victoria' : 'Derrota'}</h2>
       {!result && <p className="text-haze">Fin del tutorial: el juego no guarda el resultado de esta batalla.</p>}
       {result && (
         <>
-          <section className="flex flex-col gap-2 rounded-2xl border border-grid bg-panel/70 p-4">
-            <h3 className="font-display text-lg font-semibold">Experiencia</h3>
+          <section className="flex flex-col gap-2 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4">
+            <h3 className="font-display text-xl font-bold italic">Experiencia</h3>
             <ul className="flex flex-col gap-1 text-sm">
               {result.bonuses.granted.map((b) => (
                 <li key={b.id} className="flex justify-between gap-3">
@@ -535,8 +531,8 @@ function ResultView() {
             </ul>
           </section>
           {result.pack.length > 0 && (
-            <section className="flex flex-col gap-3 rounded-2xl border-2 bg-deep p-4" style={{ borderColor: 'var(--color-rare)' }}>
-              <h3 className="font-display text-lg font-semibold">Prize Pack</h3>
+            <section className="flex flex-col gap-3 cut [--c:16px] border-2 bg-deep p-4" style={{ borderColor: 'var(--color-rare)' }}>
+              <h3 className="font-display text-xl font-bold italic">Prize Pack</h3>
               <div className="flex flex-wrap gap-3">
                 {result.pack.map((id, i) => (
                   <div key={i} className="flex flex-col items-center gap-1">

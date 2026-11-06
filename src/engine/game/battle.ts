@@ -7,6 +7,8 @@ import type { AttackSlot } from '../cards/types';
 import { VALUE_CAP } from '../rules/primitives';
 import { activeCard, applyCrossEffect, cardOf, runProgram, SLOT_CODE, type BattleCtx, type Fighter } from './effects';
 import type { CardRef, GameState, PlayerId, PlayerState, StepResult, SupportSource } from './types';
+
+type Powers = [number, number, number];
 import { count, popTop, pushTop } from './zones';
 import { BONUS_BIT, isUltimate, markHp, markSpecialty, setFlag } from './bonusFlags';
 import { ROUNDS_TO_WIN } from '../rules/primitives';
@@ -14,6 +16,8 @@ import { ROUNDS_TO_WIN } from '../rules/primitives';
 const other = (x: PlayerId): PlayerId => (x === 0 ? 1 : 0);
 const activeRef = (p: PlayerState): CardRef => p.stack.find((x) => x !== null) ?? -1;
 const hpOf = (ctx: BattleCtx): [number, number] => [ctx.f[0].hp, ctx.f[1].hp];
+/** ◯ △ ✕ of both fighters right now: a snapshot for the UI, never read back by the rules. */
+const powersOf = (ctx: BattleCtx): [Powers, Powers] => [[...ctx.f[0].power] as Powers, [...ctx.f[1].power] as Powers];
 const attacksOf = (ctx: BattleCtx): [AttackSlot, AttackSlot] => [ctx.state.players[0].attack ?? 'circle', ctx.state.players[1].attack ?? 'circle'];
 
 function freshFighter(p: PlayerState): Fighter {
@@ -70,13 +74,13 @@ function resolveEffects(ctx: BattleCtx): void {
       if (slot.source === 'cross') {
         if (p.attack !== 'cross' || card.kind !== 'digimon') return;
         applyCrossEffect(ctx, slot.owner, card.crossEffect);
-        ctx.events.push({ type: 'effect', player: slot.owner, source: 'cross', card: slot.card, speed, voided: false, conditionsMet: true, hp: hpOf(ctx), attacks: attacksOf(ctx) });
+        ctx.events.push({ type: 'effect', player: slot.owner, source: 'cross', card: slot.card, speed, voided: false, conditionsMet: true, hp: hpOf(ctx), attacks: attacksOf(ctx), powers: powersOf(ctx) });
         return;
       }
       const voided = slot.source === 'option' ? f.voidOption : f.voidDigimon;
       let conditionsMet = false;
       if (!voided && card.kind !== 'digivolve') conditionsMet = runProgram(ctx, slot.owner, card.support.program);
-      ctx.events.push({ type: 'effect', player: slot.owner, source: slot.source, card: slot.card, speed, voided, conditionsMet, hp: hpOf(ctx), attacks: attacksOf(ctx) });
+      ctx.events.push({ type: 'effect', player: slot.owner, source: slot.source, card: slot.card, speed, voided, conditionsMet, hp: hpOf(ctx), attacks: attacksOf(ctx), powers: powersOf(ctx) });
     });
   }
 }
@@ -221,7 +225,7 @@ export function simulateBattle(input: GameState): [number, number] {
 export function resolveBattle(input: GameState): StepResult {
   const state = structuredClone(input);
   const ctx: BattleCtx = { state, f: [freshFighter(state.players[0]), freshFighter(state.players[1])], events: [], temp: 0 };
-  ctx.events.push({ type: 'reveal', attacks: [state.players[0].attack ?? 'circle', state.players[1].attack ?? 'circle'], hp: hpOf(ctx) });
+  ctx.events.push({ type: 'reveal', attacks: [state.players[0].attack ?? 'circle', state.players[1].attack ?? 'circle'], hp: hpOf(ctx), powers: powersOf(ctx) });
   const gambled = state.players.map((p) => p.support?.kind === 'gamble') as [boolean, boolean];
   for (const p of state.players) {
     if (p.support && p.support.kind !== 'none') setFlag(p, BONUS_BIT.supportUsed);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildScenes } from '../src/game/scenes';
-import type { GameEvent } from '../src/engine/game/types';
+import type { GameEvent, GameState } from '../src/engine/game/types';
 
 const ev = {
   turn: (player: 0 | 1): GameEvent => ({ type: 'turnStart', player, turnNumber: 2 }),
@@ -25,6 +25,20 @@ describe('scene builder', () => {
     const scenes = buildScenes([ev.reveal(), ev.hit(), ev.round(), ev.turn(1), ev.digi(1)]);
     expect(scenes.map((s) => s.kind)).toEqual(['battle', 'digivolve']);
     expect(scenes[0]).toMatchObject({ kind: 'battle', events: [ev.reveal(), ev.hit(), ev.round()] });
+  });
+
+  it('a battle plays over the board as it was before it; a digivolution, over the board right after it', () => {
+    const before = { turnNumber: 1 } as unknown as GameState;
+    const after = { turnNumber: 2 } as unknown as GameState;
+    const scenes = buildScenes([ev.digi(0), ev.reveal(), ev.hit()], { before, after });
+    expect(scenes[0]).toMatchObject({ kind: 'digivolve', state: after });
+    expect(scenes[1]).toMatchObject({ kind: 'battle', state: before });
+  });
+
+  it('a digivolution also keeps the board before it, so its stats can count up from the real old values', () => {
+    const before = { turnNumber: 1 } as unknown as GameState;
+    const after = { turnNumber: 2 } as unknown as GameState;
+    expect(buildScenes([ev.digi(0)], { before, after })[0]).toMatchObject({ kind: 'digivolve', state: after, prev: before });
   });
 
   it('ignores events with no cinematic', () => {
