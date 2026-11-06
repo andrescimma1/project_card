@@ -31,7 +31,7 @@ export function GameStage({ children }: { children: React.ReactNode }) {
 
   return (
     <div ref={host} className="board-bg absolute inset-0 z-10 overflow-hidden">
-      <div className="circuit pointer-events-none absolute inset-0 opacity-80" aria-hidden />
+      <div className="engrave pointer-events-none absolute inset-0 opacity-80" aria-hidden />
       <div
         className="absolute top-1/2 left-1/2"
         style={{ width: box.w, height: STAGE_H, transform: `translate(-50%, -50%) scale(${box.s})` }}
@@ -39,8 +39,8 @@ export function GameStage({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       {box.portrait && (
-        <p className="absolute inset-x-4 top-4 z-20 flex items-center justify-center gap-3 bg-abyss/90 px-4 py-3 text-center font-display text-[17px] font-bold italic shadow-[inset_0_0_0_1px_var(--color-cyan)]">
-          <span aria-hidden className="text-[22px] text-cyan">⟳</span>
+        <p className="absolute inset-x-4 top-4 z-20 flex items-center justify-center gap-3 bg-soot/90 px-4 py-3 text-center font-display text-[17px] font-bold shadow-[inset_0_0_0_1px_var(--color-brass)]">
+          <span aria-hidden className="text-[22px] text-brass">⟳</span>
           Gira el dispositivo: el tablero está pensado en horizontal.
         </p>
       )}

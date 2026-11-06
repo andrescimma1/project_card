@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { byId, cards, CROSS_EFFECT_LABEL } from '../engine/cards/db';
+import { byId, cards } from '../engine/cards/db';
+import { crossEffectLabel, TERMS } from './vocab/terms';
 import { CROSS_EFFECT_BY_CODE } from '../engine/cards/romTables';
 import type { Card, Level, Specialty } from '../engine/cards/types';
 import { useBrowser, type KindFilter } from '../store';
@@ -11,9 +12,9 @@ const SPECIALTIES: Specialty[] = ['fire', 'ice', 'nature', 'darkness', 'rare'];
 const LEVELS: Level[] = ['R', 'C', 'U', 'A'];
 const KINDS: { id: KindFilter; label: string }[] = [
   { id: 'all', label: 'Todas' },
-  { id: 'digimon', label: 'Digimon' },
-  { id: 'option', label: 'Option' },
-  { id: 'digivolve', label: 'Digivolve' },
+  { id: 'digimon', label: TERMS.creatures },
+  { id: 'option', label: TERMS.supportShort },
+  { id: 'digivolve', label: TERMS.evolution },
 ];
 
 function searchable(c: Card) {
@@ -32,9 +33,9 @@ function Toggle({ on, onClick, children, color }: { on: boolean; onClick: () => 
       onClick={onClick}
       className="rounded-full border px-2.5 py-1 text-sm transition-colors"
       style={{
-        borderColor: on ? (color ?? 'var(--color-ink)') : 'var(--color-grid)',
-        background: on ? (color ?? 'var(--color-ink)') : 'transparent',
-        color: on ? 'var(--color-abyss)' : 'var(--color-ink)',
+        borderColor: on ? (color ?? 'var(--color-bone)') : 'var(--color-seam)',
+        background: on ? (color ?? 'var(--color-bone)') : 'transparent',
+        color: on ? 'var(--color-soot)' : 'var(--color-bone)',
       }}
     >
       {children}
@@ -67,17 +68,17 @@ export function CardBrowser() {
     <div className="grid gap-6 lg:grid-cols-[15rem_1fr]">
       <aside className="flex flex-col gap-5 lg:sticky lg:top-0 lg:self-start" aria-label="Filtros">
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm text-haze">Buscar nombre, ataque o efecto</span>
+          <span className="text-sm text-faded">Buscar nombre, ataque o efecto</span>
           <input
             value={s.query}
             onChange={(e) => s.setQuery(e.target.value)}
             placeholder="WarGreymon, Eat-up, Draw…"
-            className="rounded-lg border border-grid bg-deep px-3 py-2 placeholder:text-haze/60"
+            className="rounded-lg border border-seam bg-leather px-3 py-2 placeholder:text-faded/60"
           />
         </label>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-sm text-haze">Tipo de carta</legend>
+          <legend className="mb-1.5 text-sm text-faded">Tipo de carta</legend>
           <div className="flex flex-wrap gap-1.5">
             {KINDS.map((k) => (
               <Toggle key={k.id} on={s.kind === k.id} onClick={() => s.setKind(k.id)}>
@@ -88,7 +89,7 @@ export function CardBrowser() {
         </fieldset>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-sm text-haze">Especialidad</legend>
+          <legend className="mb-1.5 text-sm text-faded">Especialidad</legend>
           <div className="flex flex-wrap gap-1.5">
             {SPECIALTIES.map((sp) => (
               <Toggle key={sp} on={s.specialties.includes(sp)} onClick={() => s.toggleSpecialty(sp)} color={SPECIALTY_COLOR[sp]}>
@@ -99,7 +100,7 @@ export function CardBrowser() {
         </fieldset>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-sm text-haze">Nivel</legend>
+          <legend className="mb-1.5 text-sm text-faded">Nivel</legend>
           <div className="flex flex-wrap gap-1.5">
             {LEVELS.map((l) => (
               <Toggle key={l} on={s.levels.includes(l)} onClick={() => s.toggleLevel(l)}>
@@ -110,16 +111,16 @@ export function CardBrowser() {
         </fieldset>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm text-haze">Efecto ✕</span>
+          <span className="text-sm text-faded">{TERMS.instinctEffect}</span>
           <select
             value={s.crossEffect}
             onChange={(e) => s.setCrossEffect(e.target.value as typeof s.crossEffect)}
-            className="rounded-lg border border-grid bg-deep px-3 py-2"
+            className="rounded-lg border border-seam bg-leather px-3 py-2"
           >
             <option value="any">Cualquiera</option>
             {CROSS_EFFECT_BY_CODE.map((ce) => (
               <option key={ce} value={ce}>
-                {CROSS_EFFECT_LABEL[ce]}
+                {crossEffectLabel(ce)}
               </option>
             ))}
           </select>
@@ -130,11 +131,11 @@ export function CardBrowser() {
           Solo cartas con dudas o con texto que no coincide
         </label>
 
-        <div className="flex items-center justify-between text-sm text-haze">
+        <div className="flex items-center justify-between text-sm text-faded">
           <span>
             {filtered.length} de {cards.length} cartas
           </span>
-          <button type="button" onClick={s.reset} className="underline underline-offset-4 hover:text-ink">
+          <button type="button" onClick={s.reset} className="underline underline-offset-4 hover:text-bone">
             Limpiar
           </button>
         </div>
@@ -146,7 +147,7 @@ export function CardBrowser() {
             <CardTile key={c.id} card={c} active={c.id === s.selectedId} onSelect={() => s.select(c.id === s.selectedId ? null : c.id)} />
           ))}
           {filtered.length === 0 && (
-            <p className="col-span-full rounded-xl border border-dashed border-grid p-6 text-haze">
+            <p className="col-span-full rounded-xl border border-dashed border-seam p-6 text-faded">
               Ninguna carta cumple estos filtros. Quita alguno o usa “Limpiar”.
             </p>
           )}

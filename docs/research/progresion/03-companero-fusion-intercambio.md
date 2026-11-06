@@ -620,7 +620,7 @@ pueden salir como resultado, porque cuentan como "Option" en la categoría. La 2
   predicción) son lógica del script. ❓
 
 ## 7. Corrección del formato de `DECK2.DEK` (afecta a doc 02) ✅
-El código lee las cartas en `fichero + 8 + 110·i` (`0x8003FA20`, `0x801E8308`). Por tanto **el registro real empieza en
+El código lee las cartas en `archivo + 8 + 110·i` (`0x8003FA20`, `0x801E8308`). Por tanto **el registro real empieza en
 +8**, no en +6: `+0x00 30×u16 cartas · +0x3C nombre · +0x4F dueño · +0x62 u16 · +0x64 4×u8 IA · +0x68 4 B ·
 +0x6C u8 EXP · +0x6D u8 huevo`. El "head u16" que el proyecto atribuye al registro i+1 son en realidad los bytes
 +0x6C/+0x6D del registro i.
@@ -670,7 +670,7 @@ El código lee las cartas en `fichero + 8 + 110·i` (`0x8003FA20`, `0x801E8308`)
 | Partner Fusion → pieza | EVOSEG 0x801EFF1C | 6 × 5 × `{u8 carta, u8 pieza}` |
 | Cartas extra al empezar | OPENSEG 0x801F04C4 | 3 × 5 × 2 × s16 |
 | Flags de huevos (vars de script) | SAISEG 0x801DE2FC | 13 × s16 |
-| EXP y huevo del rival | DECK2 registro +0x6C / +0x6D | u8 / u8 (registro en fichero+8+110·i) |
+| EXP y huevo del rival | DECK2 registro +0x6C / +0x6D | u8 / u8 (registro en archivo+8+110·i) |
 | Tabla de packs (premio y carta rara) | SLUS 0x8006E35C | 18 B por pack: 5 especialidades × 3 niveles (s8 máx/−mín) + Option máx/mín + ventana rara |
 | Valores Composite/Result | CARD2 +0x18/+0x19 | ya en `cards.json` (`fusion`) |
 | Resultados precalculados | `PROG/fusion_pairs.csv`, `PROG/digiparts.csv` | CSV |

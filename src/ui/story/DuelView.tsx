@@ -21,8 +21,8 @@ function DuelSetup() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5 py-4">
       <div>
-        <h2 className="font-display text-5xl font-black italic">Batalla 2P</h2>
-        <p className="mt-2 max-w-[62ch] text-haze">
+        <h2 className="font-display text-5xl font-black ">Batalla 2P</h2>
+        <p className="mt-2 max-w-[62ch] text-faded">
           Dos de tus partidas se enfrentan en esta pantalla, cada una con su mazo activo y sus compañeros. No da EXP ni sobres: cuenta para las victorias 2P,
           el título 2P y los récords de cada mazo y carta.
         </p>
@@ -31,11 +31,11 @@ function DuelSetup() {
       <div className="flex flex-wrap items-end gap-3">
         {(['Jugador 1', 'Jugador 2'] as const).map((label, side) => (
           <label key={label} className="flex flex-col gap-1 text-sm">
-            <span className="text-haze">{label}</span>
+            <span className="text-faded">{label}</span>
             <select
               value={pair[side]}
               onChange={(e) => setPair((p) => (side === 0 ? [Number(e.target.value), p[1]] : [p[0], Number(e.target.value)]))}
-              className="cut [--c:6px] border border-grid bg-deep px-3 py-2"
+              className="cut [--c:6px] border border-seam bg-leather px-3 py-2"
             >
               {used.map((i) => (
                 <option key={i} value={i}>
@@ -64,7 +64,7 @@ function DuelEnd({ game }: { game: GameState }) {
     <EndBanner tone="win" title={`Gana ${names[winner]}`} subtitle={`Rondas: ${names[0]} ${game.players[0].rounds}, ${names[1]} ${game.players[1].rounds}`}>
       {recorded ? (
         <div className="flex flex-col items-center gap-3">
-          <p className="text-[18px] text-ink/85">
+          <p className="text-[18px] text-bone/85">
             Victorias 2P: {duel!.saves[0].name} {duel!.saves[0].wins2p}, {duel!.saves[1].name} {duel!.saves[1].wins2p}. Guardado en las dos partidas.
           </p>
           <Button primary onClick={() => act().closeDuel()}>

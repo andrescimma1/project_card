@@ -15,7 +15,9 @@ import { sessionStore, useSession } from '../../game/useSession';
 import { frameColor } from '../theme';
 import { Count } from './Arena';
 import { CardFace } from './CardFace';
-import { SLOTS, SlotDisc } from './glyphs';
+import { ACTIONS } from '../vocab/actions';
+import { TERMS } from '../vocab/terms';
+import { ActionDisc } from './glyphs';
 import { cardAt, partnerCardOf, seatNames } from './util';
 
 type Stage = 'start' | 'charge' | 'burst' | 'reveal' | 'stats';
@@ -94,7 +96,8 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
   }, [calm, onDone, scene.player]);
 
   const color = frameColor(to);
-  const who = twoPlayer ? `El Digimon de ${names[scene.player]}` : scene.player === 0 ? 'Tu Digimon' : 'El Digimon de la CPU';
+  const c = TERMS.creature.toLowerCase();
+  const who = twoPlayer ? `La ${c} de ${names[scene.player]}` : scene.player === 0 ? `Tu ${c}` : `La ${c} de la CPU`;
   const charging = stage === 'charge';
   const showFrom = from && !at('burst');
 
@@ -102,15 +105,15 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
     <motion.div
       role="dialog"
       aria-modal="true"
-      aria-label={scene.armor ? 'Armor-digievolución' : 'Digievolución'}
-      className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-hidden bg-void/90"
+      aria-label={scene.armor ? TERMS.eggEvolution : TERMS.evolution}
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-hidden bg-night/90"
       style={{ backgroundImage: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${color} ${at('reveal') ? 42 : 22}%, transparent), transparent 48%)` }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onDone}
     >
-      <motion.p initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="font-display text-[22px] font-bold text-haze italic">
+      <motion.p initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="font-display text-[22px] font-bold text-faded ">
         {who}
       </motion.p>
 
@@ -126,7 +129,7 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
         {!calm && (
           <>
             <motion.div className="absolute inset-6 rounded-full" style={{ border: `2px dashed ${color}`, opacity: 0.55 }} animate={{ rotate: 360 }} transition={{ duration: charging ? 3 : 8, repeat: Infinity, ease: 'linear' }} />
-            <motion.div className="absolute inset-16 rounded-full" style={{ border: '1px solid rgb(72 228 255 / 0.5)' }} animate={{ rotate: -360 }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} />
+            <motion.div className="absolute inset-16 rounded-full" style={{ border: '1px solid rgb(232 191 93 / 0.45)' }} animate={{ rotate: -360 }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} />
           </>
         )}
 
@@ -137,7 +140,7 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
               key={i}
               aria-hidden
               className="pointer-events-none absolute rounded-full"
-              style={{ width: p.size, height: p.size, background: i % 3 ? color : '#fff', boxShadow: `0 0 10px ${i % 3 ? color : '#fff'}` }}
+              style={{ width: p.size, height: p.size, background: i % 3 ? color : '#ffe9b0', boxShadow: `0 0 8px ${i % 3 ? color : '#e8bf5d'}` }}
               initial={{ x: p.x, y: p.y, opacity: 0, scale: 1.4 }}
               animate={{ x: 0, y: 0, opacity: [0, 1, 1, 0], scale: 0.3 }}
               transition={{ duration: 0.9, delay: p.delay, repeat: Infinity, repeatDelay: 0.25, ease: 'easeIn' }}
@@ -177,7 +180,7 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
             {!calm && (
               <motion.div
                 aria-hidden
-                className="fx-intense pointer-events-none fixed inset-0 z-10 bg-white"
+                className="fx-intense pointer-events-none fixed inset-0 z-10 bg-[#fff4dc]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 0.95, 0] }}
                 transition={{ duration: 0.45, times: [0, 0.15, 1] }}
@@ -189,7 +192,7 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
               initial={{ opacity: 0.95, scale: 0.2 }}
               animate={{ opacity: 0, scale: calm ? 1.4 : 2.6 }}
               transition={{ duration: 0.6 }}
-              style={{ background: `radial-gradient(circle, white, ${color}, transparent 70%)` }}
+              style={{ background: `radial-gradient(circle, #fff4dc, ${color}, transparent 70%)` }}
             />
             <motion.div
               aria-hidden
@@ -206,16 +209,16 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
       <motion.h2
         initial={{ y: 14, opacity: 0 }}
         animate={{ y: 0, opacity: at('reveal') ? 1 : 0.35 }}
-        className="max-w-[900px] text-center font-display text-[48px] leading-tight font-black italic"
-        style={{ color: '#fff', textShadow: `0 4px 0 #061340, 0 0 26px ${color}` } as CSSProperties}
+        className="max-w-[900px] text-center font-display text-[48px] leading-tight font-black "
+        style={{ color: '#fff1c6', textShadow: '0 4px 0 #1a120c, 3px 0 0 #1a120c, -3px 0 0 #1a120c' } as CSSProperties}
       >
-        {from ? `${from.name} ${scene.armor ? 'Armor-digievoluciona' : 'digievoluciona'} a ${to.name}` : `Digievoluciona a ${to.name}`}
+        {from ? `${from.name} ${scene.armor ? TERMS.eggEvolves : TERMS.evolves} a ${to.name}` : `${TERMS.evolves[0].toUpperCase()}${TERMS.evolves.slice(1)} a ${to.name}`}
       </motion.h2>
 
       {/* stats, from the old values to the new ones */}
       <div className="flex h-[64px] items-stretch gap-3" aria-label="Estadísticas nuevas">
         {to.kind === 'digimon' &&
-          (['hp', ...SLOTS] as const).map((k, i) => {
+          (['hp', ...ACTIONS] as const).map((k, i) => {
             const old = k === 'hp' ? before.hp : before.powers[i - 1];
             const now = k === 'hp' ? after.hp : after.powers[i - 1];
             const shown = statsShown > i;
@@ -231,9 +234,9 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
               >
                 <div className="fill flex items-center gap-2 px-3">
                   <span className="relative z-[1] flex w-[34px] justify-center">
-                    {k === 'hp' ? <span className="font-display text-[17px] font-black text-gold italic">HP</span> : <SlotDisc slot={k} size={28} />}
+                    {k === 'hp' ? <span className="font-display text-[18px] font-black text-gold">{TERMS.hp}</span> : <ActionDisc action={k} size={28} />}
                   </span>
-                  <span className="num relative z-[1] flex-1 text-right text-[28px] leading-none font-black italic">
+                  <span className="num relative z-[1] flex-1 text-right text-[28px] leading-none font-black ">
                     <Count value={shown ? now : old} />
                   </span>
                   {shown && diff !== 0 && (
@@ -241,7 +244,7 @@ function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: 
                       initial={{ opacity: 0, y: diff > 0 ? 8 : -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="num relative z-[1] text-[14px] font-bold"
-                      style={{ color: diff > 0 ? 'var(--color-atk-triangle)' : 'var(--color-crimson)' }}
+                      style={{ color: diff > 0 ? 'var(--color-technique)' : 'var(--color-blood)' }}
                     >
                       {diff > 0 ? '▲' : '▼'}
                     </motion.span>

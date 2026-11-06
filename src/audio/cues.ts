@@ -10,6 +10,7 @@
  */
 import type { AttackSlot, CrossEffect, DigimonCard } from '../engine/cards/types';
 import type { GameEvent, PlayerId } from '../engine/game/types';
+import { actionOf } from '../ui/vocab/actions';
 import type { Cue, CueName } from './bus';
 
 export interface PlannedCue extends Cue {
@@ -168,14 +169,15 @@ export function battleStepCues(step: GameEvent, ctx: StepCtx): Cue[] {
     case 'hit': {
       const slot = step.slot;
       const effect = slot === 'cross' ? ctx.fighters[step.attacker]?.crossEffect : undefined;
-      const out: Cue[] = [{ name: 'ATTACK_RESOLVED', data: { player: step.attacker, slot, effect } }];
+      const action = actionOf(slot);
+      const out: Cue[] = [{ name: 'ATTACK_RESOLVED', data: { player: step.attacker, action, effect } }];
       const theirs = ctx.attacks?.[step.defender];
       if (effect && theirs && COUNTER_OF[effect] === theirs) out.push({ name: 'COUNTER', data: { player: step.attacker }, delay: 60 });
-      if (step.damage <= 0) out.push({ name: 'ATTACK_BLOCKED', data: { player: step.defender, slot }, delay: IMPACT_MS });
+      if (step.damage <= 0) out.push({ name: 'ATTACK_BLOCKED', data: { player: step.defender, action }, delay: IMPACT_MS });
       else
         out.push({
           name: 'HIT_TAKEN',
-          data: { player: step.defender, slot, damage: step.damage, lethal: step.hp[step.defender] <= 0, heavy: step.damage >= ctx.max[step.defender] * 0.5 },
+          data: { player: step.defender, action, damage: step.damage, lethal: step.hp[step.defender] <= 0, heavy: step.damage >= ctx.max[step.defender] * 0.5 },
           delay: IMPACT_MS,
         });
       if (step.eaten > 0) out.push({ name: 'HP_RECOVERED', data: { player: step.attacker }, delay: IMPACT_MS + 420 });

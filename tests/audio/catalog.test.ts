@@ -9,8 +9,9 @@ import { SOUNDS, soundsFor, type SoundId } from '../../src/audio/catalog';
 import { RECIPES } from '../../src/audio/sfx/recipes';
 import { TRACKS } from '../../src/audio/music/tracks';
 import type { CrossEffect } from '../../src/engine/cards/types';
+import type { ActionKind } from '../../src/ui/vocab/actions';
 
-const SAMPLES: CueData[] = [{}, { player: 0 }, { player: 1, slot: 'circle' }, { slot: 'triangle' }, { slot: 'cross', effect: 'crash' }, { slot: 'cross', lethal: true }, { win: true }, { win: false }, { dp: 70 }, { index: 3 }, { source: 'option' }];
+const SAMPLES: CueData[] = [{}, { player: 0 }, { player: 1, action: 'fury' }, { action: 'technique' }, { action: 'instinct', effect: 'crash' }, { action: 'instinct', lethal: true }, { win: true }, { win: false }, { dp: 70 }, { index: 3 }, { source: 'option' }];
 
 describe('sound catalogue', () => {
   it('every cue the game emits has a sound, and every sound requested is defined with that variant', () => {
@@ -30,16 +31,16 @@ describe('sound catalogue', () => {
     for (const id of Object.keys(SOUNDS) as SoundId[]) expect(RECIPES[id], id).toBeTypeOf('function');
   });
 
-  it('◯ △ ✕ each have their own identity, and ✕ changes with its special effect', () => {
-    const swing = (slot: 'circle' | 'triangle' | 'cross', effect?: CrossEffect) => soundsFor('ATTACK_RESOLVED', { slot, effect, player: 0 })[0];
-    expect(new Set([swing('circle').id, swing('triangle').id, swing('cross').id]).size).toBe(3);
-    expect(swing('cross', 'crash').variant).not.toBe(swing('cross', 'eatUpHp').variant);
-    expect(swing('cross', 'foeX3Fire').variant).not.toBe(swing('cross', 'foeX3Ice').variant);
+  it('Furia, Técnica and Instinto each have their own identity, and Instinto changes with its special effect', () => {
+    const swing = (action: ActionKind, effect?: CrossEffect) => soundsFor('ATTACK_RESOLVED', { action, effect, player: 0 })[0];
+    expect(new Set([swing('fury').id, swing('technique').id, swing('instinct').id]).size).toBe(3);
+    expect(swing('instinct', 'crash').variant).not.toBe(swing('instinct', 'eatUpHp').variant);
+    expect(swing('instinct', 'foeX3Fire').variant).not.toBe(swing('instinct', 'foeX3Ice').variant);
   });
 
   it('a hidden 2P pick does not give the attack away by its sound', () => {
     expect(soundsFor('ATTACK_SELECTED', {})[0].id).toBe(soundsFor('ATTACK_SELECTED', { player: 1 })[0].id);
-    expect(soundsFor('ATTACK_SELECTED', { slot: 'circle' })[0].id).not.toBe(soundsFor('ATTACK_SELECTED', { slot: 'cross' })[0].id);
+    expect(soundsFor('ATTACK_SELECTED', { action: 'fury' })[0].id).not.toBe(soundsFor('ATTACK_SELECTED', { action: 'instinct' })[0].id);
   });
 
   it('docs/audio.md lists every sound and every music track', () => {

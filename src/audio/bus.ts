@@ -3,8 +3,9 @@
  * Cues describe what the player should notice; sound (audio/director.ts) and visual effects subscribe
  * to them. Nothing here reaches back into the rules.
  */
-import type { AttackSlot, CrossEffect } from '../engine/cards/types';
+import type { CrossEffect } from '../engine/cards/types';
 import type { PlayerId } from '../engine/game/types';
+import type { ActionKind } from '../ui/vocab/actions';
 
 export const CUE_NAMES = [
   // interface
@@ -66,9 +67,9 @@ export type CueName = (typeof CUE_NAMES)[number];
 /** Everything a cue may carry. All optional: listeners use what they understand. */
 export interface CueData {
   player?: PlayerId;
-  /** Attack identity ◯ △ ✕. */
-  slot?: AttackSlot;
-  /** ✕ special effect (or the ability that fired). */
+  /** Attack identity: Furia, Técnica, Instinto. */
+  action?: ActionKind;
+  /** Instinto special effect (or the ability that fired). */
   effect?: CrossEffect;
   damage?: number;
   /** The hit leaves the defender at 0 HP. */

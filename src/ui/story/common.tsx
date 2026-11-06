@@ -4,7 +4,7 @@ import { storySegments, type Segment } from '../../story/present';
 const COLOR: Record<number, string> = {
   2: 'var(--color-fire)',
   4: 'var(--color-nature)',
-  5: 'var(--color-ice)',
+  5: 'var(--color-brass)',
   6: 'var(--color-rare)',
   8: 'var(--color-darkness)',
 };

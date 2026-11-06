@@ -20,6 +20,8 @@ import { AttackList, HandRow } from './Hands';
 import { CardPopup, EffectCard, EndBanner, LogDrawer, PhaseBanner } from './Overlays';
 import { usePlayback, type Playback } from './Playback';
 import { GameStage } from './Stage';
+import { actionOf, slotOf, type ActionKind } from '../vocab/actions';
+import { TERMS } from '../vocab/terms';
 import { boardNames, seatNames } from './util';
 import { DpSlot, Piles, RoundCrests } from './Zones';
 
@@ -43,7 +45,7 @@ function Choice({ active, onClick, children }: { active: boolean; onClick: () =>
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`cut px-4 py-2 font-display text-[16px] font-bold italic transition-colors [--c:8px] ${active ? 'bg-cyan text-abyss' : 'bg-deep text-haze hover:text-ink'}`}
+      className={`cut px-4 py-2 font-display text-[16px] font-bold transition-colors [--c:8px] ${active ? 'bg-brass text-soot' : 'bg-leather text-faded hover:text-bone'}`}
     >
       {children}
     </button>
@@ -80,13 +82,13 @@ function DeckSetup() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-8">
       <div>
-        <h2 className="font-display text-[56px] leading-none font-black italic">Partida libre</h2>
-        <p className="mt-3 max-w-[62ch] text-haze">Mazos originales del juego. El rival juega con la IA original de la CPU, portada del código del juego, y con la personalidad que trae su mazo.</p>
+        <h2 className="font-display text-[56px] leading-none font-black ">Partida libre</h2>
+        <p className="mt-3 max-w-[62ch] text-faded">Mazos originales del juego. El rival juega con la IA original de la CPU, portada del código del juego, y con la personalidad que trae su mazo.</p>
       </div>
 
       <section className="frame side-player" style={{ '--c': '18px' } as CSSProperties}>
         <div className="fill flex flex-col gap-4 p-5">
-          <h3 className="relative z-[1] font-display text-[24px] font-extrabold italic">Tu mazo</h3>
+          <h3 className="relative z-[1] font-display text-[24px] font-extrabold ">Tu mazo</h3>
           <div className="relative z-[1] grid gap-3 sm:grid-cols-3">
             {starterDecks.map((d, i) => {
               const partner = cards.find((c) => c.name === STARTER_PARTNER[d.name]);
@@ -101,13 +103,13 @@ function DeckSetup() {
                     setMine(i);
                     setCustom(null);
                   }}
-                  className={`cut flex items-center gap-3 p-3 text-left transition-colors [--c:12px] ${active ? 'bg-electric/35 shadow-[inset_0_0_0_2px_var(--color-cyan)]' : 'bg-abyss/60 hover:bg-deep'}`}
+                  className={`cut flex items-center gap-3 p-3 text-left transition-colors [--c:12px] ${active ? 'bg-steel/35 shadow-[inset_0_0_0_2px_var(--color-brass)]' : 'bg-soot/60 hover:bg-leather'}`}
                 >
-                  {partner && <CardArt card={partner} className="size-16 shrink-0 bg-abyss" />}
+                  {partner && <CardArt card={partner} className="size-16 shrink-0 bg-soot" />}
                   <span>
-                    <span className="block font-display text-[20px] font-bold italic">{STARTER_LABEL[d.name] ?? d.name}</span>
-                    <span className="block text-sm text-haze">
-                      {sum.digimon} Digimon, {sum.options} Option, {sum.digivolve} Digivolve
+                    <span className="block font-display text-[20px] font-bold ">{STARTER_LABEL[d.name] ?? d.name}</span>
+                    <span className="block text-sm text-faded">
+                      {sum.digimon} {TERMS.creatures.toLowerCase()}, {sum.options} de apoyo, {sum.digivolve} de evolución
                     </span>
                   </span>
                 </button>
@@ -123,16 +125,16 @@ function DeckSetup() {
               ))}
             </div>
           )}
-          <span className="relative z-[1] text-sm text-haze">Tus mazos guardados (pestaña Mazos) aparecen aquí cuando están completos.</span>
+          <span className="relative z-[1] text-sm text-faded">Tus mazos guardados (pestaña Mazos) aparecen aquí cuando están completos.</span>
         </div>
       </section>
 
       <section className="frame side-rival" style={{ '--c': '18px' } as CSSProperties}>
         <label className="fill flex flex-col gap-3 p-5">
-          <span className="relative z-[1] font-display text-[24px] font-extrabold italic">Rival</span>
+          <span className="relative z-[1] font-display text-[24px] font-extrabold ">Rival</span>
           <div className="relative z-[1] flex items-center gap-3">
-            {ownerCard && <CardArt card={ownerCard} className="size-16 shrink-0 bg-abyss" />}
-            <select value={opp} onChange={(e) => setOpp(Number(e.target.value))} className="min-w-0 flex-1 bg-abyss px-3 py-2.5 font-display text-[18px] shadow-[inset_0_0_0_1px_rgb(255_199_154/0.5)]">
+            {ownerCard && <CardArt card={ownerCard} className="size-16 shrink-0 bg-soot" />}
+            <select value={opp} onChange={(e) => setOpp(Number(e.target.value))} className="min-w-0 flex-1 bg-soot px-3 py-2.5 font-display text-[18px] shadow-[inset_0_0_0_1px_rgb(255_199_154/0.5)]">
               {opponentDecks.map((d, i) => (
                 <option key={d.index} value={i}>
                   {d.owner}: {d.name}
@@ -140,17 +142,17 @@ function DeckSetup() {
               ))}
             </select>
           </div>
-          <span className="relative z-[1] text-sm text-haze">
-            {so.digimon} Digimon, {so.options} Option, {so.digivolve} Digivolve. Niveles: {so.levels.map(([l, n]) => `${n} ${l}`).join(', ')}.
+          <span className="relative z-[1] text-sm text-faded">
+            {so.digimon} {TERMS.creatures.toLowerCase()}, {so.options} de apoyo, {so.digivolve} de evolución. Niveles: {so.levels.map(([l, n]) => `${n} ${TERMS.levels[l]}`).join(', ')}.
           </span>
-          <span className="relative z-[1] text-sm text-haze">
-            Personalidad de la CPU: entrada y DP {their.ai[0]}, ataque {their.ai[1]}, cambio de mano {their.ai[2]}, soporte {their.ai[3]} (2 es al azar).
+          <span className="relative z-[1] text-sm text-faded">
+            Personalidad de la CPU: entrada y {TERMS.dp} {their.ai[0]}, ataque {their.ai[1]}, cambio de mano {their.ai[2]}, soporte {their.ai[3]} (2 es al azar).
           </span>
         </label>
       </section>
 
       <div className="flex flex-wrap items-center gap-4">
-        <span className="font-display text-[20px] font-bold italic">Quién empieza</span>
+        <span className="font-display text-[20px] font-bold ">Quién empieza</span>
         {(
           [
             ['random', 'Al azar'],
@@ -177,7 +179,7 @@ function GameOver({ game }: { game: GameState }) {
     <EndBanner
       tone={won ? 'win' : 'lose'}
       title={won ? '¡Victoria!' : 'Derrota'}
-      subtitle={game.endReason === 'rounds' ? `Rondas: tú ${game.players[0].rounds}, la CPU ${game.players[1].rounds}` : 'Un jugador se quedó sin Digimon que sacar'}
+      subtitle={game.endReason === 'rounds' ? `Rondas: tú ${game.players[0].rounds}, la CPU ${game.players[1].rounds}` : `Un jugador se quedó sin ${TERMS.creatures.toLowerCase()} que sacar`}
     >
       <button type="button" onClick={() => sessionStore.getState().reset()} data-primary className="cmd !px-8 !text-[22px]">
         <span>Nueva partida</span>
@@ -194,18 +196,19 @@ function AttackTab({ first }: { first: boolean }) {
       initial={false}
       animate={{ opacity: 1 }}
       style={{
-        background: first ? 'linear-gradient(180deg, #fff1b8, #ffc934 40%, #c98a00)' : 'linear-gradient(180deg, #2a3f75, #142552)',
-        clipPath: 'polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 10px)',
+        background: first ? 'var(--grain), linear-gradient(180deg, #f3d58d, #d5a34e 50%, #a97a32)' : 'var(--grain), linear-gradient(180deg, #3a2c20, #221a14)',
+        borderRadius: '8px 0 0 8px',
+        boxShadow: first ? 'inset 0 0 0 1px #6b4a1f' : 'inset 0 0 0 1px #6f5638',
       }}
     >
       <motion.span
         key={String(first)}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="font-display text-[18px] font-black italic [writing-mode:vertical-rl]"
-        style={{ color: first ? '#3a2600' : '#8eaedf' }}
+        className="font-display text-[18px] font-black [writing-mode:vertical-rl]"
+        style={{ color: first ? '#2b1d12' : '#b9a47f' }}
       >
-        {first ? '1.er ataque' : '2.º ataque'}
+        {first ? TERMS.firstAttack : TERMS.secondAttack}
       </motion.span>
     </motion.div>
   );
@@ -250,7 +253,7 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
     if (name === 'CLASH_START') setClash((c) => c + 1);
     if (reduceFx || reduceMotion || !scope.current) return;
     const amp =
-      name === 'CLASH_START' ? 4 : name === 'MONSTER_DEFEATED' ? 6 : name === 'EVOLUTION_BURST' ? 8 : d.lethal ? 13 : d.slot === 'circle' ? (d.heavy ? 11 : 8) : d.slot === 'cross' ? 5 : 3;
+      name === 'CLASH_START' ? 4 : name === 'MONSTER_DEFEATED' ? 6 : name === 'EVOLUTION_BURST' ? 8 : d.lethal ? 13 : d.action === 'fury' ? (d.heavy ? 11 : 8) : d.action === 'instinct' ? 5 : 3;
     void animateBoard(scope.current, { x: [0, -amp, amp * 0.8, -amp * 0.5, amp * 0.25, 0], y: [0, amp * 0.45, -amp * 0.3, amp * 0.15, 0, 0] }, { duration: 0.36, ease: 'easeOut' });
   });
 
@@ -259,12 +262,13 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
     if (playback || deciding) {
       const view = playback ? playback.views[p] : activeView(board, p);
       const own = board.players[p].attack;
-      const revealed: AttackSlot | null = playback ? (playback.attacks?.[p] ?? null) : !twoPlayer && p === 0 ? own : null;
+      const slot: AttackSlot | null = playback ? (playback.attacks?.[p] ?? null) : !twoPlayer && p === 0 ? own : null;
+      const revealed = slot ? actionOf(slot) : null;
       const canPick = mine && actions.some((a) => a.type === 'chooseAttack');
-      const pick = (slot: AttackSlot) => {
+      const pick = (action: ActionKind) => {
         // in 2P the other player is watching: the confirmation must not tell which attack it was
-        gameEvents.emit('ATTACK_SELECTED', { player: p, slot: twoPlayer ? undefined : slot });
-        act(actions.find((a) => a.type === 'chooseAttack' && a.slot === slot)!);
+        gameEvents.emit('ATTACK_SELECTED', { player: p, action: twoPlayer ? undefined : action });
+        act(actions.find((a) => a.type === 'chooseAttack' && a.slot === slotOf(action))!);
       };
       return (
         <AttackList
@@ -287,10 +291,10 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
   const frame = (p: PlayerId) => {
     const header = (
       <div className={`relative z-[1] flex h-[30px] shrink-0 items-center gap-4 px-5 ${p === 1 ? 'pt-1' : 'pb-1'}`}>
-        <span className="plate h-[24px] text-[17px] font-extrabold italic">
+        <span className="plate h-[24px] text-[17px] font-extrabold ">
           <span className="font-display">{labels[p]}</span>
         </span>
-        {deckNames && <span className="font-display text-[16px] font-semibold text-ink/70 italic">{deckNames[p]}</span>}
+        {deckNames && <span className="font-display text-[16px] font-semibold text-bone/70 ">{deckNames[p]}</span>}
         <RoundCrests rounds={playback ? playback.rounds[p] : board.players[p].rounds} label={`Rondas de ${labels[p]}`} />
         <span className="flex-1" />
       </div>
@@ -312,9 +316,9 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
     );
   };
 
-  const chosenOnBoard = (p: PlayerId): AttackSlot | null => {
-    if (playback) return playback.attacks?.[p] ?? null;
-    return !twoPlayer && p === 0 ? board.players[0].attack : null;
+  const chosenOnBoard = (p: PlayerId): ActionKind | null => {
+    const slot = playback ? (playback.attacks?.[p] ?? null) : !twoPlayer && p === 0 ? board.players[0].attack : null;
+    return slot ? actionOf(slot) : null;
   };
 
   return (
@@ -334,35 +338,38 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
                   chosen={chosenOnBoard(p)}
                   hiddenChoice={!playback && board.players[p].attack !== null && chosenOnBoard(p) === null}
                   fx={playback?.fx[p]}
-                  emptyText={!busy && p === seats.me && board.phase.name === 'entrance' ? 'Elige un Digimon de tu mano' : 'Battle Slot vacío'}
+                  emptyText={!busy && p === seats.me && board.phase.name === 'entrance' ? `Elige una ${TERMS.creature.toLowerCase()} de tu mano` : `${TERMS.arena} vacía`}
                   onInspect={setInspect}
                 />
               </div>
             ))}
             <div className="col-start-2 row-start-1 flex flex-col items-center justify-center gap-2">
-              <div className="h-[60px] w-[2px] bg-gradient-to-b from-transparent to-cyan/80" />
+              <div className="h-[56px] w-[3px] rounded-full bg-gradient-to-b from-transparent to-brass/70" />
+              {/* bronze medallion between the two creatures */}
               <motion.span
                 key={clash}
-                className="grid size-[74px] rotate-45 place-items-center"
-                style={{ background: 'linear-gradient(135deg, #2f7dff, #061340 60%)' }}
+                className="grid size-[84px] place-items-center rounded-full"
+                style={{ background: 'var(--grain), radial-gradient(circle at 40% 32%, #f3d58d, #b9853d 45%, #5e3f1c 100%)' }}
                 initial={false}
                 animate={
                   clash
-                    ? { scale: [1, 1.4, 1], boxShadow: ['0 0 0 2px #9fd0ff, 0 0 30px rgb(72 228 255 / 0.55)', '0 0 0 3px #fff, 0 0 70px rgb(255 255 255 / 0.95)', '0 0 0 2px #9fd0ff, 0 0 30px rgb(72 228 255 / 0.55)'] }
-                    : { boxShadow: '0 0 0 2px #9fd0ff, 0 0 30px rgb(72 228 255 / 0.55)' }
+                    ? { scale: [1, 1.3, 1], boxShadow: ['0 0 0 3px #2b1d12, 0 0 0 6px #6f5638, 0 6px 16px rgb(0 0 0 / 0.6)', '0 0 0 3px #2b1d12, 0 0 0 6px #e8bf5d, 0 0 50px rgb(255 230 170 / 0.9)', '0 0 0 3px #2b1d12, 0 0 0 6px #6f5638, 0 6px 16px rgb(0 0 0 / 0.6)'] }
+                    : { boxShadow: '0 0 0 3px #2b1d12, 0 0 0 6px #6f5638, 0 6px 16px rgb(0 0 0 / 0.6)' }
                 }
                 transition={{ duration: 0.5, ease: 'easeOut' }}
               >
-                <span className="-rotate-45 font-display text-[34px] font-black text-white italic">VS</span>
+                <span className="grid size-[64px] place-items-center rounded-full font-display text-[34px] font-black text-ink shadow-[inset_0_0_0_2px_rgb(43_29_18/0.55)]" style={{ textShadow: '0 1px 0 rgb(255 240 200 / 0.6)' }}>
+                  VS
+                </span>
               </motion.span>
-              <div className="h-[60px] w-[2px] bg-gradient-to-t from-transparent to-cyan/80" />
+              <div className="h-[56px] w-[3px] rounded-full bg-gradient-to-t from-transparent to-brass/70" />
             </div>
             {clash > 0 && !reduceFx && (
               <motion.div
                 key={`flash${clash}`}
                 aria-hidden
                 className="fx-intense pointer-events-none absolute inset-x-0 top-1/2 z-10 h-[3px] -translate-y-1/2"
-                style={{ background: 'linear-gradient(90deg, transparent, #fff 35%, var(--color-cyan) 50%, #fff 65%, transparent)', boxShadow: '0 0 24px var(--color-cyan)' }}
+                style={{ background: 'linear-gradient(90deg, transparent, #fff1cf 35%, var(--color-gold) 50%, #fff1cf 65%, transparent)', boxShadow: '0 0 20px rgb(232 191 93 / 0.8)' }}
                 initial={{ scaleX: 0, opacity: 1 }}
                 animate={{ scaleX: 1, opacity: 0 }}
                 transition={{ duration: 0.55, ease: 'easeOut' }}
@@ -376,7 +383,7 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
         </div>
 
         {error && (
-          <p role="alert" className="absolute bottom-[86px] left-1/2 z-30 -translate-x-1/2 bg-abyss px-4 py-2 text-[15px] shadow-[inset_0_0_0_2px_var(--color-conflict)]">
+          <p role="alert" className="absolute bottom-[86px] left-1/2 z-30 -translate-x-1/2 bg-soot px-4 py-2 text-[15px] shadow-[inset_0_0_0_2px_var(--color-conflict)]">
             {error}
           </p>
         )}

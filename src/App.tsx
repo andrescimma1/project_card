@@ -7,6 +7,8 @@ import { PlayScreen } from './ui/play/PlayScreen';
 import { DeckBuilder } from './ui/decks/DeckBuilder';
 import { StoryScreen } from './ui/story/StoryScreen';
 import { AudioButton } from './ui/AudioPanel';
+import { BackSigil } from './ui/play/glyphs';
+import { TERMS } from './ui/vocab/terms';
 
 const TABS: { id: View; label: string }[] = [
   { id: 'story', label: 'Historia' },
@@ -25,10 +27,13 @@ export default function App() {
   return (
     <div className="app-bg flex h-full flex-col overflow-hidden">
       <AudioDirector />
-      <header className="relative z-30 flex h-11 shrink-0 items-center gap-8 bg-void/85 px-5 whitespace-nowrap shadow-[0_1px_0_rgb(72_228_255/0.25),0_6px_20px_rgb(0_0_0/0.4)]">
-        <span className="hidden shrink-0 items-baseline gap-2 md:flex" title="Reglas, cartas, mazos, arte e IA leídos del disco original (SLUS-01328)">
-          <span className="font-display text-[21px] font-black tracking-tight italic">Digital Card Battle</span>
-          <span className="font-display text-[14px] font-semibold text-cyan italic">remake</span>
+      <header
+        className="relative z-30 flex h-11 shrink-0 items-center gap-8 px-5 whitespace-nowrap shadow-[0_2px_0_#6f5638,0_3px_0_#140e09,0_8px_20px_rgb(0_0_0/0.45)]"
+        style={{ background: 'var(--grain), linear-gradient(180deg, #2c2118, #1b140f)' }}
+      >
+        <span className="hidden shrink-0 items-center gap-2 md:flex" title="Motor de reglas, cartas e IA basados en el juego original (SLUS-01328)">
+          <BackSigil className="size-[22px] text-brass" />
+          <span className="font-display text-[22px] font-black tracking-wide text-bone">{TERMS.game}</span>
         </span>
         <nav className="thin-scroll flex h-full min-w-0 flex-1 items-stretch gap-1 overflow-x-auto" aria-label="Secciones">
           {TABS.map((t) => (
@@ -38,10 +43,10 @@ export default function App() {
               data-sfx="tab"
               onClick={() => setView(t.id)}
               aria-current={view === t.id ? 'page' : undefined}
-              className={`relative px-3 font-display text-[15px] font-semibold italic transition-colors ${view === t.id ? 'text-ink' : 'text-haze/70 hover:text-ink'}`}
+              className={`relative px-3 font-display text-[16px] font-semibold transition-colors ${view === t.id ? 'text-bone' : 'text-faded/70 hover:text-bone'}`}
             >
               {t.label}
-              {view === t.id && <span className="absolute inset-x-2 bottom-0 h-[3px] bg-cyan shadow-[0_0_10px_var(--color-cyan)]" />}
+              {view === t.id && <span className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-gold" />}
             </button>
           ))}
         </nav>

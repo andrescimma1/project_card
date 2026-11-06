@@ -112,9 +112,9 @@ describe('battleStepCues (battle replay)', () => {
   it('a hit swings with the attack identity and lands on the defender a moment later', () => {
     const hit: GameEvent = { type: 'hit', attacker: 0, defender: 1, attackerCard: 0, defenderCard: 0, damage: 300, eaten: 0, hp: [500, 100], slot: 'circle' };
     const cues = battleStepCues(hit, ctx());
-    expect(cues[0]).toMatchObject({ name: 'ATTACK_RESOLVED', data: { player: 0, slot: 'circle' } });
+    expect(cues[0]).toMatchObject({ name: 'ATTACK_RESOLVED', data: { player: 0, action: 'fury' } });
     const land = cues.find((c) => c.name === 'HIT_TAKEN')!;
-    expect(land.data).toMatchObject({ player: 1, slot: 'circle', damage: 300, lethal: false });
+    expect(land.data).toMatchObject({ player: 1, action: 'fury', damage: 300, lethal: false });
     expect(land.delay!).toBeGreaterThan(0);
     const ko = battleStepCues({ ...hit, damage: 400, hp: [500, 0] }, ctx());
     expect(ko.find((c) => c.name === 'HIT_TAKEN')!.data?.lethal).toBe(true);
@@ -127,14 +127,14 @@ describe('battleStepCues (battle replay)', () => {
     expect(names(eat)).toContain('HP_RECOVERED');
   });
 
-  it('a ✕ Counter that matches the rival attack sounds as a counterattack', () => {
+  it('an Instinto counter that matches the rival attack sounds as a counterattack', () => {
     const counter = cards.find((c): c is DigimonCard => c.kind === 'digimon' && c.crossEffect === 'counterCircle')!;
     const cues = battleStepCues(
       { type: 'hit', attacker: 1, defender: 0, attackerCard: 0, defenderCard: 0, damage: 300, eaten: 0, hp: [200, 400], slot: 'cross' },
       ctx({ fighters: [agumon, counter], attacks: ['circle', 'cross'] }),
     );
     expect(names(cues)).toContain('COUNTER');
-    expect(cues[0].data).toMatchObject({ slot: 'cross', effect: 'counterCircle' });
+    expect(cues[0].data).toMatchObject({ action: 'instinct', effect: 'counterCircle' });
   });
 
   it('a support card flips, activates, and its outcome is heard', () => {

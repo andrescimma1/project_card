@@ -33,12 +33,12 @@ export function DocsView() {
             type="button"
             onClick={() => setDoc(d.id)}
             aria-current={d.id === doc.id ? 'page' : undefined}
-            className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${d.id === doc.id ? 'bg-panel text-ink' : 'text-haze hover:text-ink'}`}
+            className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${d.id === doc.id ? 'bg-hide text-bone' : 'text-faded hover:text-bone'}`}
           >
             {d.title}
           </button>
         ))}
-        <ul className="mt-6 flex flex-col gap-2 border-t border-grid pt-4 text-sm">
+        <ul className="mt-6 flex flex-col gap-2 border-t border-seam pt-4 text-sm">
           {LEGEND.map((l) => (
             <li key={l.mark} className="flex items-center gap-2">
               <span aria-hidden>{l.mark}</span>
@@ -56,7 +56,7 @@ export function DocsView() {
               const target = docs.find((d) => href.endsWith(d.file));
               if (target)
                 return (
-                  <button type="button" className="text-ice underline underline-offset-4" onClick={() => setDoc(target.id)}>
+                  <button type="button" className="text-brass underline underline-offset-4" onClick={() => setDoc(target.id)}>
                     {children}
                   </button>
                 );

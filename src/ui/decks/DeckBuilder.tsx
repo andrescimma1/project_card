@@ -5,6 +5,7 @@ import { addCard, DECK_SIZE, deckStats } from '../../game/deckbook';
 import { useDecks } from '../../game/deckStore';
 import { CardArt } from '../play/CardFace';
 import { DeckEditor } from './DeckEditor';
+import { TERMS } from '../vocab/terms';
 
 function DeckList() {
   const { decks, edit, create, remove } = useDecks();
@@ -12,9 +13,9 @@ function DeckList() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 py-4">
       <div>
-        <h2 className="font-display text-5xl font-black italic">Tus mazos</h2>
-        <p className="mt-2 max-w-[62ch] text-haze">
-          Arma mazos con las reglas originales: 30 cartas, hasta 4 copias de cada una y al menos un Digimon. Todavía no hay progresión, así que las 301 cartas están
+        <h2 className="font-display text-5xl font-black ">Tus mazos</h2>
+        <p className="mt-2 max-w-[62ch] text-faded">
+          Arma mazos con las reglas originales: 30 cartas, hasta 4 copias de cada una y al menos una criatura. Todavía no hay progresión, así que las 301 cartas están
           disponibles. Los mazos se guardan en este navegador.
         </p>
       </div>
@@ -23,9 +24,9 @@ function DeckList() {
           <span>Crear mazo vacío</span>
         </button>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-haze">O empezar desde un mazo original</span>
+          <span className="text-sm text-faded">O empezar desde un mazo original</span>
           <div className="flex gap-2">
-            <select value={source} onChange={(e) => setSource(Number(e.target.value))} className="max-w-[18rem] cut [--c:6px] border border-grid bg-deep px-3 py-2">
+            <select value={source} onChange={(e) => setSource(Number(e.target.value))} className="max-w-[18rem] cut [--c:6px] border border-seam bg-leather px-3 py-2">
               {originalDecks.map((d) => (
                 <option key={d.index} value={d.index}>
                   {d.owner}: {d.name}
@@ -46,25 +47,25 @@ function DeckList() {
         </label>
       </div>
       {decks.length === 0 ? (
-        <p className="cut [--c:10px] border border-dashed border-grid p-6 text-haze">Todavía no guardaste ningún mazo.</p>
+        <p className="cut [--c:10px] border border-dashed border-seam p-6 text-faded">Todavía no guardaste ningún mazo.</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {decks.map((d) => {
             const s = deckStats(d);
             const lead = d.cards.map((id) => cards[id]).find((c) => c.kind === 'digimon');
             return (
-              <li key={d.id} className="flex items-center gap-3 cut [--c:16px] border border-grid bg-deep/60 p-3">
-                {lead && <CardArt card={lead} className="size-14 shrink-0 cut [--c:10px] bg-abyss" />}
+              <li key={d.id} className="flex items-center gap-3 cut [--c:16px] border border-seam bg-leather/60 p-3">
+                {lead && <CardArt card={lead} className="size-14 shrink-0 cut [--c:10px] bg-soot" />}
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-display font-semibold">{d.name}</div>
-                  <div className="text-xs text-haze">
-                    {s.total}/{DECK_SIZE} cartas, {s.digimon} Digimon. {s.errors.length === 0 ? 'Listo para jugar.' : 'Incompleto.'}
+                  <div className="text-xs text-faded">
+                    {s.total}/{DECK_SIZE} cartas, {s.digimon} {TERMS.creatures.toLowerCase()}. {s.errors.length === 0 ? 'Listo para jugar.' : 'Incompleto.'}
                   </div>
                 </div>
                 <button type="button" onClick={() => edit(d)} className="cmd">
                   <span>Editar</span>
                 </button>
-                <button type="button" onClick={() => confirm(`¿Borrar el mazo "${d.name}"?`) && remove(d.id)} className="text-sm text-haze underline underline-offset-4 hover:text-ink">
+                <button type="button" onClick={() => confirm(`¿Borrar el mazo "${d.name}"?`) && remove(d.id)} className="text-sm text-faded underline underline-offset-4 hover:text-bone">
                   Borrar
                 </button>
               </li>

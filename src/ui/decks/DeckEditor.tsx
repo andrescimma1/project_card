@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { gameEvents } from '../../audio/bus';
+import { TERMS } from '../vocab/terms';
 import { cards } from '../../engine/cards/db';
 import type { Card, Level, Specialty } from '../../engine/cards/types';
 import { DECK_SIZE, deckStats } from '../../game/deckbook';
@@ -10,7 +11,7 @@ import { SPECIALTY_COLOR, SPECIALTY_NAME, frameColor } from '../theme';
 
 const SPECIALTIES: Specialty[] = ['fire', 'ice', 'nature', 'darkness', 'rare'];
 const LEVELS: Level[] = ['R', 'C', 'U', 'A'];
-const KIND_LABEL = { digimon: 'Digimon', option: 'Option', digivolve: 'Digivolve' } as const;
+const KIND_LABEL = { digimon: TERMS.creatures, option: TERMS.supportShort, digivolve: TERMS.evolution } as const;
 
 export function Chip({ on, onClick, children, color }: { on: boolean; onClick: () => void; children: React.ReactNode; color?: string }) {
   return (
@@ -19,7 +20,7 @@ export function Chip({ on, onClick, children, color }: { on: boolean; onClick: (
       aria-pressed={on}
       onClick={onClick}
       className="rounded-full border px-2.5 py-1 text-sm"
-      style={{ borderColor: on ? (color ?? 'var(--color-ink)') : 'var(--color-grid)', background: on ? (color ?? 'var(--color-ink)') : 'transparent', color: on ? 'var(--color-abyss)' : undefined }}
+      style={{ borderColor: on ? (color ?? 'var(--color-bone)') : 'var(--color-seam)', background: on ? (color ?? 'var(--color-bone)') : 'transparent', color: on ? 'var(--color-soot)' : undefined }}
     >
       {children}
     </button>
@@ -91,8 +92,8 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
       <section aria-label="Cartas disponibles" className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-haze">Buscar</span>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-grid bg-deep px-3 py-2" />
+            <span className="text-sm text-faded">Buscar</span>
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-seam bg-leather px-3 py-2" />
           </label>
           <div className="flex flex-wrap gap-1.5">
             {(['all', 'digimon', 'option', 'digivolve'] as const).map((k) => (
@@ -114,7 +115,7 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
             ))}
           </div>
         </div>
-        {pool.length === 0 && <p className="cut [--c:10px] border border-dashed border-grid p-6 text-haze">Ninguna carta coincide con los filtros.</p>}
+        {pool.length === 0 && <p className="cut [--c:10px] border border-dashed border-seam p-6 text-faded">Ninguna carta coincide con los filtros.</p>}
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-3">
           {pool.map((c) => {
             const n = ids.filter((x) => x === c.id).length;
@@ -132,13 +133,13 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
                 >
                   <CardFace card={c} size="sm" glow={n > 0} />
                 </button>
-                {n > 0 && <span className="absolute -top-2 -left-2 grid size-7 place-items-center rounded-full bg-ink font-display text-sm font-bold text-abyss">{n}</span>}
-                {have !== undefined && <span className="absolute right-1 bottom-1 rounded-md bg-abyss/85 px-1.5 text-xs tabular-nums text-haze">×{have}</span>}
+                {n > 0 && <span className="absolute -top-2 -left-2 grid size-7 place-items-center rounded-full bg-bone font-display text-sm font-bold text-soot">{n}</span>}
+                {have !== undefined && <span className="absolute right-1 bottom-1 rounded-md bg-soot/85 px-1.5 text-xs tabular-nums text-faded">×{have}</span>}
                 <button
                   type="button"
                   onClick={() => setInspect(c)}
                   aria-label={`Ver detalle de ${c.name}`}
-                  className="absolute top-5 right-1 grid size-6 place-items-center rounded-full border border-grid bg-abyss/85 text-[11px] text-haze hover:text-ink"
+                  className="absolute top-5 right-1 grid size-6 place-items-center rounded-full border border-seam bg-soot/85 text-[11px] text-faded hover:text-bone"
                 >
                   i
                 </button>
@@ -154,22 +155,22 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
           maxLength={nameMaxLength}
           onChange={(e) => onChange(e.target.value, ids)}
           aria-label="Nombre del mazo"
-          className="cut [--c:6px] border border-grid bg-deep px-3 py-2 font-display text-xl font-bold italic"
+          className="cut [--c:6px] border border-seam bg-leather px-3 py-2 font-display text-xl font-bold "
         />
         <div>
           <div className="flex items-baseline justify-between">
-            <span className="text-sm text-haze">Cartas</span>
+            <span className="text-sm text-faded">Cartas</span>
             <span className="font-display text-2xl font-bold tabular-nums">
               {stats.total}
-              <span className="text-sm font-normal text-haze"> / {DECK_SIZE}</span>
+              <span className="text-sm font-normal text-faded"> / {DECK_SIZE}</span>
             </span>
           </div>
-          <div className="mt-1 h-2 overflow-hidden rounded-full bg-abyss">
-            <motion.div className="h-full rounded-full" animate={{ width: `${(stats.total / DECK_SIZE) * 100}%` }} style={{ background: stats.total === DECK_SIZE ? 'var(--color-verified)' : 'var(--color-ice)' }} />
+          <div className="mt-1 h-2 overflow-hidden rounded-full bg-soot">
+            <motion.div className="h-full rounded-full" animate={{ width: `${(stats.total / DECK_SIZE) * 100}%` }} style={{ background: stats.total === DECK_SIZE ? 'var(--color-verified)' : 'var(--color-brass)' }} />
           </div>
         </div>
-        <p className="text-sm text-haze">
-          {stats.digimon} Digimon ({LEVELS.map((l) => `${stats.levels[l]} ${l}`).join(', ')}), {stats.option} Option, {stats.digivolve} Digivolve.
+        <p className="text-sm text-faded">
+          {stats.digimon} {TERMS.creatures.toLowerCase()} ({LEVELS.map((l) => `${stats.levels[l]} ${TERMS.levels[l]}`).join(', ')}), {stats.option} de apoyo, {stats.digivolve} de evolución.
         </p>
         <div className="flex h-2 overflow-hidden rounded-full" aria-label="Reparto por especialidad">
           {SPECIALTIES.map((s) => (
@@ -190,16 +191,16 @@ export function DeckEditor({ name, cards: ids, onChange, canAdd, offered, owned,
         )}
         <ul className="flex flex-col gap-1">
           {grouped.map(({ card, n }) => (
-            <li key={card.id} className="flex items-center gap-2 cut [--c:6px] bg-deep/70 py-1 pr-1 pl-1">
+            <li key={card.id} className="flex items-center gap-2 cut [--c:6px] bg-leather/70 py-1 pr-1 pl-1">
               <CardArt card={card} className="size-8 shrink-0 rounded-md" />
               <span className="min-w-0 flex-1 truncate text-sm" style={{ color: frameColor(card) }}>
                 {card.name}
               </span>
               <span className="font-display text-sm tabular-nums">×{n}</span>
-              <button type="button" data-sfx="none" onClick={() => remove(card.id)} aria-label={`Quitar una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-grid hover:bg-panel">
+              <button type="button" data-sfx="none" onClick={() => remove(card.id)} aria-label={`Quitar una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-seam hover:bg-hide">
                 −
               </button>
-              <button type="button" onClick={() => add(card.id)} aria-label={`Añadir una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-grid hover:bg-panel">
+              <button type="button" onClick={() => add(card.id)} aria-label={`Añadir una copia de ${card.name}`} className="grid size-7 place-items-center rounded-md border border-seam hover:bg-hide">
                 +
               </button>
             </li>
