@@ -65,7 +65,7 @@ export function CardBrowser() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[15rem_1fr]">
-      <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start" aria-label="Filtros">
+      <aside className="flex flex-col gap-5 lg:sticky lg:top-0 lg:self-start" aria-label="Filtros">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm text-haze">Buscar nombre, ataque o efecto</span>
           <input
@@ -152,8 +152,8 @@ export function CardBrowser() {
           )}
         </section>
         <div
-          className={`pointer-events-none fixed inset-x-0 top-24 bottom-0 z-30 flex justify-end p-3 xl:pointer-events-auto xl:sticky xl:inset-auto xl:top-24 xl:z-auto xl:block xl:self-start xl:p-0 ${
-            selected ? 'xl:h-[calc(100vh-7rem)]' : 'xl:hidden'
+          className={`pointer-events-none fixed inset-x-0 top-11 bottom-0 z-30 flex justify-end p-3 xl:pointer-events-auto xl:sticky xl:inset-auto xl:top-0 xl:z-auto xl:block xl:self-start xl:p-0 ${
+            selected ? 'xl:h-[calc(100dvh-7rem)]' : 'xl:hidden'
           }`}
         >
           {selected && <CardDetail key={selected.id} card={selected} onClose={() => s.select(null)} />}

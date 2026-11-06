@@ -173,6 +173,8 @@ export function createStoryStore(deps: StoryDeps) {
         seed,
         humanFirst: seed % 2 === 0, // 🟡 who starts a story battle is not traced
         partners: [save.partners.map((p) => p.slot), partnersFromDeck(rival.cards, rival.partnerEgg)],
+        names: [save.name, rival.owner],
+        deckNames: [lent !== null ? `${decks[lent].name} Deck` : (save.decks[save.selectedDeck]?.name ?? ''), `${rival.name} Deck`],
       });
       set({ view: 'battle', battle: { deck, lent }, request: null, error: null });
     };
@@ -297,6 +299,7 @@ export function createStoryStore(deps: StoryDeps) {
           partners: [a.partners.map((p) => p.slot), b.partners.map((p) => p.slot)],
           twoPlayer: true,
           names: [a.name, b.name],
+          deckNames: [a.decks[a.selectedDeck].name, b.decks[b.selectedDeck].name],
         });
         set({ view: 'duel', duel: { slots: [i, j], saves: [a, b], winner: null }, error: null });
         return null;

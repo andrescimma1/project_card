@@ -96,7 +96,7 @@ export interface GameState {
 
 export type SupportSource = 'option' | 'support' | 'cross';
 
-// `hp` fields below are snapshots (player 0, player 1) for the UI; they never feed back into the rules.
+// `hp` and `powers` fields below are snapshots (player 0, player 1) for the UI; they never feed back into the rules.
 
 export type GameEvent =
   | { type: 'turnStart'; player: PlayerId; turnNumber: number }
@@ -111,8 +111,19 @@ export type GameEvent =
   | { type: 'noBattle'; player: PlayerId }
   | { type: 'attackChosen'; player: PlayerId }
   | { type: 'supportChosen'; player: PlayerId; from: 'hand' | 'gamble' | 'none' }
-  | { type: 'reveal'; attacks: [AttackSlot, AttackSlot]; hp: [number, number] }
-  | { type: 'effect'; player: PlayerId; source: SupportSource; card: CardRef; speed: number; voided: boolean; conditionsMet: boolean; hp: [number, number]; attacks: [AttackSlot, AttackSlot] }
+  | { type: 'reveal'; attacks: [AttackSlot, AttackSlot]; hp: [number, number]; powers?: [[number, number, number], [number, number, number]] }
+  | {
+      type: 'effect';
+      player: PlayerId;
+      source: SupportSource;
+      card: CardRef;
+      speed: number;
+      voided: boolean;
+      conditionsMet: boolean;
+      hp: [number, number];
+      attacks: [AttackSlot, AttackSlot];
+      powers?: [[number, number, number], [number, number, number]];
+    }
   | { type: 'attackOrder'; first: PlayerId; second: PlayerId }
   | { type: 'crash'; player: PlayerId; card: CardRef; power: number; hp: [number, number] }
   | { type: 'hit'; attacker: PlayerId; defender: PlayerId; attackerCard: CardRef; defenderCard: CardRef; damage: number; eaten: number; hp: [number, number]; slot: AttackSlot }

@@ -250,6 +250,18 @@ describe('HP snapshots for the UI (no rule impact)', () => {
   });
 });
 
+describe('power snapshots for the UI (no rule impact)', () => {
+  it('reveal carries the ◯ △ ✕ powers before supports; an effect carries them after it', () => {
+    const { state } = buildGame({
+      p0: { stack: ['Goburimon'], attack: 'circle', support: 'Agumon' },
+      p1: { stack: ['SnowGoburimon'], attack: 'circle', support: 'none' },
+    });
+    const { events } = resolveBattle(state);
+    expect(events.find((e) => e.type === 'reveal')).toMatchObject({ powers: [[300, 300, 300], [230, 230, 230]] });
+    expect(events.find((e) => e.type === 'effect')).toMatchObject({ powers: [[600, 300, 300], [230, 230, 230]] });
+  });
+});
+
 describe('attack snapshots for the UI', () => {
   it('an effect that forces attacks reports the attacks after it', () => {
     const { state } = buildGame({

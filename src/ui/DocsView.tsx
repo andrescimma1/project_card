@@ -26,7 +26,7 @@ export function DocsView() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[15rem_1fr]">
-      <nav aria-label="Documentos" className="flex flex-col gap-1 lg:sticky lg:top-24 lg:self-start">
+      <nav aria-label="Documentos" className="flex flex-col gap-1 lg:sticky lg:top-0 lg:self-start">
         {docs.map((d) => (
           <button
             key={d.id}

@@ -8,6 +8,7 @@ import type { GameState } from '../../engine/game/types';
 import { useSession } from '../../game/useSession';
 import { storyStore, useStory } from '../../game/useStory';
 import { BattleBoard } from '../play/PlayScreen';
+import { EndBanner } from '../play/Overlays';
 import { Button, Notice } from './common';
 
 const act = () => storyStore.getState();
@@ -20,7 +21,7 @@ function DuelSetup() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5 py-4">
       <div>
-        <h2 className="font-display text-4xl font-bold">Batalla 2P</h2>
+        <h2 className="font-display text-5xl font-black italic">Batalla 2P</h2>
         <p className="mt-2 max-w-[62ch] text-haze">
           Dos de tus partidas se enfrentan en esta pantalla, cada una con su mazo activo y sus compañeros. No da EXP ni sobres: cuenta para las victorias 2P,
           el título 2P y los récords de cada mazo y carta.
@@ -34,7 +35,7 @@ function DuelSetup() {
             <select
               value={pair[side]}
               onChange={(e) => setPair((p) => (side === 0 ? [Number(e.target.value), p[1]] : [p[0], Number(e.target.value)]))}
-              className="rounded-lg border border-grid bg-deep px-3 py-2"
+              className="cut [--c:6px] border border-grid bg-deep px-3 py-2"
             >
               {used.map((i) => (
                 <option key={i} value={i}>
@@ -60,30 +61,22 @@ function DuelEnd({ game }: { game: GameState }) {
   const winner = game.winner ?? 0;
   const recorded = duel?.winner !== null && duel?.winner !== undefined;
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-abyss/85 p-4 backdrop-blur" role="dialog" aria-modal="true" aria-label="Fin de la batalla 2P">
-      <div className="flex max-w-md flex-col items-center gap-4 rounded-3xl border-2 bg-panel p-8 text-center" style={{ borderColor: 'var(--color-rare)' }}>
-        <h2 className="font-display text-4xl font-bold" style={{ color: 'var(--color-rare)' }}>
-          Gana {names[winner]}
-        </h2>
-        <p className="text-haze">
-          Rondas: {names[0]} {game.players[0].rounds}, {names[1]} {game.players[1].rounds}.
-        </p>
-        {recorded ? (
-          <>
-            <p className="text-sm text-haze">
-              Victorias 2P: {duel!.saves[0].name} {duel!.saves[0].wins2p}, {duel!.saves[1].name} {duel!.saves[1].wins2p}. Guardado en las dos partidas.
-            </p>
-            <Button primary onClick={() => act().closeDuel()}>
-              Terminar
-            </Button>
-          </>
-        ) : (
-          <Button primary onClick={() => act().finishDuel(game, log.map((l) => l.event))}>
-            Guardar el resultado
+    <EndBanner tone="win" title={`Gana ${names[winner]}`} subtitle={`Rondas: ${names[0]} ${game.players[0].rounds}, ${names[1]} ${game.players[1].rounds}`}>
+      {recorded ? (
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-[18px] text-ink/85">
+            Victorias 2P: {duel!.saves[0].name} {duel!.saves[0].wins2p}, {duel!.saves[1].name} {duel!.saves[1].wins2p}. Guardado en las dos partidas.
+          </p>
+          <Button primary onClick={() => act().closeDuel()}>
+            Terminar
           </Button>
-        )}
-      </div>
-    </div>
+        </div>
+      ) : (
+        <Button primary onClick={() => act().finishDuel(game, log.map((l) => l.event))}>
+          Guardar el resultado
+        </Button>
+      )}
+    </EndBanner>
   );
 }
 

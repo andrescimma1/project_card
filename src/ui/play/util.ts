@@ -23,3 +23,8 @@ export function activeRef(game: GameState, player: PlayerId): CardRef | null {
 export function seatNames(twoPlayer: boolean, names: [string, string] | null): [string, string] {
   return twoPlayer ? (names ?? ['Jugador 1', 'Jugador 2']) : ['Tú', 'CPU'];
 }
+
+/** Names printed on the board's frames: the session names if any, else "Jugador" / "CPU". */
+export function boardNames(twoPlayer: boolean, names: [string, string] | null): [string, string] {
+  return names ?? (twoPlayer ? ['Jugador 1', 'Jugador 2'] : ['Jugador', 'CPU']);
+}

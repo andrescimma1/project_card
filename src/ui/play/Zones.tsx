@@ -1,100 +1,97 @@
+import type { CSSProperties } from 'react';
 import { motion } from 'motion/react';
 import type { Card } from '../../engine/cards/types';
-import { playerDp } from '../../engine/game/digivolve';
 import type { GameState, PlayerId } from '../../engine/game/types';
 import { cardsIn, count, top } from '../../engine/game/zones';
-import { DP_CAP } from '../../engine/rules/primitives';
 import { frameColor } from '../theme';
 import { CardArt, CardBack } from './CardFace';
-import { useSession } from '../../game/useSession';
-import { cardAt, seatNames } from './util';
+import { cardAt } from './util';
 
-/** DP as the game computes it: sum of +P of the DP Slot cards, capped at 90. */
-export function DpGauge({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
-  const p = game.players[player];
-  const dp = playerDp(p);
-  const refs = cardsIn(p.dp);
+/** The DP Slot: the cards charged this far, newest first, each with its +P. */
+export function DpSlot({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
+  const refs = cardsIn(game.players[player].dp);
   return (
-    <div className="flex min-w-[10.5rem] flex-1 flex-col gap-1.5 rounded-xl border border-grid bg-deep/70 p-2.5 sm:max-w-sm">
-      <div className="flex items-baseline justify-between">
-        <span className="text-xs text-haze">DP Slot</span>
-        <span className="font-display text-2xl leading-none font-bold tabular-nums">
-          {dp}
-          <span className="text-xs font-normal text-haze"> / {DP_CAP}</span>
-        </span>
-      </div>
-      <div className="grid grid-cols-9 gap-0.5" aria-hidden>
-        {Array.from({ length: 9 }, (_, i) => (
-          <motion.span
-            key={i}
-            className="h-1.5 rounded-sm"
-            initial={false}
-            animate={{ backgroundColor: dp >= (i + 1) * 10 ? 'var(--color-verified)' : 'var(--color-grid)' }}
-          />
-        ))}
-      </div>
-      <ul className="flex min-h-7 flex-wrap gap-1">
-        {refs.map((r) => {
+    <div className="flex w-[196px] shrink-0 flex-col gap-1.5 self-center" aria-label="DP Slot">
+      <span className="font-display text-[15px] font-bold text-gold italic">DP Slot</span>
+      <ul className="grid grid-cols-4 gap-1.5">
+        {Array.from({ length: 8 }, (_, i) => {
+          const r = refs[i];
+          if (r === undefined) return <li key={`e${i}`} className="cut h-[44px] bg-abyss/50 shadow-[inset_0_0_0_1px_rgb(159_208_255/0.12)] [--c:7px]" aria-hidden />;
           const c = cardAt(game, player, r);
           return (
-            <motion.li key={r} layoutId={`card-${player}-${r}`}>
+            <motion.li key={r} layoutId={`card-${player}-${r}`} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
               <button
                 type="button"
                 onClick={() => onInspect(c)}
-                title={`${c.name} (+${c.kind === 'digimon' ? c.dpGiven : 0})`}
-                className="flex items-center gap-1 overflow-hidden rounded-md border bg-abyss pr-1.5 text-[10px] font-semibold tabular-nums"
-                style={{ borderColor: frameColor(c) }}
+                title={`${c.name}: +${c.kind === 'digimon' ? c.dpGiven : 0} DP`}
+                className="cut relative block h-[44px] w-full overflow-hidden [--c:7px]"
+                style={{ boxShadow: `inset 0 0 0 2px ${frameColor(c)}` }}
               >
-                <CardArt card={c} className="size-6" />+{c.kind === 'digimon' ? c.dpGiven : 0}
+                <CardArt card={c} className="h-full w-full" />
+                <span className="num absolute right-0 bottom-0 bg-abyss/85 px-1 text-[12px] font-bold text-gold">+{c.kind === 'digimon' ? c.dpGiven : 0}</span>
               </button>
             </motion.li>
           );
         })}
-        {refs.length === 0 && <li className="text-[11px] text-haze">Sin cartas</li>}
       </ul>
     </div>
   );
 }
 
+/** Rounds won: three crests, as many lit as KOs. */
 export function RoundCrests({ rounds, label }: { rounds: number; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-1" aria-label={`${label}: ${rounds} de 3 rondas`}>
-      <div className="flex gap-1">
-        {[0, 1, 2].map((i) => (
-          <motion.span
-            key={i}
-            className="size-4 rotate-45 rounded-[3px] border-2"
-            initial={false}
-            animate={{ backgroundColor: i < rounds ? 'var(--color-rare)' : 'rgba(0,0,0,0)', borderColor: i < rounds ? 'var(--color-rare)' : 'var(--color-grid)' }}
-          />
-        ))}
-      </div>
-      <span className="text-[10px] text-haze">Rondas</span>
-    </div>
+    <span className="flex items-center gap-1.5" role="img" aria-label={`${label}: ${rounds} de 3 rondas`}>
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="size-[15px] rotate-45"
+          initial={false}
+          animate={{
+            backgroundColor: i < rounds ? '#ffc934' : 'rgba(2,7,22,0.6)',
+            boxShadow: i < rounds ? '0 0 12px rgba(255,201,52,0.8), inset 0 0 0 2px #fff1b8' : 'inset 0 0 0 2px rgba(159,208,255,0.35)',
+            scale: i < rounds ? [1.6, 1] : 1,
+          }}
+        />
+      ))}
+    </span>
   );
 }
 
-export function Piles({ game, player, onInspect }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void }) {
-  const twoPlayer = useSession((s) => s.twoPlayer);
-  const names = seatNames(twoPlayer, useSession((s) => s.names));
+/** Online Deck and Offline Pile. `onDeck` makes the deck playable (support gamble). */
+export function Piles({ game, player, onInspect, onDeck }: { game: GameState; player: PlayerId; onInspect: (c: Card) => void; onDeck?: () => void }) {
   const p = game.players[player];
   const t = top(p.offline);
   const topCard = t === null ? null : cardAt(game, player, t);
+  const deck = <CardBack count={count(p.online)} label="Online Deck" />;
   return (
-    <div className="flex items-end gap-3">
-      <CardBack count={count(p.online)} label="Online Deck" />
-      <div className="flex flex-col items-center gap-1">
+    <div className={`flex shrink-0 items-start gap-3 self-center ${player === 1 ? 'flex-row-reverse' : ''}`}>
+      {onDeck ? (
+        <button type="button" onClick={onDeck} className="rounded-sm drop-shadow-[0_0_10px_rgb(72_228_255_/0.8)] transition-transform hover:-translate-y-1" aria-label={`Apostar con la carta de arriba del mazo (${count(p.online)} cartas)`}>
+          {deck}
+        </button>
+      ) : (
+        deck
+      )}
+      <div className="flex flex-col items-center gap-1.5" style={{ fontSize: 6.2 } as CSSProperties}>
         {topCard ? (
-          <button type="button" onClick={() => onInspect(topCard)} className="relative h-[4.6rem] w-[3.3rem] overflow-hidden rounded-lg border-2 opacity-80" style={{ borderColor: frameColor(topCard) }} title={`Arriba: ${topCard.name}`}>
-            <CardArt card={topCard} className="h-full w-full grayscale-[60%]" />
-            <span className="absolute right-0.5 bottom-0.5 rounded bg-abyss/85 px-1 font-display text-xs tabular-nums">{count(p.offline)}</span>
+          <button
+            type="button"
+            onClick={() => onInspect(topCard)}
+            className="cut relative overflow-hidden [--c:1.1em]"
+            style={{ width: '12.6em', height: '17.6em', boxShadow: `inset 0 0 0 2px ${frameColor(topCard)}` }}
+            title={`Arriba: ${topCard.name}`}
+          >
+            <CardArt card={topCard} className="h-full w-full opacity-70 grayscale-[55%]" />
+            <span className="num absolute inset-x-0 bottom-0 bg-abyss/85 py-0.5 text-center text-[2.6em] font-extrabold italic">{count(p.offline)}</span>
           </button>
         ) : (
-          <CardBack count={0} label="" />
+          <div className="slot-empty" style={{ fontSize: '1em' }}>
+            <span className="text-[2.6em]">0</span>
+          </div>
         )}
-        <span className="text-[10px] text-haze">Offline Pile</span>
+        <span className="font-display text-[1.7em] font-semibold text-haze">Offline Pile</span>
       </div>
-      <RoundCrests rounds={p.rounds} label={twoPlayer ? `Rondas de ${names[player]}` : player === 0 ? 'Tus rondas' : 'Rondas de la CPU'} />
     </div>
   );
 }

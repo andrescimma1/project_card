@@ -56,20 +56,34 @@ dice en el código (`🟡` en `turn.ts` / `digivolve.ts`):
 * Mazos: los originales de `DECK2.DEK` (3 mazos iniciales del jugador y los de los rivales).
 * `src/game/describe.ts`: textos en español de los eventos (registro y reporte de batalla).
 
-## Interfaz moderna (Etapa 5)
+## Interfaz: remasterización del tablero original
 
-La interfaz **solo lee** lo que devuelve el motor; nunca decide reglas.
+La interfaz **solo lee** lo que devuelve el motor; nunca decide reglas. El tablero sigue la composición
+de la pantalla de batalla de PS1 (capturas de referencia del juego) con una presentación moderna propia:
+no usa texturas ni gráficos de la interfaz original, solo el arte de las cartas extraído del disco.
 
-* **Escenas** (`src/game/scenes.ts`): los eventos del motor se agrupan en escenas (`digivolve`,
-  `battle`) que la sesión encola y la UI reproduce en orden.
-* **Cinemáticas** (`src/ui/play/Cinematics.tsx`): digivolución (destello y carta nueva) y batalla paso
-  a paso (revelado de ataques, cada efecto con su velocidad y si se aplicó, se anuló o no cumplió la
-  condición, orden de ataque, golpes con número de daño y barras de HP, Crash, Eat-up, KO). Se pueden
-  saltar (Esc) o avanzar (Enter/Espacio) y respetan "reducir movimiento".
-* Los eventos llevan **instantáneas de HP y de ataques** (`hp`, `attacks`) para animar cada paso; no
-  vuelven nunca a las reglas.
-* **Tablero**: arena central (tu Digimon contra el de la CPU), indicador de DP segmentado hasta 90,
-  pilas, rondas, riel de fases y mano con animaciones de layout (la carta "viaja" al slot o al DP Slot).
+* **Composición** (`src/ui/play/PlayScreen.tsx`): barra de fase arriba (*"Preparación: preparando la
+  mano"*), zona del rival arriba (marco cobre) y la del jugador abajo (marco azul), cada una con sus cuatro
+  huecos de mano, Online Deck y Offline Pile, DP Slot, nombre, mazo, rondas y la pestaña vertical
+  *1.er / 2.º ataque*. En el centro, los dos Battle Slots enfrentados en espejo: DP por fuera, ◯ △ ✕ en
+  rojo, verde y azul, y el arte hacia el centro con su HP. Abajo, la barra de órdenes de cada fase.
+* Mientras se decide el ataque, la mano de cada jugador se reemplaza por su **lista de ataques**, como en el
+  original (*"Battle: Deciding an Attack"*); "Ver cartas" vuelve a mostrar la mano.
+* **Marco de juego** (`src/ui/play/Stage.tsx`): el tablero se dibuja a 900 de alto y se escala para entrar
+  en la ventana, de 4:3 a ultrapanorámico; la página nunca se desplaza (las listas largas de otras
+  pantallas se desplazan dentro de su panel). En vertical pide girar el dispositivo.
+* **Escenas** (`src/game/scenes.ts`): cada escena guarda el tablero sobre el que se reproduce (`state`):
+  la batalla, el de antes de la batalla; la digivolución, el de justo después. Así el tablero nunca
+  adelanta lo que todavía no se vio.
+* **Batalla en el tablero** (`src/ui/play/Playback.tsx`): la resolución se reproduce sobre los propios
+  Battle Slots: revelado de ataques, cada efecto con su carta, velocidad y si se aplicó, orden de ataque,
+  embestida, número de daño, barras de HP que bajan con estela, KO y rondas. Enter/Espacio avanza, Esc salta.
+* **Digivolución** (`src/ui/play/Cinematics.tsx`): destello y carta nueva sobre el tablero.
+* Los eventos llevan **instantáneas de HP, ataques y poderes** (`hp`, `attacks`, `powers`) para animar
+  cada paso; no vuelven nunca a las reglas.
+* **Cartas** (`src/ui/play/CardFace.tsx`): marco metálico del color de la especialidad, nivel, +P, HP,
+  ◯ △ ✕, brillo holográfico e inclinación 3D al pasar el puntero; la ventana de carta muestra el texto
+  completo y la ficha técnica.
 * **Arte original** de las 301 cartas, pixelado, extraído del disco (`npm run extract:art`).
 * Atajos: teclas 1/2/3 eligen ◯/△/✕.
 

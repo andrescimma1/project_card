@@ -34,7 +34,7 @@ function Picker({ onPick, selected }: { onPick: (id: number) => void; selected: 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-sm text-haze">Buscar</span>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="rounded-lg border border-grid bg-deep px-3 py-2" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la carta" className="cut [--c:6px] border border-grid bg-deep px-3 py-2" />
         </label>
         <div className="flex flex-wrap gap-1.5">
           {(['all', 'digimon', 'option', 'digivolve'] as const).map((k) => (
@@ -72,9 +72,9 @@ function Slot({ id, label, onClear }: { id: number | null; label: string; onClea
   return (
     <div className="flex flex-col items-center gap-2">
       {id === null ? (
-        <div className="grid h-44 w-32 place-items-center rounded-xl border-2 border-dashed border-grid text-sm text-haze">{label}</div>
+        <div className="grid h-44 w-32 place-items-center cut [--c:10px] border-2 border-dashed border-grid text-sm text-haze">{label}</div>
       ) : (
-        <button type="button" onClick={onClear} aria-label={`Quitar ${cards[id].name}`} className="rounded-xl">
+        <button type="button" onClick={onClear} aria-label={`Quitar ${cards[id].name}`} className="cut [--c:10px]">
           <CardFace card={cards[id]} size="sm" />
         </button>
       )}
@@ -106,7 +106,7 @@ function CardFusion({ shopLevel, onDone }: { shopLevel: number; onDone: (o: Outc
   };
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-grid bg-panel/70 p-4">
+      <div className="flex flex-wrap items-center gap-4 cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4">
         <Slot id={a} label="Carta 1" onClear={() => setA(null)} />
         <span className="font-display text-3xl text-haze" aria-hidden>
           +
@@ -197,10 +197,10 @@ export function FusionShop({ shop }: { shop: number }) {
         </div>
       </div>
       {outcome && (
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl border-2 bg-deep p-4" style={{ borderColor: 'var(--color-rare)' }} role="status">
+        <div className="flex flex-wrap items-center gap-4 cut [--c:16px] border-2 bg-deep p-4" style={{ borderColor: 'var(--color-rare)' }} role="status">
           <CardFace card={outcome.face} size="sm" />
           <div className="flex flex-col gap-1">
-            <p className="font-display text-xl font-semibold">{outcome.title}</p>
+            <p className="font-display text-2xl font-bold italic">{outcome.title}</p>
             {outcome.detail && <div className="text-sm text-haze">{outcome.detail}</div>}
             {outcome.showName && <p className="font-display text-lg">{outcome.face.name}</p>}
           </div>

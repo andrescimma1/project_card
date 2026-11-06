@@ -1,268 +1,272 @@
 /**
- * Cinematics: replay what the engine already resolved (digivolution, battle step by step).
- * Pure presentation — they read events, never change the game.
+ * Digivolution cinematic over the board. Pure presentation: it replays what the engine already did.
+ * (Battles replay on the board itself, see Playback.tsx.)
+ *
+ * Stages, each with its sound (docs/audio.md): start → energy charging (particles, light) → burst →
+ * the new Digimon → its stats counting from the old values to the new ones.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import type { DigimonCard } from '../../engine/cards/types';
-import type { GameEvent, GameState, PlayerId } from '../../engine/game/types';
-import { describeEvent } from '../../game/describe';
+import { emitCues, type Cue } from '../../audio/bus';
+import { useAudioSettings } from '../../audio/react';
+import type { GameState } from '../../engine/game/types';
 import type { Scene } from '../../game/scenes';
 import { sessionStore, useSession } from '../../game/useSession';
-import { CROSS_EFFECT_LABEL } from '../../engine/cards/db';
-import { SLOT_GLYPH, SPECIALTY_COLOR, frameColor } from '../theme';
-import { HpBar } from './Arena';
-import { CardArt, CardFace } from './CardFace';
-import { activeRef, cardAt, partnerCardOf, seatNames } from './util';
+import { frameColor } from '../theme';
+import { Count } from './Arena';
+import { CardFace } from './CardFace';
+import { SLOTS, SlotDisc } from './glyphs';
+import { cardAt, partnerCardOf, seatNames } from './util';
 
-/** Names of the two players for the cinematics ("Tú" / "CPU", or both names in 2P). */
-function useSeats(): { twoPlayer: boolean; names: [string, string] } {
-  const twoPlayer = useSession((s) => s.twoPlayer);
-  const names = useSession((s) => s.names);
-  return { twoPlayer, names: seatNames(twoPlayer, names) };
+type Stage = 'start' | 'charge' | 'burst' | 'reveal' | 'stats';
+const ORDER: Stage[] = ['start', 'charge', 'burst', 'reveal', 'stats'];
+
+/** When each stage starts (ms) and when the cinematic ends. */
+const TIMING = {
+  full: { charge: 350, burst: 1900, reveal: 2250, stats: 2700, statGap: 150, end: 4700 },
+  calm: { charge: 250, burst: 1100, reveal: 1300, stats: 1700, statGap: 150, end: 3300 },
+};
+
+/** Points the energy comes from (deterministic, spread around the card). */
+const PARTICLES = Array.from({ length: 40 }, (_, i) => {
+  const a = (i * 137.5 * Math.PI) / 180;
+  const r = 230 + ((i * 53) % 90);
+  return { x: Math.cos(a) * r, y: Math.sin(a) * r, delay: (i % 10) * 0.13, size: 4 + (i % 3) * 2 };
+});
+
+interface Stats {
+  hp: number;
+  powers: [number, number, number];
 }
 
-const SPEED = ['None', 'Low', 'Mid', 'High'];
+function DigivolveScene({ game, prev, scene, onDone }: { game: GameState; prev: GameState | null; scene: Extract<Scene, { kind: 'digivolve' }>; onDone: () => void }) {
+  const reduceMotion = useReducedMotion();
+  const reduceFx = useAudioSettings().reduceIntense;
+  const calm = !!reduceMotion || reduceFx;
+  const twoPlayer = useSession((s) => s.twoPlayer);
+  const names = seatNames(twoPlayer, useSession((s) => s.names));
+  const to = cardAt(game, scene.player, scene.card);
+  const from = scene.fromId !== undefined ? partnerCardOf(game, scene.player, scene.fromId) : scene.from === null ? null : cardAt(prev ?? game, scene.player, scene.from);
+  const [stage, setStage] = useState<Stage>('start');
+  const at = (s: Stage) => ORDER.indexOf(stage) >= ORDER.indexOf(s);
 
-function useKeys(onNext: () => void, onSkip: () => void) {
+  const after: Stats = { hp: game.players[scene.player].hp, powers: game.players[scene.player].powers };
+  const before: Stats = useMemo(() => {
+    if (prev) return { hp: prev.players[scene.player].hp, powers: prev.players[scene.player].powers };
+    if (from?.kind === 'digimon') return { hp: from.hp, powers: [from.attacks.circle.power, from.attacks.triangle.power, from.attacks.cross.power] };
+    return { hp: 0, powers: [0, 0, 0] };
+  }, [prev, from, scene.player]);
+  const [statsShown, setStatsShown] = useState(0);
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onSkip();
-      else if (e.key === 'Enter' || e.key === ' ') {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        onNext();
+        onDone();
       }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [onNext, onSkip]);
-}
+  }, [onDone]);
 
-function Shell({ children, label, onSkip }: { children: React.ReactNode; label: string; onSkip: () => void }) {
+  useEffect(() => {
+    const T = calm ? TIMING.calm : TIMING.full;
+    const cues: Cue[] = [
+      { name: 'EVOLUTION_START', data: { player: scene.player } },
+      { name: 'EVOLUTION_CHARGE', delay: T.charge },
+      { name: 'EVOLUTION_BURST', delay: T.burst },
+      { name: 'MONSTER_EVOLVED', data: { player: scene.player }, delay: T.reveal },
+      ...[0, 1, 2, 3].map((index): Cue => ({ name: 'EVOLUTION_STATS', data: { index }, delay: T.stats + index * T.statGap })),
+    ];
+    const cancelCues = emitCues(cues);
+    const timers = [
+      setTimeout(() => setStage('charge'), T.charge),
+      setTimeout(() => setStage('burst'), T.burst),
+      setTimeout(() => setStage('reveal'), T.reveal),
+      setTimeout(() => setStage('stats'), T.stats),
+      ...[1, 2, 3, 4].map((n) => setTimeout(() => setStatsShown(n), T.stats + (n - 1) * T.statGap)),
+      setTimeout(onDone, T.end),
+    ];
+    return () => {
+      cancelCues();
+      timers.forEach(clearTimeout);
+    };
+  }, [calm, onDone, scene.player]);
+
+  const color = frameColor(to);
+  const who = twoPlayer ? `El Digimon de ${names[scene.player]}` : scene.player === 0 ? 'Tu Digimon' : 'El Digimon de la CPU';
+  const charging = stage === 'charge';
+  const showFrom = from && !at('burst');
+
   return (
     <motion.div
       role="dialog"
       aria-modal="true"
-      aria-label={label}
+      aria-label={scene.armor ? 'Armor-digievolución' : 'Digievolución'}
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-hidden bg-void/90"
+      style={{ backgroundImage: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${color} ${at('reveal') ? 42 : 22}%, transparent), transparent 48%)` }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-abyss/95 p-4 backdrop-blur"
-      style={{ backgroundImage: 'radial-gradient(circle at 50% 40%, rgb(79 182 255 / 0.12), transparent 60%)' }}
+      onClick={onDone}
     >
-      {children}
-      <button type="button" onClick={onSkip} className="absolute top-4 right-4 rounded-full border border-grid px-4 py-1.5 text-sm text-haze hover:text-ink">
-        Saltar (Esc)
+      <motion.p initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="font-display text-[22px] font-bold text-haze italic">
+        {who}
+      </motion.p>
+
+      <div className="relative grid h-[440px] w-[440px] place-items-center">
+        {/* light rays turning behind the card */}
+        <motion.div
+          aria-hidden
+          className="absolute -inset-24 rounded-full"
+          style={{ background: `repeating-conic-gradient(from 0deg, color-mix(in srgb, ${color} 55%, transparent) 0deg 6deg, transparent 6deg 24deg)`, maskImage: 'radial-gradient(circle, black 18%, transparent 68%)' }}
+          animate={{ rotate: 360, opacity: stage === 'start' ? 0.15 : charging ? 0.7 : at('reveal') ? 0.45 : 0.9, scale: charging ? 1.08 : 1 }}
+          transition={{ rotate: { duration: calm ? 30 : 9, repeat: Infinity, ease: 'linear' }, opacity: { duration: 0.6 }, scale: { duration: 1.4 } }}
+        />
+        {!calm && (
+          <>
+            <motion.div className="absolute inset-6 rounded-full" style={{ border: `2px dashed ${color}`, opacity: 0.55 }} animate={{ rotate: 360 }} transition={{ duration: charging ? 3 : 8, repeat: Infinity, ease: 'linear' }} />
+            <motion.div className="absolute inset-16 rounded-full" style={{ border: '1px solid rgb(72 228 255 / 0.5)' }} animate={{ rotate: -360 }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} />
+          </>
+        )}
+
+        {/* energy gathering into the card */}
+        {charging &&
+          (calm ? PARTICLES.slice(0, 10) : PARTICLES).map((p, i) => (
+            <motion.span
+              key={i}
+              aria-hidden
+              className="pointer-events-none absolute rounded-full"
+              style={{ width: p.size, height: p.size, background: i % 3 ? color : '#fff', boxShadow: `0 0 10px ${i % 3 ? color : '#fff'}` }}
+              initial={{ x: p.x, y: p.y, opacity: 0, scale: 1.4 }}
+              animate={{ x: 0, y: 0, opacity: [0, 1, 1, 0], scale: 0.3 }}
+              transition={{ duration: 0.9, delay: p.delay, repeat: Infinity, repeatDelay: 0.25, ease: 'easeIn' }}
+            />
+          ))}
+
+        <AnimatePresence mode="popLayout">
+          {showFrom ? (
+            <motion.div
+              key="from"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={
+                charging && !calm
+                  ? { scale: 1.06, opacity: 1, x: [0, -2, 2, -3, 3, -4, 4, 0], filter: ['brightness(1)', 'brightness(1.6)', 'brightness(2.4)'] }
+                  : { scale: 1, opacity: 1, x: 0, filter: charging ? 'brightness(1.5)' : 'brightness(1)' }
+              }
+              exit={calm ? { opacity: 0 } : { scale: 1.3, opacity: 0, filter: 'blur(8px) brightness(4)' }}
+              transition={charging && !calm ? { duration: 1.5, x: { duration: 0.3, repeat: Infinity }, filter: { duration: 1.5 } } : { duration: 0.4 }}
+            >
+              <CardFace card={from} size="md" glow={charging} />
+            </motion.div>
+          ) : at('reveal') ? (
+            <motion.div
+              key="to"
+              initial={calm ? { opacity: 0, scale: 1.2 } : { scale: 0.4, opacity: 0, filter: 'brightness(4)' }}
+              animate={{ scale: 1.32, opacity: 1, filter: 'brightness(1)' }}
+              transition={calm ? { duration: 0.4 } : { type: 'spring', stiffness: 170, damping: 13 }}
+            >
+              <CardFace card={to} size="md" glow />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        {/* the burst */}
+        {stage === 'burst' && (
+          <>
+            {!calm && (
+              <motion.div
+                aria-hidden
+                className="fx-intense pointer-events-none fixed inset-0 z-10 bg-white"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.95, 0] }}
+                transition={{ duration: 0.45, times: [0, 0.15, 1] }}
+              />
+            )}
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-full"
+              initial={{ opacity: 0.95, scale: 0.2 }}
+              animate={{ opacity: 0, scale: calm ? 1.4 : 2.6 }}
+              transition={{ duration: 0.6 }}
+              style={{ background: `radial-gradient(circle, white, ${color}, transparent 70%)` }}
+            />
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute inset-10 rounded-full"
+              style={{ border: `4px solid ${color}`, boxShadow: `0 0 30px ${color}` }}
+              initial={{ scale: 0.3, opacity: 1 }}
+              animate={{ scale: 2.4, opacity: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+            />
+          </>
+        )}
+      </div>
+
+      <motion.h2
+        initial={{ y: 14, opacity: 0 }}
+        animate={{ y: 0, opacity: at('reveal') ? 1 : 0.35 }}
+        className="max-w-[900px] text-center font-display text-[48px] leading-tight font-black italic"
+        style={{ color: '#fff', textShadow: `0 4px 0 #061340, 0 0 26px ${color}` } as CSSProperties}
+      >
+        {from ? `${from.name} ${scene.armor ? 'Armor-digievoluciona' : 'digievoluciona'} a ${to.name}` : `Digievoluciona a ${to.name}`}
+      </motion.h2>
+
+      {/* stats, from the old values to the new ones */}
+      <div className="flex h-[64px] items-stretch gap-3" aria-label="Estadísticas nuevas">
+        {to.kind === 'digimon' &&
+          (['hp', ...SLOTS] as const).map((k, i) => {
+            const old = k === 'hp' ? before.hp : before.powers[i - 1];
+            const now = k === 'hp' ? after.hp : after.powers[i - 1];
+            const shown = statsShown > i;
+            const diff = now - old;
+            return (
+              <motion.div
+                key={k}
+                className="frame side-player w-[150px]"
+                style={{ '--c': '10px' } as CSSProperties}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: at('stats') ? 1 : 0, y: at('stats') ? 0 : 12, scale: shown ? [1, 1.08, 1] : 1 }}
+                transition={{ delay: at('stats') ? i * 0.15 : 0, duration: 0.3 }}
+              >
+                <div className="fill flex items-center gap-2 px-3">
+                  <span className="relative z-[1] flex w-[34px] justify-center">
+                    {k === 'hp' ? <span className="font-display text-[17px] font-black text-gold italic">HP</span> : <SlotDisc slot={k} size={28} />}
+                  </span>
+                  <span className="num relative z-[1] flex-1 text-right text-[28px] leading-none font-black italic">
+                    <Count value={shown ? now : old} />
+                  </span>
+                  {shown && diff !== 0 && (
+                    <motion.span
+                      initial={{ opacity: 0, y: diff > 0 ? 8 : -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="num relative z-[1] text-[14px] font-bold"
+                      style={{ color: diff > 0 ? 'var(--color-atk-triangle)' : 'var(--color-crimson)' }}
+                    >
+                      {diff > 0 ? '▲' : '▼'}
+                    </motion.span>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+      </div>
+
+      <button type="button" data-sfx="cancel" onClick={onDone} className="cmd absolute top-6 right-6">
+        <span>Saltar</span>
       </button>
     </motion.div>
   );
 }
 
-function DigivolveScene({ game, scene, onDone }: { game: GameState; scene: Extract<Scene, { kind: 'digivolve' }>; onDone: () => void }) {
-  const reduce = useReducedMotion();
-  const seats = useSeats();
-  const to = cardAt(game, scene.player, scene.card);
-  const from = scene.fromId !== undefined ? partnerCardOf(game, scene.player, scene.fromId) : scene.from === null ? null : cardAt(game, scene.player, scene.from);
-  const [stage, setStage] = useState<'from' | 'flash' | 'to'>(from && !reduce ? 'from' : 'to');
-  useKeys(onDone, onDone);
-  useEffect(() => {
-    if (reduce) {
-      const t = setTimeout(onDone, 1400);
-      return () => clearTimeout(t);
-    }
-    const t1 = setTimeout(() => setStage('flash'), 900);
-    const t2 = setTimeout(() => setStage('to'), 1250);
-    const t3 = setTimeout(onDone, 3000);
-    return () => [t1, t2, t3].forEach(clearTimeout);
-  }, [onDone, reduce]);
-  const color = frameColor(to);
-  return (
-    <Shell label={scene.armor ? 'Armor-digivolución' : 'Digivolución'} onSkip={onDone}>
-      <p className="font-display text-sm tracking-wide text-haze">{seats.twoPlayer ? `El Digimon de ${seats.names[scene.player]}` : scene.player === 0 ? 'Tu Digimon' : 'El Digimon de la CPU'}</p>
-      <div className="relative grid h-[22rem] w-[16rem] place-items-center" onClick={onDone}>
-        <AnimatePresence mode="popLayout">
-          {stage !== 'to' && from ? (
-            <motion.div
-              key="from"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={stage === 'flash' ? { scale: 1.15, opacity: 0, filter: 'blur(6px) brightness(3)' } : { scale: 1, opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: stage === 'flash' ? 0.35 : 0.5 }}
-            >
-              <CardFace card={from} size="md" />
-            </motion.div>
-          ) : (
-            <motion.div key="to" initial={{ scale: 0.5, opacity: 0, filter: 'brightness(4)' }} animate={{ scale: 1.25, opacity: 1, filter: 'brightness(1)' }} transition={{ type: 'spring', stiffness: 160, damping: 14 }}>
-              <CardFace card={to} size="md" glow />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {stage === 'flash' && <motion.div className="pointer-events-none absolute inset-0 rounded-full" initial={{ opacity: 0.9, scale: 0.2 }} animate={{ opacity: 0, scale: 2.2 }} transition={{ duration: 0.6 }} style={{ background: `radial-gradient(circle, white, ${color}, transparent 70%)` }} />}
-      </div>
-      <motion.h2 initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: stage === 'to' ? 1 : 0.4 }} className="text-center font-display text-3xl font-bold" style={{ color }}>
-        {from ? `${from.name} ${scene.armor ? 'Armor-digievoluciona' : 'digievoluciona'} a ${to.name}` : `Digievoluciona a ${to.name}`}
-      </motion.h2>
-    </Shell>
-  );
-}
-
-type Step = GameEvent;
-const SHOWN = new Set(['reveal', 'effect', 'attackOrder', 'crash', 'hit', 'ko', 'roundWon', 'gameOver']);
-
-function Fighter({ game, player, card, hp, max, attack, ko, lunge, hurt, dmg, heal }: {
-  game: GameState; player: PlayerId; card: DigimonCard | null; hp: number; max: number; attack: string | null; ko: boolean; lunge: boolean; hurt: boolean; dmg: number | null; heal: number | null;
-}) {
-  const reduce = useReducedMotion();
-  const seats = useSeats();
-  const color = card ? SPECIALTY_COLOR[game.players[player].specialty] : 'var(--color-grid)';
-  const dir = player === 0 ? 1 : -1;
-  return (
-    <div className="relative flex w-[clamp(9rem,30vw,15rem)] flex-col items-center gap-2">
-      <span className="font-display text-xs text-haze">{seats.names[player]}</span>
-      <motion.div
-        animate={reduce ? {} : lunge ? { x: [0, 40 * dir, 0] } : hurt ? { x: [0, -8 * dir, 8 * dir, -4 * dir, 0] } : { x: 0 }}
-        transition={{ duration: lunge ? 0.45 : 0.4 }}
-        className={`relative w-full overflow-hidden rounded-2xl border-2 bg-panel ${ko ? 'grayscale' : ''}`}
-        style={{ borderColor: color }}
-      >
-        {card && <CardArt card={card} className={`aspect-square w-full ${player === 1 ? '-scale-x-100' : ''}`} />}
-        {attack && (
-          <motion.span key={attack} initial={{ rotateY: 90, opacity: 0 }} animate={{ rotateY: 0, opacity: 1 }} className="absolute top-2 left-2 grid size-11 place-items-center rounded-full bg-abyss/85 font-display text-2xl">
-            {attack}
-          </motion.span>
-        )}
-        {ko && (
-          <motion.span initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="absolute inset-0 grid place-items-center bg-abyss/50 font-display text-5xl font-bold" style={{ color: 'var(--color-fire)' }}>
-            KO
-          </motion.span>
-        )}
-        <AnimatePresence>
-          {dmg !== null && (
-            <motion.span key={`d${dmg}${hp}`} initial={{ y: 10, opacity: 0, scale: 0.6 }} animate={{ y: -30, opacity: 1, scale: 1.2 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="absolute inset-x-0 top-1/3 text-center font-display text-4xl font-bold text-white [text-shadow:0_2px_8px_#000]">
-              −{dmg}
-            </motion.span>
-          )}
-          {heal !== null && heal > 0 && (
-            <motion.span key={`h${heal}${hp}`} initial={{ y: 10, opacity: 0 }} animate={{ y: -20, opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-x-0 top-1/4 text-center font-display text-3xl font-bold [text-shadow:0_2px_8px_#000]" style={{ color: 'var(--color-nature)' }}>
-              +{heal}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.div>
-      <span className="w-full truncate text-center font-display text-sm font-semibold">{card?.name ?? '—'}</span>
-      <div className="flex w-full items-center gap-2">
-        <HpBar hp={hp} max={max} color={color} />
-        <span className="font-display text-lg font-bold tabular-nums">{hp}</span>
-      </div>
-    </div>
-  );
-}
-
-function BattleScene({ game, scene, onDone }: { game: GameState; scene: Extract<Scene, { kind: 'battle' }>; onDone: () => void }) {
-  const seats = useSeats();
-  const steps = useMemo(() => scene.events.filter((e) => SHOWN.has(e.type)), [scene]);
-  const [i, setI] = useState(0);
-  const step: Step | undefined = steps[i];
-  const finished = i >= steps.length - 1;
-  const next = () => (finished ? onDone() : setI((x) => x + 1));
-  useKeys(next, onDone);
-  useEffect(() => {
-    const t = setTimeout(next, finished ? 2600 : step?.type === 'hit' ? 1400 : 1150);
-    return () => clearTimeout(t);
-  });
-
-  // Active Digimon of each side during this battle (from the hits; fallback: current board)
-  const fighters = useMemo(() => {
-    const refs: (number | null)[] = [activeRef(game, 0), activeRef(game, 1)];
-    for (const e of scene.events) if (e.type === 'hit') {
-      refs[e.attacker] = e.attackerCard;
-      refs[e.defender] = e.defenderCard;
-    }
-    return refs.map((r, p) => (r === null || r < 0 ? null : (cardAt(game, p as PlayerId, r) as DigimonCard)));
-  }, [game, scene]);
-
-  const shown = steps.slice(0, i + 1);
-  let hp: [number, number] = [0, 0];
-  for (const e of shown) if ('hp' in e && Array.isArray(e.hp)) hp = e.hp as [number, number];
-  const maxHp = [0, 1].map((p) => Math.max(fighters[p]?.hp ?? 1, ...scene.events.flatMap((e) => ('hp' in e && Array.isArray(e.hp) ? [e.hp[p]] : []))));
-  let attacks: [string, string] | null = null;
-  for (const e of shown) {
-    if (e.type === 'reveal' || e.type === 'effect') attacks = [SLOT_GLYPH[e.attacks[0]], SLOT_GLYPH[e.attacks[1]]];
-  }
-  const ko = shown.filter((e) => e.type === 'ko' && !e.revived).map((e) => (e as Extract<GameEvent, { type: 'ko' }>).player);
-
-  return (
-    <Shell label="Batalla" onSkip={onDone}>
-      <div className="flex w-full max-w-4xl items-center justify-center gap-[clamp(0.75rem,4vw,3rem)]" onClick={next}>
-        {([0, 1] as PlayerId[]).map((p) => (
-          <div key={p} className={p === 1 ? 'order-3' : 'order-1'}>
-            <Fighter
-              game={game}
-              player={p}
-              card={fighters[p]}
-              hp={hp[p]}
-              max={maxHp[p]}
-              attack={attacks ? attacks[p] : null}
-              ko={ko.includes(p)}
-              lunge={step?.type === 'hit' && step.attacker === p}
-              hurt={step?.type === 'hit' && step.defender === p}
-              dmg={step?.type === 'hit' && step.defender === p ? step.damage : null}
-              heal={step?.type === 'hit' && step.attacker === p ? step.eaten : null}
-            />
-          </div>
-        ))}
-        <div className="order-2 font-display text-2xl font-bold text-haze">VS</div>
-      </div>
-
-      <div className="flex min-h-[9rem] w-full max-w-xl flex-col items-center gap-3" aria-live="polite">
-        <AnimatePresence mode="wait">
-          {step && (
-            <motion.div key={i} initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }} className="flex flex-col items-center gap-2 text-center">
-              {step.type === 'effect' && (() => {
-                const c = cardAt(game, step.player, step.card);
-                const text = step.source === 'cross' && c.kind === 'digimon' ? `✕ ${CROSS_EFFECT_LABEL[c.crossEffect]}` : c.kind !== 'digivolve' ? c.support.text : '';
-                return (
-                <div className="flex items-center gap-3">
-                  <CardFace card={cardAt(game, step.player, step.card)} size="xs" />
-                  <div className="flex flex-col items-start gap-1 text-left">
-                    <span className="rounded-full border border-grid px-2 py-0.5 text-[11px] text-haze">Velocidad {SPEED[step.speed]}</span>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-xs font-semibold text-abyss"
-                      style={{ background: step.voided ? 'var(--color-conflict)' : step.conditionsMet ? 'var(--color-verified)' : 'var(--color-unknown)' }}
-                    >
-                      {step.voided ? 'Anulado' : step.conditionsMet ? 'Se aplica' : 'Condición no cumplida'}
-                    </span>
-                    <span className="max-w-[34ch] text-sm text-haze">{text}</span>
-                  </div>
-                </div>
-                );
-              })()}
-              <p className="max-w-[46ch] font-display text-xl font-semibold">{describeEvent(step, game, seats.twoPlayer ? seats.names : undefined)}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="flex items-center gap-3 text-sm text-haze">
-          <span className="tabular-nums">
-            {i + 1} / {steps.length}
-          </span>
-          <button type="button" onClick={next} className="rounded-full bg-ink px-4 py-1.5 font-semibold text-abyss hover:bg-white">
-            {finished ? 'Continuar' : 'Siguiente'}
-          </button>
-        </div>
-      </div>
-    </Shell>
-  );
-}
-
-/** Plays the session's queued scenes one by one. */
+/** Plays the queued digivolution scenes (battle scenes play on the board). */
 export function CinematicHost({ game }: { game: GameState }) {
   const scene = useSession((s) => s.scenes[0]);
   const seq = useSession((s) => s.sceneSeq);
-  const done = () => sessionStore.getState().popScene();
+  const done = useMemo(() => () => sessionStore.getState().popScene(), []);
   return (
     <AnimatePresence>
-      {scene?.kind === 'digivolve' && <DigivolveScene key={seq} game={game} scene={scene} onDone={done} />}
-      {scene?.kind === 'battle' && <BattleScene key={seq} game={game} scene={scene} onDone={done} />}
+      {scene?.kind === 'digivolve' && <DigivolveScene key={seq} game={scene.state ?? game} prev={scene.prev ?? null} scene={scene} onDone={done} />}
     </AnimatePresence>
   );
 }

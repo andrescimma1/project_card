@@ -89,24 +89,24 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
   return (
     <div className="flex flex-col gap-3" aria-label="Estadísticas completas del jugador">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-3xl font-bold">Estadísticas completas</h2>
+        <h2 className="font-display text-4xl font-black italic">Estadísticas completas</h2>
         <Button primary onClick={onClose}>
           Salir
         </Button>
       </div>
       <nav className="flex flex-wrap gap-1.5" aria-label="Secciones">
         {SECTIONS.map(([id, label]) => (
-          <button key={id} type="button" onClick={() => jump(id)} className="rounded-full border border-grid px-2.5 py-1 text-sm hover:bg-deep">
+          <button key={id} type="button" onClick={() => jump(id)} className="cut bg-deep px-3 py-1 font-display text-[15px] font-semibold italic [--c:6px] hover:bg-panel">
             {label}
           </button>
         ))}
       </nav>
-      <div ref={page} className="flex max-h-[70vh] flex-col gap-8 overflow-y-auto rounded-2xl border border-grid bg-panel/70 p-4 sm:p-6">
+      <div ref={page} className="flex max-h-[70vh] flex-col gap-8 overflow-y-auto cut [--c:16px] border border-grid bg-gradient-to-b from-panel/80 to-deep/80 p-4 sm:p-6">
         <Section id="cards" title="Cartas que tienes">
           <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {st.cards.map((c) => (
-              <li key={c.id} className="flex gap-3 rounded-xl bg-deep/70 p-2">
-                {c.known ? <CardArt card={cards[c.id]} className="size-14 shrink-0 rounded-lg bg-abyss" /> : <div className="size-14 shrink-0 rounded-lg bg-abyss" aria-hidden />}
+              <li key={c.id} className="flex gap-3 cut [--c:10px] bg-deep/70 p-2">
+                {c.known ? <CardArt card={cards[c.id]} className="size-14 shrink-0 cut [--c:6px] bg-abyss" /> : <div className="size-14 shrink-0 cut [--c:6px] bg-abyss" aria-hidden />}
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="flex items-baseline justify-between gap-2">
                     <span className="truncate font-semibold">{c.known ? cards[c.id].name : '?????????????'}</span>
@@ -214,7 +214,7 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
           <Row label="Título de batalla" value={st.titles.tamer} />
           <Row label="Título de coleccionista" value={st.titles.collector} />
           <Row label="Título de batalla 2P" value={st.titles.battle2p} />
-          <p className="pt-6 text-center font-display text-3xl font-bold" style={{ color: 'var(--color-rare)' }}>
+          <p className="pt-6 text-center font-display text-4xl font-black italic" style={{ color: 'var(--color-rare)' }}>
             Eres «{st.finalTitle}»
           </p>
         </Section>

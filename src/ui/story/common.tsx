@@ -16,9 +16,10 @@ export function Button({ children, onClick, primary, disabled, label }: { childr
       disabled={disabled}
       onClick={onClick}
       aria-label={label}
-      className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 ${primary ? 'bg-ink text-abyss hover:bg-white' : 'border border-grid hover:bg-deep'}`}
+      data-primary={primary || undefined}
+      className="cmd"
     >
-      {children}
+      <span>{children}</span>
     </button>
   );
 }
@@ -42,7 +43,7 @@ export function PartName({ id }: { id: number }) {
 
 export function Notice({ text }: { text: string | null }) {
   return text ? (
-    <p role="alert" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-probable)' }}>
+    <p role="alert" className="cut [--c:6px] border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-probable)' }}>
       {text}
     </p>
   ) : null;
