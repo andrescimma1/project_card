@@ -98,7 +98,7 @@ la interfaz habla con vocabulario y estética propios. **Las reglas no cambiaron
     `instinct`). Es una capa de compatibilidad: el motor y los datos del disco siguen llamando a los
     espacios `circle / triangle / cross`, y la interfaz convierte solo en el borde (`slotOf`, `actionOf`).
   * `factions.ts`: la especialidad de las reglas se muestra como **facción** (Roja, Azul, Verde, Sombría,
-    Dorada) con su paleta. Facción, hábitat y elemento son conceptos distintos: la facción es
+    Rara) con su paleta. Facción, hábitat y elemento son conceptos distintos: la facción es
     temperamento y la usan las reglas; hábitat y elemento son solo presentación.
   * `terms.ts`: Criatura, Evolución, Novato / Campeón / Perfecto, Puntos de evolución (PE), Reserva,
     Mazo, Descarte, Carta de apoyo, Carta de evolución, Reliquias, Huevo… Los textos de las cartas del

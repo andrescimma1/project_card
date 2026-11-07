@@ -67,6 +67,10 @@ describe('factions', () => {
     expect(FACTIONS.red.temperament.toLowerCase()).not.toContain('fuego');
   });
 
+  it('the faction of the Rare specialty is called Rara', () => {
+    expect(FACTIONS[factionOfSpecialty('rare')].name).toBe('Rara');
+  });
+
   it('only creatures have a faction', () => {
     const creature = cards.find((x) => x.kind === 'digimon')!;
     const support = cards.find((x) => x.kind === 'option')!;
