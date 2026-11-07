@@ -139,6 +139,8 @@ export interface ComResult {
   bonuses: BonusResult;
   /** EXP added to each partner slot (0 if it was not in the deck). */
   expGained: number[];
+  /** Whether each partner slot was in the deck used (it can be and still earn 0 EXP, e.g. on a loss). */
+  inDeck: boolean[];
   levelsGained: number[];
   learned: number[];
   /** Prize Pack card ids (empty on a loss) and the result of adding each one (copies, or < 0). */
@@ -164,10 +166,12 @@ export function applyComResult(
   const bonuses = evaluateBonuses(m.state, 0, m.rival.exp);
   for (const b of bonuses.granted) save.bonusCounts[b.id] = Math.min(save.bonusCounts[b.id] + 1, CAP);
   const expGained: number[] = [];
+  const inDecks: boolean[] = [];
   const levelsGained: number[] = [];
   const learned: number[] = [];
   for (const p of save.partners) {
     const inDeck = m.deckUsed.includes(p.slot.id) || (p.slot.armorId !== null && m.deckUsed.includes(p.slot.armorId));
+    inDecks.push(inDeck);
     if (!inDeck || p.slot.level >= MAX_LEVEL) {
       expGained.push(0);
       levelsGained.push(0);
@@ -194,5 +198,5 @@ export function applyComResult(
   recordAttackUse(save, 0, m.events);
 
   save.ranks = updateRanks(save.ranks, { winsCom: save.winsCom, wins2p: save.wins2p, collection: save.collection, traded: save.traded });
-  return { win, bonuses, expGained, levelsGained, learned, pack, packResults, ranksBefore };
+  return { win, bonuses, expGained, inDeck: inDecks, levelsGained, learned, pack, packResults, ranksBefore };
 }

@@ -32,7 +32,7 @@ describe('save slots', () => {
     writeSave(0, newGame(0, counter()), st);
     const list = listSaves(st);
     expect(list).toHaveLength(3);
-    expect(list[0]).toMatchObject({ partner: 'Veemon', winsCom: 0, tamer: 'Beginner Tamer' });
+    expect(list[0]).toMatchObject({ partner: 'Veemon', winsCom: 0, tamer: 'Aprendiz principiante' });
     expect(list[1]).toBeNull();
   });
 

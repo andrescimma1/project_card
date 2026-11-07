@@ -24,9 +24,14 @@ describe('city host (SAISEG 0x801E390C)', () => {
 
   it('a menu (11.0 / 11.1 / 10.1) answers in v1: 1..n, or −1 to cancel', () => {
     const h = enterCity(save(), 0, city(cmd(11, 0, [0, 120]), cmd(11, 1, [0, 2]), cmd(11, 1, [0, 3]), cmd(10, 1), set(20, 0, 1, true), cmd(10, 5)));
-    expect(advance(h, counter())).toEqual({ kind: 'menu', options: [2, 3], big: true });
+    expect(advance(h, counter())).toEqual({ kind: 'menu', options: [2, 3], big: true, prompt: [] });
     advance(h, counter(), { kind: 'choice', value: 2 });
     expect(h.vm.vars[1]).toBe(2);
+  });
+
+  it('a menu keeps the question printed before it (10.4 without a page wait) on screen', () => {
+    const h = enterCity(save(), 0, city(str(4, '*c4Nilo*c7'), cmd(10, 4), str(4, 'Ready?'), cmd(10, 4), cmd(11, 0, [0, 0]), cmd(11, 1, [0, 16]), cmd(10, 1), cmd(10, 5)));
+    expect(advance(h, counter())).toEqual({ kind: 'menu', options: [16], big: false, prompt: ['*c4Nilo*c7', 'Ready?'] });
   });
 
   it('the Battle Cafe: NPCs added with 11.3, chosen with 10.3 into v2', () => {

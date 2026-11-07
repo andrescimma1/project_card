@@ -16,7 +16,8 @@ type Rand = { next(): number };
 
 export type StoryRequest =
   | { kind: 'say'; lines: string[] }
-  | { kind: 'menu'; options: number[]; big: boolean }
+  /** `prompt`: the question printed before the menu (10.4 lines with no page wait), still on screen. */
+  | { kind: 'menu'; options: number[]; big: boolean; prompt: string[] }
   | { kind: 'talkTo'; npcs: number[] }
   | { kind: 'rival'; name: string; portrait: number; types: number; attack: number; defense: number; speed: number }
   | { kind: 'battle'; deck: number; lent: number | null }
@@ -162,7 +163,7 @@ export function advance(h: CityHost, rand: Rand, response?: StoryResponse): Stor
         h.menu.push(p0);
         break;
       case '10.1':
-        return ask({ kind: 'menu', options: h.menu, big: h.menuBig });
+        return ask({ kind: 'menu', options: h.menu, big: h.menuBig, prompt: [...h.lines] });
       case '11.3':
         if (!h.npcs.includes(p0)) h.npcs.push(p0);
         break;

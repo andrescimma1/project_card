@@ -31,10 +31,16 @@ describe('menus and the map', () => {
 
   it('a city is on the map when its flag v(282 + i) is set', () => {
     const s = newGame(0, { next: (() => { let i = 0; return () => i++; })() });
-    expect(visibleCities(s)).toEqual([]);
-    s.story.flags[(282 - 12) >> 5] |= 1 << ((282 - 12) & 31);
     s.story.flags[(284 - 12) >> 5] |= 1 << ((284 - 12) & 31);
-    expect(visibleCities(s)).toEqual([0, 2]);
+    s.story.flags[(285 - 12) >> 5] |= 1 << ((285 - 12) & 31);
+    expect(visibleCities(s)).toEqual([0, 2, 3]);
+  });
+
+  it('the city you are in is always on the map, so a game saved before its flag is set can go back in', () => {
+    const s = newGame(0, { next: (() => { let i = 0; return () => i++; })() });
+    expect(visibleCities(s)).toEqual([0]);
+    s.story.city = 4;
+    expect(visibleCities(s)).toEqual([4]);
   });
 
   it('Battle Cafe names: the first speaker of each `v2 == k` branch', () => {

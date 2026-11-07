@@ -76,7 +76,13 @@ export const story = {
     decksAndPartners: 'Mazos y compañeros',
     here: 'Estás aquí',
     enter: 'Entrar',
-    locked: 'Sin passcode',
+    locked: 'Sin pase',
+  },
+  /** Rank titles, by rank (0..7): battle (wins against the CPU), collector and 2 player battle. */
+  ranks: {
+    tamer: ['Aprendiz principiante', 'Aprendiz habitual', 'Jugador de nivel medio', 'Jugador de alto nivel', 'Jugador experto', 'Maestro de las cartas', 'Genio de las cartas', 'Invencible'],
+    collector: ['Público general', 'Coleccionista aficionado', 'Coleccionista serio', 'Coleccionista de primer nivel', 'Coleccionista famoso', 'Gran coleccionista', 'Coleccionista perfecto', 'Coleccionista legendario'],
+    battle2p: ['Principiante de duelos', 'Experto en duelos', 'Especialista en duelos', 'As de los duelos', 'Maestro de duelos', 'Señor de los duelos', 'Rey de los duelos', 'Emperador de los duelos'],
   },
   city: {
     leaveCity: 'Salir de la ciudad',

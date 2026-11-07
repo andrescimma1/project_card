@@ -69,7 +69,12 @@ export const story: typeof es = {
     decksAndPartners: 'Decks and partners',
     here: 'You are here',
     enter: 'Enter',
-    locked: 'No passcode',
+    locked: 'No pass',
+  },
+  ranks: {
+    tamer: ['Beginner Apprentice', 'Regular Apprentice', 'Mid-Level Player', 'High-Level Player', 'Expert Player', 'Card Master', 'Card Genius', 'Invincible'],
+    collector: ['General Public', 'Hobby Collector', 'Serious Collector', 'Top-Level Collector', 'Famous Collector', 'Great Collector', 'Perfect Collector', 'Legendary Collector'],
+    battle2p: ['Duel Beginner', 'Duel Expert', 'Duel Specialist', 'Duel Ace', 'Duel Master', 'Duel Lord', 'Duel King', 'Duel Emperor'],
   },
   city: {
     leaveCity: 'Leave the city',

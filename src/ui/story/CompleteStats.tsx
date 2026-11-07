@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { cards } from '../../engine/cards/db';
 import type { SaveData } from '../../engine/progression/save';
 import { completeStats } from '../../engine/progression/stats';
+import { rankNames } from '../../game/titles';
 import { m } from '../../i18n';
 import { deckLabel, ownerName } from '../../story/own/decks';
 import { SPECIALTY_COLOR, SPECIALTY_NAME } from '../theme';
@@ -209,9 +210,9 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
         </Section>
 
         <Section id="titles" title={s.sections.titles}>
-          <Row label={s.battleTitle} value={st.titles.tamer} />
-          <Row label={s.collectorTitle} value={st.titles.collector} />
-          <Row label={s.battle2pTitle} value={st.titles.battle2p} />
+          <Row label={s.battleTitle} value={rankNames(save.ranks).tamer} />
+          <Row label={s.collectorTitle} value={rankNames(save.ranks).collector} />
+          <Row label={s.battle2pTitle} value={rankNames(save.ranks).battle2p} />
           <p className="pt-6 text-center font-display text-4xl font-black " style={{ color: 'var(--color-rare)' }}>
             {s.youAre(st.finalTitle)}
           </p>

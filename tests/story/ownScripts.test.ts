@@ -62,7 +62,8 @@ describe('own story scripts', () => {
     expect(first.kind === 'say' && first.lines.map(decodeScriptString)).toEqual(['Te damos la bienvenida', 'a las Tierras Quietas.']);
     let r = first;
     for (let i = 0; i < 10 && r.kind === 'say'; i++) r = advance(h, counter(), { kind: 'ack' });
-    expect(r).toEqual({ kind: 'menu', options: [2, 3, 1, 0], big: true });
+    expect(r).toMatchObject({ kind: 'menu', options: [2, 3, 1, 0], big: true });
+    expect(r.kind === 'menu' && r.prompt.map(decodeScriptString)).toEqual(['¿Adónde quieres ir?']);
   });
 
   it('every character of the 12 cities has a name of our own, and no two share one', () => {
