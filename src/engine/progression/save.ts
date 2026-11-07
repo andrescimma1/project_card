@@ -84,7 +84,7 @@ export interface SaveData {
 /** Starter partners offered at the start (OPENSEG 0x801DE8B8): Veemon, Hawkmon, Armadillomon. */
 export const STARTER_PARTNERS = [175, 182, 190];
 /** Their decks: DECK2 records 142 / 143 / 144 (Red, Green, Yellow). */
-const STARTER_DECK = [142, 143, 144];
+export const STARTER_DECK = [142, 143, 144];
 
 export function newGame(choice: 0 | 1 | 2, rand: Rand): SaveData {
   const id = STARTER_PARTNERS[choice];

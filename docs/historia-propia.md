@@ -21,6 +21,12 @@ El modo historia ya no lee los guiones del disco: usa **nuestros guiones**, que 
 
 Lugares, regiones, arenas y personajes (los 117 tienen nombre): `src/story/own/world.ts`.
 
+**Mazos.** Los 159 mazos del juego tienen nombre propio en `src/story/own/decks.ts`, en español y en inglés.
+- La historia, la batalla, el selector de rival, el editor de mazos y las estadísticas usan los mismos nombres.
+- Dos registros comparten nombre solo si el original les da el mismo nombre y el mismo dueño. Por ejemplo, el Borrón usa el mazo Vacío Desesperado en varios pueblos.
+- Los mazos que te prestan llevan el nombre de su criatura: Mazo Chispero, Mazo Trueno, Mazo Humo…
+- En las listas y en la batalla, el dueño de cada mazo aparece con su nombre de nuestro mundo, el mismo que usa la historia (Pavesa, Dante, el Coleccionista…).
+
 ### El arco, ciudad por ciudad
 
 Sigue el orden del juego original, que no cambia.
@@ -91,4 +97,12 @@ En la hoja de la ciudad, cada diálogo aparece con su identificador, por ejemplo
 - **Las 12 ciudades están escritas**, con 2.846 diálogos en español y en inglés. Solo 2 diálogos quedan sin texto a propósito: son cabeceras sin contenido, en Ciudad sin Faroles.
 - **Los 117 personajes tienen nombre propio.** La regla del mundo: cuando una criatura alcanza otra forma, toma otro nombre (Brezo → Tizón → Yunque → Fragua).
 - **Palabras clave del Mirador de las Nubes:** se aceptan las nuestras (`KEYWORDS` en `world.ts`) y también las originales, y dan el mismo premio.
-- **Pendiente de refinar:** el tono de cada personaje entre ciudades, los nombres de mazos y algunos consejos que vienen del original y no se comprobaron contra el motor.
+- **Nombres de mazos:** listos y unificados (`tests/story/deckNames.test.ts` comprueba que la historia solo nombre mazos de la tabla).
+- **Consejos y descripciones de mazos comprobados contra el motor y los datos de cartas.** Se corrigieron 25 afirmaciones que no eran ciertas en nuestro juego. Por ejemplo:
+  - la mutación de una fusión sale entre 1 y 4 veces de cada 100;
+  - el huevo hace evolucionar al compañero al entrar a combatir;
+  - la Arena de Mortaja rechaza también las cartas de Evolución;
+  - todos los mazos se barajan.
+
+  Quedan algunas frases de ambiente que los datos no pueden confirmar, como «lleno de plantas» o «el más maligno».
+- **Pendiente de refinar:** el tono de cada personaje entre ciudades.

@@ -8,7 +8,7 @@ import { partnersFromDeck } from '../engine/game/partner';
 import { validateDeck } from '../engine/game/turn';
 import type { GameEvent, GameState } from '../engine/game/types';
 import { psxRand } from '../engine/ai/rand';
-import { applyComResult, newGame as createSave, type ComResult, type SaveData } from '../engine/progression/save';
+import { applyComResult, newGame as createSave, STARTER_DECK, type ComResult, type SaveData } from '../engine/progression/save';
 import { ARMOR_IDS, availableCopies, chooseEgg, equipPart, unequipPart } from '../engine/progression/storyDecks';
 import { fuseCards, partnerFusion, visitShop } from '../engine/progression/fusion';
 import { trade, tradeBlocked } from '../engine/progression/trade';
@@ -17,6 +17,7 @@ import { markTutorial, refreshBaseDecks } from '../engine/progression/records';
 import { autoDeck, type AutoDeckOptions } from '../engine/progression/autoDeck';
 import { advance, enterCity as hostEnter, type CityHost, type StoryRequest, type StoryResponse } from '../story/cityHost';
 import { npcNames } from '../story/present';
+import { deckLabel, ownerName } from '../story/own/decks';
 import { deleteSave, listSaves, loadSave, writeSave, type SaveSummary } from './saveSlots';
 import type { SessionState } from './session';
 import { m } from '../i18n';
@@ -176,8 +177,8 @@ export function createStoryStore(deps: StoryDeps) {
         seed,
         humanFirst: seed % 2 === 0, // 🟡 who starts a story battle is not traced
         partners: [save.partners.map((p) => p.slot), partnersFromDeck(rival.cards, rival.partnerEgg)],
-        names: [save.name, rival.owner],
-        deckNames: [lent !== null ? m().board.setup.deckName(decks[lent].name) : (save.decks[save.selectedDeck]?.name ?? ''), m().board.setup.deckName(rival.name)],
+        names: [save.name, ownerName(rival.owner)],
+        deckNames: [lent !== null ? deckLabel(lent) : (save.decks[save.selectedDeck]?.name ?? ''), deckLabel(rival.index)],
       });
       set({ view: 'battle', battle: { deck, lent }, request: null, error: null });
     };
@@ -204,6 +205,7 @@ export function createStoryStore(deps: StoryDeps) {
         if (!clean) return m().game.story.nameRequired;
         const save = createSave(partner, rand);
         save.name = clean;
+        save.decks[0].name = deckLabel(STARTER_DECK[partner]);
         set({ slot, save });
         persist();
         await get().enterCity(0); // the game starts in Beginner City

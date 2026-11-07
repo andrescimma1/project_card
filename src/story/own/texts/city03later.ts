@@ -16,7 +16,7 @@ export const DECKS03 = {
   coraza: deck('*c3Mazo Cabeza Dura\nUn mazo Raro con mucha defensa. Atácalo\ncuando no tenga cartas de Apoyo.', '*c3Hardhead Deck\nA Rare deck with strong defense. Hit it\nwhen it has no Support cards left.'),
   barreno: deck('*c3Mazo Rompemontes Extra\nUn mazo Raro demoledor, con más\ncartas que recuperan HP.', '*c3Mountain Breaker EX Deck\nA crushing Rare deck with extra\ncards that recover HP.'),
   calado: deck('*c3Mazo Aguas Hondas\nUn mazo duro de las facciones\nAzul y Rara.', '*c3Deep Water Deck\nA tough deck of the Blue\nand Rare factions.'),
-  anfora: deck('*c3Mazo Barro Sagrado\nUn mazo de la facción Rara. Cuidado:\nsus ataques cambian la facción.', '*c3Sacred Clay Deck\nA Rare faction deck. Beware:\nits attacks change factions.'),
+  anfora: deck('*c3Mazo Barro Sagrado\nUn mazo de la facción Rara. Cuidado:\nsus cartas de Apoyo cambian tu facción.', '*c3Sacred Clay Deck\nA Rare faction deck. Beware:\nits Support cards change your faction.'),
   fiordo: deck('*c3Mazo Hielo Eterno\nUn mazo Azul y Raro con muchísima\ndefensa. Lo apuesta todo a evolucionar.', '*c3Everfrost Deck\nA Blue and Rare deck with huge defense.\nIt bets everything on evolving.'),
   acero: deck('*c3Mazo Ráfaga Total\nUn mazo Azul muy ofensivo,\nequilibrado y con mucho HP.', '*c3Full Volley Deck\nA very offensive Blue deck,\nbalanced and with plenty of HP.'),
   aceroNegro: deck('*c3Mazo Bandera Negra\nGana despacio, con cartas de Apoyo\nque interfieren y anulan.', '*c3Black Banner Deck\nWins slowly, with Support cards\nthat jam and nullify.'),

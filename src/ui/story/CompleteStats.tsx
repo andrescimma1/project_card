@@ -8,6 +8,7 @@ import { cards } from '../../engine/cards/db';
 import type { SaveData } from '../../engine/progression/save';
 import { completeStats } from '../../engine/progression/stats';
 import { m } from '../../i18n';
+import { deckLabel, ownerName } from '../../story/own/decks';
 import { SPECIALTY_COLOR, SPECIALTY_NAME } from '../theme';
 import { actionOf } from '../vocab/actions';
 import { TERMS } from '../vocab/terms';
@@ -139,14 +140,14 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
         <Section id="events" title={s.eventsTitle}>
           {st.eventDecks.length === 0 && <p className="text-faded">{s.noDecks}</p>}
           {st.eventDecks.map((d) => (
-            <Row key={d.index} label={s.eventDeck(d.name)} value={<WinLoss w={d.wins} l={d.losses} />} />
+            <Row key={d.index} label={deckLabel(d.index)} value={<WinLoss w={d.wins} l={d.losses} />} />
           ))}
         </Section>
 
         <Section id="com" title={s.comTitle}>
           {st.comDecks.length === 0 && <p className="text-faded">{s.noRivals}</p>}
           {st.comDecks.map((d) => (
-            <Row key={d.index} label={d.owner} value={<WinLoss w={d.wins} l={d.losses} />} />
+            <Row key={d.index} label={ownerName(d.owner)} value={<WinLoss w={d.wins} l={d.losses} />} />
           ))}
         </Section>
 

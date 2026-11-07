@@ -22,7 +22,7 @@ const brincoDeck = {
   es: '*c3Mazo Estampida\nUna manada de bestias que escupen fuego.\n¡Frena sus ataques de Furia!',
   en: '*c3Stampede Deck\nA herd of fire-breathing beasts.\nStop their Fury attacks!',
 };
-const zarpazoDeck = { who: null, es: '*c3Mazo Contragolpe\nUn mazo Rojo muy bueno\npara devolver los golpes.', en: '*c3Counterblow Deck\nA Red deck that is great\nat striking back.' };
+const zarpazoDeck = { who: null, es: '*c3Mazo Revés\nUn mazo Rojo muy bueno\npara devolver los golpes.', en: '*c3Backhand Deck\nA Red deck that is great\nat striking back.' };
 const chisperoDeck = {
   who: null,
   es: '*c3Mazo Mecha Corta\nUn mazo Rojo muy fuerte que lo\narriesga todo en cada golpe.',
@@ -30,8 +30,8 @@ const chisperoDeck = {
 };
 const truenoDeck = {
   who: null,
-  es: '*c3Mazo Relámpago\nUn mazo veloz con criaturas de nivel\nArmadura y cartas de Apoyo.',
-  en: '*c3Lightning Deck\nA fast deck of Armored creatures\nand Support cards.',
+  es: '*c3Mazo Relámpago\nUn mazo veloz que le saca partido\na su forma Armadura.',
+  en: '*c3Lightning Deck\nA fast deck that makes the most\nof its Armored shape.',
 };
 const duoDeck = {
   who: null,
@@ -40,8 +40,8 @@ const duoDeck = {
 };
 const aureoDeck = {
   who: null,
-  es: '*c3Mazo Caballero Dorado\nUn mazo Rojo de criaturas de nivel\nArmadura. Muy fuerte en defensa.',
-  en: '*c3Golden Knight Deck\nA Red deck built on Armored creatures.\nVery strong on defense.',
+  es: '*c3Mazo Caballero Dorado\nUn mazo Rojo que gira en torno a su\nforma Armadura. Muy fuerte en defensa.',
+  en: '*c3Golden Knight Deck\nA Red deck built around its Armored\nshape. Very strong on defense.',
 };
 const soberanoDeck = {
   who: null,
@@ -171,7 +171,7 @@ export const CITY01: CityTexts = {
   '3B18': eggNotice,
   '3B80': eggNotice,
   '3BE4': eggNotice,
-  '3C70': { es: 'Con este huevo, tu compañero\npuede evolucionar en plena batalla.\n\n¡Ahora tu mazo es mucho más fuerte!', en: 'With this egg, your partner\ncan evolve in the middle of a battle.\n\nNow your deck is much stronger!' },
+  '3C70': { es: 'Con este huevo, tu compañero\npuede evolucionar al entrar a combatir.\n\n¡Ahora tu mazo es mucho más fuerte!', en: 'With this egg, your partner\ncan evolve as it enters the fight.\n\nNow your deck is much stronger!' },
   '3D50': { who: 'me', es: '¡Qué bien! ¡Muchas gracias!', en: 'Wow! Great! Thanks a lot!' },
   '3DAC': { es: '¡Suerte!\nNos vemos.', en: 'Good luck!\nSee you later!' },
   '3E4C': { es: 'Sigo con un mal presentimiento...\nTen cuidado en las Arenas.', en: 'I still have this bad feeling...\nBe careful at the Arenas.' },
@@ -337,7 +337,7 @@ export const CITY01: CityTexts = {
     es: '¡Gané! Soy buena, ¿eh?\nA Tadeo tampoco le he perdido nunca.\n\n¡Hacía mucho que no disfrutaba\nuna partida así!\n\nRepitámoslo algún día.',
     en: "Hey, I won. I'm pretty good, huh?\nI've never lost to Tadeo, either.\n\nI haven't enjoyed a battle like this\nin a long time!\n\nLet's do this again sometime.",
   },
-  '96B0': { who: null, es: '*c3Mazo Gran Salto\nUn mazo Rojo que evoluciona rápido.\nLleva muchas cartas de Apoyo.', en: '*c3Great Leap Deck\nA Red deck that evolves fast.\nIt carries lots of Support cards.' },
+  '96B0': { who: null, es: '*c3Mazo Gran Salto\nUn mazo Rojo que evoluciona rápido.\nLleva muchas cartas de Evolución.', en: '*c3Great Leap Deck\nA Red deck that evolves fast.\nIt carries lots of Evolution cards.' },
 
   // the Blot, wandering through town
   '989C': {
@@ -356,7 +356,7 @@ export const CITY01: CityTexts = {
     es: 'Ahhh... El rencor crece dentro de mí.\nYa no puedo contenerlo...\n\nTengo que soltarlo.\nEste mundo se hundirá en la oscuridad.\n\nHaré que todos sientan mi dolor.\n\n¡Siente el dolor! ¡Siente la angustia!\n\n¡Esta es la venganza de los que\nse quedaron sin forma!',
     en: "Ahhh... The hatred inside me is growing.\nI can't hold it any longer...\n\nI must let it out.\nThis world will sink into darkness.\n\nI will make everyone feel my pain.\n\nFeel the pain! Feel the agony!\n\nThis is the revenge of those\nwho were left without a shape!",
   },
-  A454: { who: null, es: '*c3Mazo Vacío\nEl mazo más cruel y poderoso de todos.', en: '*c3Hollow Deck\nThe cruelest, most powerful deck of all.' },
+  A454: { who: null, es: '*c3Mazo Vacío Desesperado\nEl mazo más cruel y poderoso de todos.', en: '*c3Desperate Void Deck\nThe cruelest, most powerful deck of all.' },
 
   // the stranger
   A500: { es: 'Así que tú eres quien acaba de llegar.', en: "So, you're the one who just arrived." },

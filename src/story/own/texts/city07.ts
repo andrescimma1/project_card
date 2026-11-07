@@ -26,7 +26,7 @@ const strangerTrain = {
 
 const CAFE: CityTexts = {
   // Saeta, the temple's guardian
-  '1600': { es: 'Una pieza le sirve a cualquiera,\nen cualquier carta de compañero.\n\nSí... Son muy prácticas...', en: 'Anyone can use a part,\non any of their partner cards.\n\nYes... They are very handy...' },
+  '1600': { es: 'Una reliquia le sirve a cualquiera,\nen cualquier carta de compañero.\n\nSí... Son muy prácticas...', en: 'Anyone can use a relic,\non any of their partner cards.\n\nYes... They are very handy...' },
   '16E8': { es: '¿Te atreves a intentar pasar?', en: 'Do you dare to try and pass?' },
   '1780': { es: '¿Cambiaste de idea?', en: 'Have you changed your mind?' },
   '17F4': { es: '¿Podrás romper mi defensa?', en: 'Can you break through my defense?' },
@@ -66,8 +66,8 @@ const CAFE: CityTexts = {
   },
   '2830': celesteAccept,
   '2918': {
-    es: 'Tienes que seguir adelante.\nSolo así encontrarás la respuesta.\n\nAh, sí. Te doy un consejo.\n\nCuando ganas con tu carta\nde compañero, recibes EXP extra.\n\nLa EXP extra es una forma rápida\nde subir de rango.\n\nPor ejemplo, si ganas sin perder\nninguna ronda, recibes 3 de EXP extra.\n\n¡No dejes pasar la EXP extra!',
-    en: "You must keep moving forward.\nThat's the only way to find the answer.\n\nOh, yes. Let me give you some advice.\n\nWhen you win with your partner card,\nyou get bonus EXP.\n\nBonus EXP is a quick way\nto climb the ranks.\n\nFor instance, winning without losing\na single round gives you 3 bonus EXP.\n\nBe sure to earn bonus EXP!",
+    es: 'Tienes que seguir adelante.\nSolo así encontrarás la respuesta.\n\nAh, sí. Te doy un consejo.\n\nCuando ganas con tu carta\nde compañero, recibes EXP extra.\n\nLa EXP extra es una forma rápida\nde subir de nivel a tu compañero.\n\nPor ejemplo, si ganas sin perder\nninguna ronda, recibes 3 de EXP extra.\n\n¡No dejes pasar la EXP extra!',
+    en: "You must keep moving forward.\nThat's the only way to find the answer.\n\nOh, yes. Let me give you some advice.\n\nWhen you win with your partner card,\nyou get bonus EXP.\n\nBonus EXP is a quick way\nto level up your partner.\n\nFor instance, winning without losing\na single round gives you 3 bonus EXP.\n\nBe sure to earn bonus EXP!",
   },
   '2BD0': { es: 'Entonces, ¿empezamos?', en: 'So, shall we begin?' },
   '2C5C': { es: 'No hay prisa.\nTenemos mucho tiempo.', en: "There's no need to hurry.\nWe have plenty of time." },
@@ -99,7 +99,7 @@ const CAFE: CityTexts = {
     en: "Wow, you're really strong...\nI'm sure you'll do well at the tower!\n\nYou'll be one of the best, I know it!\n\nLet me see. Is your partner card\nBollo?\n\nThen take this!\nIt's an egg for Bollo!",
   },
   '3DAC': { who: null, es: 'Recibiste el *c3huevo de la Esperanza*c7\nde Bollo.', en: "You got Bollo's\n*c3Egg of Hope*c7!" },
-  '3E20': { es: 'Con este huevo, tu Bollo podrá\nevolucionar en plena batalla.\n\n¡Con esto vas a llegar muy lejos!', en: "With this egg, your Bollo can\nevolve in the middle of a battle.\n\nWith this, you'll go a long way!" },
+  '3E20': { es: 'Con este huevo, tu Bollo podrá\nevolucionar cuando entre a combatir.\n\n¡Con esto vas a llegar muy lejos!', en: "With this egg, your Bollo can\nevolve when it enters the fight.\n\nWith this, you'll go a long way!" },
   '3EF8': { who: 'me', es: '¡Gracias!', en: 'Thanks!' },
   '3F44': { es: '¡Suerte!', en: 'Good luck.' },
   '3FB0': { es: '¡Vaya, qué fuerza tienes!\nSeguro que en la torre te irá bien.\n\n¡Ser de los mejores no es un sueño!', en: "Wow, you're really strong.\nYou'll do fine at the tower, I'm sure!\n\nBeing one of the best is no dream!" },

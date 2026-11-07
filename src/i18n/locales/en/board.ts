@@ -6,7 +6,6 @@ export const board: typeof es = {
     title: 'Free battle',
     intro: "The game's original decks. Your rival plays with the original CPU AI, ported from the game's code, and with the personality its deck brings.",
     yourDeck: 'Your deck',
-    starters: { Red: 'Red', Green: 'Green', Yellow: 'Yellow' },
     deckName: (name: string) => `${name} Deck`,
     summary: (creatures: number, creatureWord: string, support: number, evolution: number) => `${creatures} ${creatureWord}, ${support} support, ${evolution} evolution`,
     levels: (list: string) => `Levels: ${list}.`,

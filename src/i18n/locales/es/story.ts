@@ -61,8 +61,6 @@ export const story = {
     nameOk: 'Este nombre está bien',
     partnerTitle: 'Elige tu compañero',
     partnerIntro: 'Empiezas con su mazo y cinco cartas más, elegidas al azar entre parejas fijas como en el original.',
-    /** The three starters' decks, in starter order. */
-    starterDecks: ['Mazo rojo', 'Mazo verde', 'Mazo amarillo'],
   },
   player: {
     label: 'Datos del jugador',
@@ -224,7 +222,6 @@ export const story = {
     /** Followed by the best value of each action. */
     best: 'Máximo',
     eventsTitle: 'Por mazo de evento',
-    eventDeck: (name: string) => `${name} Deck`,
     noDecks: 'Todavía no conoces ningún mazo.',
     comTitle: 'Por rival de la CPU',
     noRivals: 'Todavía no le ganaste a ningún rival.',

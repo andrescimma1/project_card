@@ -5,7 +5,8 @@ import { m, useLocale } from '../../i18n';
 import { AREAS, CITIES, keywordIndex } from '../../story/own/world';
 import { percentages, rankTitles } from '../../engine/progression/ranks';
 import { progression } from '../../engine/progression/tables';
-import type { SaveData } from '../../engine/progression/save';
+import { STARTER_DECK, type SaveData } from '../../engine/progression/save';
+import { deckLabel } from '../../story/own/decks';
 import type { StoryRequest } from '../../story/cityHost';
 import { decodeScriptString, menuLabel, storySegments, visibleCities } from '../../story/present';
 import { useSession } from '../../game/useSession';
@@ -77,7 +78,7 @@ function SlotsView() {
   );
 }
 
-/** Starter card ids; their deck names are in the dictionary (story.newGame.starterDecks), in this order. */
+/** Starter card ids, in the order of their decks (STARTER_DECK). */
 const STARTERS = [175, 182, 190];
 
 function NewGameView() {
@@ -141,7 +142,7 @@ function NewGameView() {
           >
             <CardFace card={cards[id]} size="md" />
             <span className="font-display text-xl font-bold ">{cards[id].name}</span>
-            <span className="text-sm text-faded">{t.newGame.starterDecks[i]}</span>
+            <span className="text-sm text-faded">{deckLabel(STARTER_DECK[i])}</span>
           </button>
         ))}
       </div>
