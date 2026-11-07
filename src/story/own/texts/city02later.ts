@@ -17,13 +17,13 @@ const aquilinoDeck = deck(
   '*c3Mazo Ojo de Tormenta\nUn mazo de Primer golpe que aprovecha\nlas criaturas Rojas y Verdes.',
   '*c3Eye of the Storm Deck\nA First strike deck that makes good\nuse of Red and Green creatures.',
 );
-const vendavalDeck = deck('*c3Mazo Amor Ardiente\nSu fuerte es el Primer golpe\ny recuperar HP.', '*c3Burning Love Deck\nIts strengths are First strike\nand recovering HP.');
+const vendavalDeck = deck('*c3Mazo Amor Ardiente\nSu fuerte es recuperar HP\ny adivinar tus ataques.', '*c3Burning Love Deck\nIts strengths are recovering HP\nand guessing your attacks.');
 const molineteDeck = deck('*c3Mazo Aspa Silenciosa\nUn mazo veloz de las facciones\nRara y Verde.', '*c3Silent Blade Deck\nA fast deck of the Rare\nand Green factions.');
-const cefiroDeck = deck('*c3Mazo Jinete del Viento\nUn mazo Verde de Primer golpe\ny buena defensa.', '*c3Wind Rider Deck\nA Green deck with First strike\nand solid defense.');
+const cefiroDeck = deck('*c3Mazo Jinete del Viento\nUn mazo Verde de gran defensa,\ncon Apoyo que anula ataques.', '*c3Wind Rider Deck\nA Green deck with great defense\nand Support that nullifies attacks.');
 const brunildaDeck = deck('*c3Mazo Escudo de Honor\nUn mazo Verde que pelea limpio.', '*c3Shield of Honor Deck\nA Green deck that fights fair.');
 const azucenaDeck = deck(
-  '*c3Mazo Hadas de las Flores\nSin cartas de Apoyo: todo Verde.\n¡Junta PE muy rápido!',
-  '*c3Flower Fairies Deck\nNo Support cards, all Green.\nIt gathers EP very quickly!',
+  '*c3Mazo Hadas del Prado\nSin cartas de Apoyo: todo Verde.\n¡Junta PE muy rápido!',
+  '*c3Meadow Sprites Deck\nNo Support cards, all Green.\nIt gathers EP very quickly!',
 );
 const minaDeck = deck('*c3Mazo Princesa\n24 criaturas llenas de energía\nprotegen a la princesa.', '*c3Princess Deck\n24 lively creatures\nprotect the princess.');
 const sigiloDeck = deck('*c3Mazo Relevo\nCambia rápido entre Novatos\ny Campeones.', '*c3Relay Deck\nSwitches quickly between\nNovices and Veterans.');

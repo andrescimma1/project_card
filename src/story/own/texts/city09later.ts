@@ -87,7 +87,7 @@ export const CITY09_LATER: CityTexts = {
   '61F0': { es: '¿No...? Qué pena.\nOjalá la próxima vez se pueda.', en: "No...? That's too bad.\nI hope we can next time." },
   '62D8': { es: '¡Muy bien! ¡Esta vez no pierdo!', en: "Alright! I won't lose this time!" },
   '6324': { es: 'En realidad, quiero pedirte algo.\n¿Me escuchas?', en: 'Actually, I want to ask you something.\nWill you hear me out?' },
-  '63A8': { es: 'Quiero que juegues con este\n*c3Mazo Humareda*c7, que armé yo...', en: 'I want you to play with this\n*c3Smokescreen Deck*c7 I built...' },
+  '63A8': { es: 'Quiero que juegues con este\n*c3Mazo Humo*c7, que armé yo...', en: 'I want you to play with this\n*c3Humo Deck*c7 I built...' },
   '6420': { es: 'Creo que es un mazo bastante bueno.', en: "I think it's a pretty good deck." },
   '6478': { es: 'Armé otro mazo.', en: 'I built another deck.' },
   '64BC': { es: 'Se llama *c3Mazo Quetzal*c7.\nQuiero que lo pruebes en una partida.', en: "It's called the *c3Quetzal Deck*c7.\nI want you to try it in a match." },
@@ -156,5 +156,5 @@ export const CITY09_LATER: CityTexts = {
     en: "Nooo! I lost!\nYou're too good!\n\nYou'll pay for this, don't forget it!\nYou won't beat me next time.\n\nWhen you least expect it,\nI'll be there! Ha ha ha ha!",
   },
   '8EFC': { es: '¡Ja, ja, ja, ja, ja!\n¡Te gané!\n\n¡Qué bien me siento!\n\n¡Te enfrento cuando quieras!\n\n¡Ja, ja, ja, ja, ja!', en: "Ha ha ha ha ha!\nGot you!\n\nI feel great!\n\nI'll take you on anytime!\n\nHa ha ha ha ha!" },
-  '9034': deck('*c3Mazo ¿Y Tú Quién Eres?\nUn mazo lleno de criaturas sospechosas.', '*c3Who Are You? Deck\nA deck full of suspicious creatures.'),
+  '9034': deck('*c3Mazo Caras Raras\nUn mazo lleno de criaturas sospechosas.', '*c3Funny Faces Deck\nA deck full of suspicious creatures.'),
 };

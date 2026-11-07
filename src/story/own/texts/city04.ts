@@ -9,7 +9,7 @@ import type { CityTexts, Written } from './types';
 
 const deck = (es: string, en: string): Written => ({ who: null, es, en });
 const cuerdaDeck = deck('*c3Mazo Caja de Sorpresas\nUn mazo que salta cuando menos\nlo esperas, como un muñeco de resorte.', '*c3Surprise Box Deck\nA deck that springs out when you\nleast expect it, like a wind-up toy.');
-const babosinDeck = deck('*c3Mazo Baba Pegajosa\nUn mazo retorcido que no deja\nque el rival evolucione.', '*c3Sticky Slime Deck\nA twisted deck that keeps\nthe rival from evolving.');
+const babosinDeck = deck('*c3Mazo Baba Pegajosa\nUn mazo retorcido que le quita\nal rival los PE para evolucionar.', '*c3Sticky Slime Deck\nA twisted deck that takes away\nthe EP the rival needs to evolve.');
 const reyDeck = deck('*c3Mazo ¡Viva el Rey!\nUn mazo descarado que obliga\nal rival a descartar cartas.', '*c3Long Live the King Deck\nA shameless deck that forces\nthe rival to discard cards.');
 const humoDeck = deck('*c3Mazo Cortina de Humo\nUn mazo Rojo y Sombrío que evoluciona\ny cubre sus propios puntos débiles.', '*c3Smokescreen Deck\nA Red and Shadow deck that evolves\nand covers its own weak spots.');
 

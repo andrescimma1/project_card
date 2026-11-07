@@ -8,6 +8,7 @@ import type { Specialty } from '../../engine/cards/types';
 import { TERMS } from '../vocab/terms';
 import { SPECIALTY_NAME } from '../theme';
 import { m } from '../../i18n';
+import { deckLabel, ownerName } from '../../story/own/decks';
 import { PARTNER_IDS, partnerCards } from '../../engine/game/partner';
 import { expNeeded, MAX_LEVEL } from '../../engine/progression/partnerExp';
 import type { SaveData } from '../../engine/progression/save';
@@ -77,7 +78,7 @@ function BaseDeckPicker({ onPick, onCancel }: { onPick: (ids: number[]) => void;
           {list.map((d) => (
             <li key={d.index}>
               <Button onClick={() => onPick(d.cards)}>
-                {d.owner}: {d.name}
+                {ownerName(d.owner)}: {deckLabel(d.index)}
               </Button>
             </li>
           ))}

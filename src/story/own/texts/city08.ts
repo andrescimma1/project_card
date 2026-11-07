@@ -79,8 +79,8 @@ const CAFE: CityTexts = {
 
   // Altura, at the café
   '2D98': {
-    es: 'Soy bastante salvaje. Ten cuidado,\nque te puedes lastimar.\n\n¡Era broma, no muerdo!\nNo pongas esa cara. ¡Ja, ja, ja!\n\nTe doy unos consejos útiles.\n\nUn mazo de una facción, como el Rojo,\nlleva sobre todo cartas Rojas.\n\nPara juntar cartas de una facción,\nbusca a alguien que juegue con ella.\n\nSi le ganas, te llevas\nalgunas de sus cartas.',
-    en: "I'm pretty wild. Be careful,\nor you might get hurt.\n\nKidding, I don't bite!\nDon't make that face. Ha ha ha!\n\nHere are some useful tips.\n\nA one-faction deck, like a Red deck,\nhas mostly Red cards.\n\nTo collect cards of a faction,\nfind someone who plays it.\n\nBeat them, and you'll get\nsome of their cards.",
+    es: 'Soy bastante salvaje. Ten cuidado,\nque te puedes lastimar.\n\n¡Era broma, no muerdo!\nNo pongas esa cara. ¡Ja, ja, ja!\n\nTe doy unos consejos útiles.\n\nUn mazo de una facción, como el Rojo,\nlleva sobre todo cartas Rojas.\n\nPara juntar cartas de una facción,\nbusca a alguien que juegue con ella.\n\nSi le ganas, a veces te llevas\nun sobre de cartas de su facción.',
+    en: "I'm pretty wild. Be careful,\nor you might get hurt.\n\nKidding, I don't bite!\nDon't make that face. Ha ha ha!\n\nHere are some useful tips.\n\nA one-faction deck, like a Red deck,\nhas mostly Red cards.\n\nTo collect cards of a faction,\nfind someone who plays it.\n\nBeat them, and sometimes you'll\nget a pack of their faction's cards.",
   },
   '3080': { es: '¿Una partida? ¡Yo siempre tengo ganas!', en: "A match? I'm always up for one!" },
   '3118': { es: 'Oye, ya te lo dije...\nNo hace falta tener miedo.', en: "Hey, like I said...\nThere's no need to be scared." },

@@ -10,8 +10,8 @@ import type { CityTexts, Written } from './types';
 
 const deck = (es: string, en: string): Written => ({ who: null, es, en });
 const hebraDeck = deck('*c3Mazo Hilo Firme\nHebra mejoró su mazo de siempre.\nAhora juega en serio.', "*c3Strong Thread Deck\nHebra's usual deck, improved.\nNow it means business.");
-const aguijonDeck = deck('*c3Mazo Picadura Sombría\nLa revancha de un mazo anterior.\nMucho más fuerte.', '*c3Shadow Sting Deck\nThe rematch version of an old deck.\nMuch stronger.');
-const humoDeck = deck('*c3Mazo Cortina de Humo\nNace de la Picadura Sombría,\ncon las facciones algo cambiadas.', '*c3Smoke Screen Deck\nBorn from the Shadow Sting deck,\nwith its factions slightly changed.');
+const aguijonDeck = deck('*c3Mazo Picadura Sombría\nLa revancha del Enjambre Oscuro,\ncon algunas cartas cambiadas.', "*c3Shadow Sting Deck\nDark Swarm's rematch version,\nwith a few cards swapped.");
+const humoDeck = deck('*c3Mazo Humo Renacido\nLa Cortina de Humo vuelve,\ncon cartas que reviven criaturas.', '*c3Smoke Reborn Deck\nThe Smokescreen deck returns,\nwith cards that revive creatures.');
 const quetzalDeck = deck('*c3Mazo Pluma Estelar\nUn mazo de combos que ataca tus\npuntos débiles. ¡Cuida tu facción!', '*c3Star Feather Deck\nA combo deck that hits your weak spots.\nGuard your faction!');
 const collectorDeck = deck('*c3Mazo Vitrina\nUn mazo de coleccionista, hecho\npara dominar todo el campo.', "*c3Showcase Deck\nA collector's deck, made to\ncontrol the whole field.");
 
@@ -24,7 +24,7 @@ const eggs = {
 
 const hebra = {
   gift: { es: 'Toma, quiero que tengas esto.\n¡Es un huevo para tu compañero!', en: "Here, I want you to have this.\nIt's an egg for your partner!" },
-  egg: { es: 'Con este huevo, tu compañero puede\nalcanzar una forma nueva\nen plena batalla.', en: 'With this egg, your partner can\nreach a new shape\nin the middle of a battle.' },
+  egg: { es: 'Con este huevo, tu compañero puede\nalcanzar una forma nueva\ncuando entra a combatir.', en: 'With this egg, your partner can\nreach a new shape\nwhen it enters the fight.' },
   thanks: { who: 'me', es: '¡Genial! ¡Muchas gracias!', en: 'Great! Thanks a lot!' },
   beatYou: { es: '¡Esta vez te voy a ganar!', en: "I'll beat you this time!" },
 };

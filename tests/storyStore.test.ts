@@ -43,6 +43,15 @@ describe('story flow', () => {
     expect(g.players[0].partners.map((p) => p.id)).toEqual([175]);
   });
 
+  it('the new game deck and the rival deck show our deck names', async () => {
+    const { store, session } = setup();
+    await store.getState().newGame(0, 0);
+    expect(store.getState().save!.decks[0].name).toBe('Mazo Rojo');
+    store.getState().reply({ kind: 'ack' });
+    expect(session.getState().deckNames).toEqual(['Mazo Rojo', 'Mazo Tricolor']);
+    expect(session.getState().names).toEqual(['Player', 'Brezo']);
+  });
+
   it('the end of the match applies the result, shows it, then the script continues (rewards, save)', async () => {
     const { store, storage } = setup();
     await store.getState().newGame(0, 0);

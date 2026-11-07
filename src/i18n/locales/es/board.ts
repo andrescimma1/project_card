@@ -7,7 +7,6 @@ export const board = {
     title: 'Partida libre',
     intro: 'Mazos originales del juego. El rival juega con la IA original de la CPU, portada del código del juego, y con la personalidad que trae su mazo.',
     yourDeck: 'Tu mazo',
-    starters: { Red: 'Rojo', Green: 'Verde', Yellow: 'Amarillo' } as Record<string, string>,
     deckName: (name: string) => `Mazo ${name}`,
     summary: (creatures: number, creatureWord: string, support: number, evolution: number) => `${creatures} ${creatureWord}, ${support} de apoyo, ${evolution} de evolución`,
     levels: (list: string) => `Niveles: ${list}.`,

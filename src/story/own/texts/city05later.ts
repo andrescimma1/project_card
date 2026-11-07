@@ -11,9 +11,9 @@ const sabanaDeck = deck('*c3Mazo Baile de Sábanas\nUn mazo Sombrío que roba HP
 const grajoDeck = deck('*c3Mazo Graznido\nDestroza los mazos\nde la facción Verde.', "*c3Crow's Caw Deck\nIt wrecks Green\nfaction decks.");
 const osarioDeck = deck('*c3Mazo Hueso Hueco\nUn mazo Sombrío de pura destrucción.\nSu ataque castiga a la facción Verde.', '*c3Hollow Bone Deck\nA Shadow deck of pure destruction.\nIts attack punishes the Green faction.');
 const mortajaDeck = deck('*c3Mazo Velo Gris\nUn mazo Sombrío con 2 cartas\nmuy, muy peligrosas.', '*c3Grey Veil Deck\nA Shadow deck with 2\nvery, very dangerous cards.');
-const astadoDeck = deck('*c3Mazo Cuerno Trampa\nUn mazo Verde de combos\nde contraataque.', '*c3Horn Trap Deck\nA Green deck of\ncounterattack combos.');
+const astadoDeck = deck('*c3Mazo Trampas Ocultas\nUn mazo Verde de combos\nde contraataque.', '*c3Hidden Snares Deck\nA Green deck of\ncounterattack combos.');
 const isidroDeck = deck('*c3Mazo Cálculo Exacto\nEl mazo de Isidro, lleno de\nmáquinas e insectos.', "*c3Exact Math Deck\nIsidro's deck, full of\nmachines and bugs.");
-const grunonDeck = deck('*c3Mazo Cara de Pocos Amigos\nUn mazo lleno de criaturas\nmuy sospechosas.', '*c3Grumpy Face Deck\nA deck full of very\nsuspicious creatures.');
+const grunonDeck = deck('*c3Mazo Caras Raras\nUn mazo lleno de criaturas\nmuy sospechosas.', '*c3Funny Faces Deck\nA deck full of very\nsuspicious creatures.');
 
 const sabana = {
   scared: { es: 'Te asustaste, ¿verdad?', en: "You're scared, aren't you?" },
@@ -148,8 +148,8 @@ export const CITY05_LATER: CityTexts = {
   '7BC0': { es: 'Ah, por cierto, toma esto.', en: 'Oh, by the way, take this.' },
   '7C30': { who: null, es: 'Recibiste las *c6Notas de fusión*c7.', en: 'You got the *c6Fusion Notes*c7.' },
   '7C98': {
-    es: 'Son mis notas sobre fusiones.\nEvitan las fusiones mutantes\nal fusionar cartas.\n\n¡Son muy útiles!\n\nJuguemos otra vez algún día.',
-    en: "They're my notes on fusion.\nThey prevent mutant fusions\nwhen you fuse cards.\n\nThey're very useful!\n\nLet's play again sometime.",
+    es: 'Son mis notas sobre fusiones.\nCuanto más valor suman las dos cartas,\nmás fácil sale una fusión mutante.\n\n¡Son muy útiles!\n\nJuguemos otra vez algún día.',
+    en: "They're my notes on fusion.\nThe more value the two cards add up to,\nthe likelier a mutant fusion is.\n\nThey're very useful!\n\nLet's play again sometime.",
   },
   '7F5C': {
     es: '¡Eso estuvo muy reñido!\n\n¡Qué fuerza tienes! Estaba seguro\nde que iba a perder.\n\nMe mostraste cómo mejorar\nmi mazo. Gracias.\n\nAcepto la revancha cuando quieras.\nPara entonces mi mazo será mejor.\n\n¿Hablo demasiado?\n\nTe espero.',

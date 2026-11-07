@@ -15,14 +15,14 @@ export const DECKS = {
   marejada: deck('*c3Mazo Pleamar\n¡La marea arrastra las cartas\nde tu mano!', '*c3High Tide Deck\nThe tide sweeps away\nthe cards in your hand!'),
   mortaja: deck('*c3Mazo Rey de la Niebla\nUn mazo misterioso\nde la facción Sombría.', '*c3Fog King Deck\nA mysterious deck\nof the Shadow faction.'),
   engranaje: deck('*c3Mazo Ejército de Hierro\nUn ejército de máquinas destructivo.\nRemata con el Cañón sin Fin.', '*c3Iron Army Deck\nA destructive army of machines.\nIt finishes with the Endless Cannon.'),
-  casco: deck('*c3Mazo Mar de Fondo\nUn mazo Azul de Perfectos\ncon una defensa durísima.', '*c3Groundswell Deck\nA Blue deck of Apex creatures\nwith an incredibly tough defense.'),
+  casco: deck('*c3Mazo Mar de Fondo\nUn mazo Azul con muchos HP\ny una defensa durísima.', '*c3Groundswell Deck\nA Blue deck with plenty of HP\nand an incredibly tough defense.'),
   hilvan: deck('*c3Mazo Teatro de Hilos\nA Hilván le encanta jugar,\npero tal vez le falte práctica.', "*c3String Theater Deck\nHilván loves to play,\nbut may be out of practice."),
   damaNegra: deck('*c3Mazo Flor Negra\nUn mazo Sombrío de apuestas\ncon golpes letales.', '*c3Black Flower Deck\nA Shadow gambling deck\nwith deadly blows.'),
   bufon: deck('*c3Mazo Cuatro Señores\nLleno de los señores de la torre.\n¡Ataca sin dar respiro!', '*c3Four Lords Deck\nFull of the lords of the tower.\nExpect a relentless attack!'),
   mangle: deck('*c3Mazo Raíz sin Fin\nUn mazo que gira muy rápido.\nIntenta vencerlo de un solo golpe.', '*c3Endless Root Deck\nA fast-spinning deck. Try to beat it\nin a single blow, if you can.'),
-  plaga: deck('*c3Mazo Cuenta Atrás\nUn mazo que se destruye a sí mismo,\ncapaz de arrasar con el mapa entero.', '*c3Countdown Deck\nA self-destructing deck, strong\nenough to wipe out the whole map.'),
+  plaga: deck('*c3Mazo Cuenta Regresiva\nUn mazo que se destruye a sí mismo,\ncapaz de arrasar con el mapa entero.', '*c3Countdown Deck\nA self-destructing deck, strong\nenough to wipe out the whole map.'),
   borron: deck('*c3Mazo Vacío Desesperado\nEl mazo más maligno y poderoso.', '*c3Desperate Void Deck\nThe most evil and powerful deck.'),
-  grunon: deck('*c3Mazo Caras Sospechosas\nUn mazo lleno de criaturas\nde muy dudosa reputación.', '*c3Shady Faces Deck\nA deck full of creatures\nof very doubtful reputation.'),
+  grunon: deck('*c3Mazo Caras Raras\nUn mazo lleno de criaturas\nde muy dudosa reputación.', '*c3Funny Faces Deck\nA deck full of creatures\nof very doubtful reputation.'),
 };
 
 /** Marejada talks like the alarms of the tide. */

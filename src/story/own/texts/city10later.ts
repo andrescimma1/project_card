@@ -11,7 +11,7 @@ const note = (es: string, en: string): Written => ({ who: null, es, en });
 const azucenaDeck = deck('*c3Mazo Hadas del Prado\nTodo Verde y sin cartas de Apoyo.\nJunta PE muy rápido.', '*c3Meadow Sprites Deck\nAll Green, with no Support cards.\nIt collects EP very quickly.');
 const astadoDeck = deck('*c3Mazo Trampas Ocultas\nUn mazo Verde que encadena\ncontraataques.', '*c3Hidden Snares Deck\nA Green deck that chains\ncounterattacks.');
 const martilloDeck = deck('*c3Mazo Arsenal\nUn mazo muy eficaz,\ncargado de armas.', '*c3Arsenal Deck\nA very effective deck\nloaded with weapons.');
-const plumariaDeck = deck('*c3Mazo Alba Dorada\nUn mazo Rojo equilibrado\nque recupera HP.', '*c3Golden Dawn Deck\nA well-balanced Red deck\nthat recovers HP.');
+const plumariaDeck = deck('*c3Mazo Plumas al Sol\nUn mazo Rojo equilibrado\nque recupera HP.', '*c3Sunlit Feathers Deck\nA well-balanced Red deck\nthat recovers HP.');
 const aceroDeck = deck('*c3Mazo Escarcha Certera\nUn mazo Azul de ataque, con\nmuchos HP y bien equilibrado.', '*c3True Frost Deck\nA Blue attack deck with\nplenty of HP, well-balanced.');
 const fraguaDeck = deck('*c3Mazo Corazón de Brasa\nUn mazo Rojo perfectamente equilibrado.\nNo tiene puntos débiles.', '*c3Ember Heart Deck\nA perfectly balanced Red deck.\nIt has no weak links.');
 const centinelaDeck = deck('*c3Mazo Dos Guardias\nUn mazo Rojo y Azul con\nCentinela como estrella.', '*c3Twin Guard Deck\nA Red and Blue deck\nstarring Centinela.');
@@ -65,8 +65,8 @@ export const CITY10_LATER: CityTexts = {
   '89B0': note('Recibiste el *c3huevo de la Luz*c7 de Hebra.', "You got Hebra's *c3Egg of Light*c7!"),
   '8A14': { es: '¡Busquemos la batalla definitiva!', en: 'We must seek the ultimate battle!' },
   '8A88': {
-    es: 'Nada me alegra más que probar\nmi nueva fuerza.\n\n¡Te voy a mostrar de qué soy capaz!\n\nPero antes, te cuento un secreto.\n\n¿Oíste hablar de la fusión mutante?\n\nPuede pasar al fusionar cartas,\ny crea una carta inesperada.\n\nEs muy rara: pasa más o menos\nen 1 de cada 100 fusiones.\n\nPero así se consiguen las cartas\nde las joyas, que son rarísimas.\n\nMe encantaría tener algunas\nun día de estos.',
-    en: "Nothing makes me happier than\ntrying out my new power.\n\nI'll show you what I'm capable of!\n\nBut first, let me tell you a secret.\n\nHave you heard of a mutant fusion?\n\nIt can happen when you fuse cards,\nand it creates an unexpected card.\n\nIt's very rare: it happens in\nabout 1 of every 100 fusions.\n\nBut it's how you get the jewel cards,\nwhich are extremely rare.\n\nI would love to get my hands on\nsome of them one of these days.",
+    es: 'Nada me alegra más que probar\nmi nueva fuerza.\n\n¡Te voy a mostrar de qué soy capaz!\n\nPero antes, te cuento un secreto.\n\n¿Oíste hablar de la fusión mutante?\n\nPuede pasar al fusionar cartas,\ny crea una carta inesperada.\n\nEs muy rara: pasa entre 1 y 4 veces\nde cada 100 fusiones.\n\nPero así se consiguen las cartas\nde las joyas, que son rarísimas.\n\nMe encantaría tener algunas\nun día de estos.',
+    en: "Nothing makes me happier than\ntrying out my new power.\n\nI'll show you what I'm capable of!\n\nBut first, let me tell you a secret.\n\nHave you heard of a mutant fusion?\n\nIt can happen when you fuse cards,\nand it creates an unexpected card.\n\nIt's very rare: it happens 1 to 4\ntimes in every 100 fusions.\n\nBut it's how you get the jewel cards,\nwhich are extremely rare.\n\nI would love to get my hands on\nsome of them one of these days.",
   },
   '8DF0': { es: '¿Sientes mi emoción?\n¿Jugamos?', en: 'Can you sense my excitement?\nShall we play?' },
   '8E84': { es: '¿Te echas atrás?', en: 'Are you backing out?' },

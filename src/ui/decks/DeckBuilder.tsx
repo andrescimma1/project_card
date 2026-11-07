@@ -7,6 +7,7 @@ import { CardArt } from '../play/CardFace';
 import { DeckEditor } from './DeckEditor';
 import { TERMS } from '../vocab/terms';
 import { m } from '../../i18n';
+import { deckLabel, ownerName } from '../../story/own/decks';
 
 function DeckList() {
   const { decks, edit, create, remove } = useDecks();
@@ -28,7 +29,7 @@ function DeckList() {
             <select value={source} onChange={(e) => setSource(Number(e.target.value))} className="max-w-[18rem] cut [--c:6px] border border-seam bg-leather px-3 py-2">
               {originalDecks.map((d) => (
                 <option key={d.index} value={d.index}>
-                  {d.owner}: {d.name}
+                  {ownerName(d.owner)}: {deckLabel(d.index)}
                 </option>
               ))}
             </select>
@@ -36,7 +37,7 @@ function DeckList() {
               type="button"
               onClick={() => {
                 const d = originalDecks[source];
-                create(t.copyName(d.name), d.cards);
+                create(t.copyName(deckLabel(d.index)), d.cards);
               }}
               className="cmd"
             >

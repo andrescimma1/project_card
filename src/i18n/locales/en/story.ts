@@ -54,7 +54,6 @@ export const story: typeof es = {
     nameOk: 'Use this name',
     partnerTitle: 'Choose your partner',
     partnerIntro: 'You start with its deck and five more cards, picked at random from fixed pairs, as in the original.',
-    starterDecks: ['Red deck', 'Green deck', 'Yellow deck'],
   },
   player: {
     label: 'Player data',
@@ -207,7 +206,6 @@ export const story: typeof es = {
     traded: 'Received in a trade',
     best: 'Best',
     eventsTitle: 'By event deck',
-    eventDeck: (name: string) => `${name} Deck`,
     noDecks: "You don't know any deck yet.",
     comTitle: 'By CPU rival',
     noRivals: "You haven't beaten any rival yet.",

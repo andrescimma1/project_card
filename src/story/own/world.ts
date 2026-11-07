@@ -184,6 +184,7 @@ export const CHARACTERS: Record<string, string | Named> = {
   WereGarurumon: 'Aullido',
   Togemon: 'Espina',
   Kabuterimon: 'Cornelio',
+  Tentomon: 'Zumbido', // only owns a deck, not in the story
   Ikkakumon: 'Rompehielos',
   Birdramon: 'Gallardo',
   // Torre sin Fin

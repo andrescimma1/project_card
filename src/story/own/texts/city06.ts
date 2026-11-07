@@ -1,7 +1,7 @@
 /**
  * Isla de Arena (city 6), after the ending: a lonely island of dunes and shipwrecks. Mortaja comes back
  * for revenge with his allies Melena, Grajo and Latón, and his Arena only lets in decks without Support
- * cards. Gruñón drifts in on a barrel, and the Blot wanders the island too.
+ * or Evolution cards. Gruñón drifts in on a barrel, and the Blot wanders the island too.
  */
 import type { CityTexts, Written } from './types';
 
@@ -37,8 +37,8 @@ export const CITY06: CityTexts = {
   '2950': { es: 'Ven a mi Arena,\naunque quizá te arrepientas.\n\nEn mi Arena se juega\ncon reglas especiales.', en: 'Come to my Arena,\nthough you may regret it.\n\nMy Arena plays by\na special set of rules!' },
   '2A38': { who: 'me', es: '¿Reglas especiales?', en: 'Special rules?' },
   '2A94': {
-    es: 'Así es. En mi Arena no se permiten\ncartas de Apoyo.\n\nSolo pueden entrar mazos\nsin ninguna carta de Apoyo.\n\n¡Las únicas cartas de Apoyo\nque se juegan aquí son las mías!\n¡Ja, ja, ja, ja!\n\nTampoco puedes usar un mazo base.\n\n¿Te atreves a entrar\nen mi Arena?\n\n¡Ja, ja, ja, ja!',
-    en: "That's right. No Support cards\nare allowed in my Arena.\n\nOnly decks without a single\nSupport card may enter.\n\nThe only Support cards\nplayed here are mine!\nHa ha ha ha ha!\n\nYou can't use a base deck, either.\n\nAre you brave enough\nto enter my Arena?\n\nHa ha ha ha ha!",
+    es: 'Así es. En mi Arena no se permiten\ncartas de Apoyo ni de Evolución.\n\nSolo pueden entrar mazos\nsin ninguna de esas cartas.\n\n¡Las únicas cartas de Apoyo\nque se juegan aquí son las mías!\n¡Ja, ja, ja, ja!\n\nRevisaré tu mazo carta por carta.\n\n¿Te atreves a entrar\nen mi Arena?\n\n¡Ja, ja, ja, ja!',
+    en: "That's right. No Support or Evolution\ncards are allowed in my Arena.\n\nOnly decks without a single\none of those cards may enter.\n\nThe only Support cards\nplayed here are mine!\nHa ha ha ha ha!\n\nI'll check your deck card by card.\n\nAre you brave enough\nto enter my Arena?\n\nHa ha ha ha ha!",
   },
 
   // Mortaja at the café
@@ -135,13 +135,13 @@ export const CITY06: CityTexts = {
     en: "Oh nooo! I lost!\nYou're too strong!\n\nI'll get you for this, punk!\nYou won't beat me next time!\n\nWhen you least expect it,\nthere I'll be! Ha ha ha ha!",
   },
   '4E20': { es: '¡Ja, ja, ja, ja!\n¡Te gané!\n\n¡Qué bien me siento!\n\nTe enfrento cuando quieras.\n¡Ja, ja, ja, ja!', en: "Ha ha ha ha ha!\nGot you!\n\nMan, I feel great!\n\nI'll take you on anytime.\nHa ha ha ha ha!" },
-  '4F58': deck('*c3Mazo Carnaval\nUn mazo lleno de criaturas\nde lo más estrafalarias.', '*c3Carnival Deck\nA deck full of\nthe oddest-looking creatures.'),
+  '4F58': deck('*c3Mazo Caras Raras\nUn mazo lleno de criaturas\nde lo más estrafalarias.', '*c3Funny Faces Deck\nA deck full of\nthe oddest-looking creatures.'),
 
-  // the Arena only lets in decks without Support cards
+  // the Arena only lets in decks without Support or Evolution cards (CITY06 checks mask 0xC0)
   '50EC': {
     who: null,
-    es: 'No tienes ningún mazo\nsin cartas de Apoyo.\n\nEn esta Arena no se permiten\ncartas de Apoyo.\n\nSi quieres entrar, arma un mazo\nque no tenga cartas de Apoyo.',
-    en: "You don't have any deck\nwithout Support cards.\n\nSupport cards aren't allowed\nin this Arena.\n\nTo enter, build a deck\nwith no Support cards.",
+    es: 'No tienes ningún mazo sin cartas\nde Apoyo ni de Evolución.\n\nEn esta Arena no se permiten\ncartas de Apoyo ni de Evolución.\n\nSi quieres entrar, arma un mazo\nsin cartas de Apoyo ni de Evolución.',
+    en: "You don't have any deck without\nSupport or Evolution cards.\n\nSupport and Evolution cards\naren't allowed in this Arena.\n\nTo enter, build a deck with\nno Support or Evolution cards.",
   },
 
   // the tournament: Melena, Grajo, Latón, then Mortaja

@@ -53,8 +53,8 @@ const CAFE: CityTexts = {
 
   // Cornelio
   '1D60': {
-    es: 'Me hablaron mucho de ti.\n¡Dicen que tienes muchísima fuerza!\n\nTenía ganas de desafiarte.\n\nPor cierto, me enteré\nde algo muy útil.\n\nHay una pieza que le da más\nexperiencia a tu compañero.\n\nPero solo al compañero\nque la lleva puesta.\n\nInteresante, ¿no?',
-    en: "I've heard a lot about you.\nThey say you're super strong!\n\nI've been wanting to challenge you.\n\nBy the way, I heard about\nsomething really useful.\n\nThere's a part that gives your\npartner more experience.\n\nBut only the partner\nwho has it equipped.\n\nInteresting, huh?",
+    es: 'Me hablaron mucho de ti.\n¡Dicen que tienes muchísima fuerza!\n\nTenía ganas de desafiarte.\n\nPor cierto, me enteré\nde algo muy útil.\n\nHay una reliquia que le da más\nexperiencia a tu compañero.\n\nPero solo al compañero\nque la lleva puesta.\n\nInteresante, ¿no?',
+    en: "I've heard a lot about you.\nThey say you're super strong!\n\nI've been wanting to challenge you.\n\nBy the way, I heard about\nsomething really useful.\n\nThere's a relic that gives your\npartner more experience.\n\nBut only the partner\nwho has it equipped.\n\nInteresting, huh?",
   },
   '2000': { es: '¿De verdad quieres jugar?', en: 'Do you really want to play?' },
   '2098': { es: 'Mucho hablar y poco jugar, ¿eh?', en: 'All talk and no play, huh?' },

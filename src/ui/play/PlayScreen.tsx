@@ -11,6 +11,8 @@ import type { Action, GameState, PlayerId } from '../../engine/game/types';
 import { controller, HUMAN } from '../../game/session';
 import { sessionStore, useSession } from '../../game/useSession';
 import { useDecks } from '../../game/deckStore';
+import { getLocale } from '../../i18n';
+import { deckLabel, deckName, ownerName } from '../../story/own/decks';
 import { CardDetail } from '../CardDetail';
 import { ActivePanel, activeView } from './Arena';
 import { CardArt } from './CardFace';
@@ -62,7 +64,7 @@ function DeckSetup() {
   const customDeck = saved.find((d) => d.id === custom) ?? null;
   const B = m().board;
   const S = B.setup;
-  const my = customDeck ? { cards: customDeck.cards, name: customDeck.name } : { cards: starterDecks[mine].cards, name: S.deckName(starterDecks[mine].name) };
+  const my = customDeck ? { cards: customDeck.cards, name: customDeck.name } : { cards: starterDecks[mine].cards, name: deckLabel(starterDecks[mine].index) };
   const their = opponentDecks[opp];
   const so = deckSummary(their);
   const ownerCard = cards.find((c) => c.name === their.owner);
@@ -77,8 +79,8 @@ function DeckSetup() {
       cpuEgg: their.partnerEgg,
       seed,
       humanFirst,
-      names: ['Jugador', their.owner],
-      deckNames: [my.name, S.deckName(their.name)],
+      names: ['Jugador', ownerName(their.owner)],
+      deckNames: [my.name, deckLabel(their.index)],
     });
   };
 
@@ -111,7 +113,7 @@ function DeckSetup() {
                   {partner && <CardArt card={partner} className="size-16 shrink-0 bg-soot" />}
                   <span>
                     <span className="block font-display text-[20px] font-bold">
-                      {S.starters[d.name] ?? d.name} ({STARTER_PARTNER[d.name]})
+                      {deckName(d.index, getLocale())} ({STARTER_PARTNER[d.name]})
                     </span>
                     <span className="block text-sm text-faded">
                       {S.summary(sum.digimon, TERMS.creatures.toLowerCase(), sum.options, sum.digivolve)}
@@ -142,7 +144,7 @@ function DeckSetup() {
             <select value={opp} onChange={(e) => setOpp(Number(e.target.value))} className="min-w-0 flex-1 bg-soot px-3 py-2.5 font-display text-[18px] shadow-[inset_0_0_0_1px_rgb(255_199_154/0.5)]">
               {opponentDecks.map((d, i) => (
                 <option key={d.index} value={i}>
-                  {d.owner}: {d.name}
+                  {ownerName(d.owner)}: {deckLabel(d.index)}
                 </option>
               ))}
             </select>
