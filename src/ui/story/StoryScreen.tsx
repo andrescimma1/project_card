@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { cards } from '../../engine/cards/db';
 import { TERMS } from '../vocab/terms';
 import { m, useLocale } from '../../i18n';
-import { AREAS, CITIES } from '../../story/own/world';
+import { AREAS, CITIES, keywordIndex } from '../../story/own/world';
 import { percentages, rankTitles } from '../../engine/progression/ranks';
 import { progression } from '../../engine/progression/tables';
 import type { SaveData } from '../../engine/progression/save';
@@ -320,8 +320,7 @@ function Reward({ req }: { req: Extract<StoryRequest, { kind: 'reward' }> }) {
 function Keyword() {
   const [word, setWord] = useState('');
   const submit = () => {
-    const i = progression.world.keywords.indexOf(word.trim().toUpperCase());
-    act().reply({ kind: 'choice', value: i });
+    act().reply({ kind: 'choice', value: keywordIndex(word) });
   };
   const t = m().story;
   return (

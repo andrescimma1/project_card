@@ -16,11 +16,40 @@ El modo historia ya no lee los guiones del disco: usa **nuestros guiones**, que 
 - Las personas se fueron hace mucho. Las criaturas heredaron sus pueblos y sus oficios: relojeros, barqueros, ferias abandonadas…
 - Las cartas guardan la forma de cada criatura, y evolucionar es alcanzar una forma mayor.
 - El jugador llega como aprendiz y viaja de pueblo en pueblo ganando torneos.
-- Desde una torre al final del mapa, algo está borrando las formas de las criaturas:
-  - lo que queda de una criatura que perdió su forma es **el Borrón**;
-  - en la Torre del Archivero vive quien quiere guardar todas las formas para siempre.
+- Desde una torre al final del mapa, una niebla gris está borrando las formas de las criaturas.
+- Lo que queda de una criatura que perdió su forma es **el Borrón**: vaga por los pueblos, lleno de rencor contra los que sí pudieron evolucionar.
 
-Lugares, regiones, arenas y personajes: `src/story/own/world.ts`.
+Lugares, regiones, arenas y personajes (los 117 tienen nombre): `src/story/own/world.ts`.
+
+### El arco, ciudad por ciudad
+
+Sigue el orden del juego original, que no cambia.
+
+1. **Aldea del Cruce.** El jugador llega. Nilo le explica el mundo y la Abuela Retama le da el pase.
+2. **Hornos Viejos, Bosque Hondo y Puerto Escarcha.** Otros viajeros que volvieron (Dante, Lía, Iker…) cuentan que alguien se está quedando con las Arenas. Es **el Coleccionista**, un viajero que acapara cartas y deja a las criaturas sin voluntad, «bajo su hechizo».
+3. **Chatarral y Ciudad sin Faroles.** Aparecen sus secuaces y criaturas de la facción Sombría. En Ciudad sin Faroles el jugador vence al Coleccionista, que huye sin decir quién es. Más adelante, Madreselva le pide que eche de allí a unos extraños.
+4. **Templo Hundido.** Tomás le habla de la Torre del Archivero, la Arena más difícil de todas.
+5. **Mirador de las Nubes.** Zarpa le pide que vaya a la torre a averiguar qué pasa.
+6. **Camino del Risco.** El Coleccionista se muestra sin máscara: es **Fermín**. Pide perdón, abandona lo que estaba haciendo y le da al jugador un compañero.
+7. **Torre del Archivero.** Un archivo antiguo donde se guardaba el registro de todas las formas, defendido por **Yunque**. Junto al lago apareció otra torre, la **Torre sin Fin**, de donde sale la niebla gris.
+8. **Torre sin Fin.** **Mortaja Voraz** quiere que todas las formas se vuelvan grises y quietas. Es la batalla final.
+9. **Después del final, en la Isla de Arena.** Mortaja vuelve con sus aliados (Melena, Grajo y Latón) para vengarse. Tadeo, otro viajero, lo estaba buscando.
+
+### Vocabulario
+
+| Original | Español | Inglés |
+|---|---|---|
+| Digi-land | las Tierras Quietas | the Quiet Lands |
+| Digimon | criatura | creature |
+| Card Tamer | aprendiz, jugador de cartas | apprentice, card player |
+| Battle Cafe / Battle Arena | Café de batallas / Arena | Battle Cafe / Arena |
+| Passcode | pase | pass |
+| Rookie / Champion / Ultimate | Novato / Campeón / Perfecto | Novice / Veteran / Apex |
+| Option / Digivolve Card | carta de Apoyo / de Evolución | Support / Evolution card |
+| DP | PE | EP |
+| Fire / Ice / Nature / Darkness / Rare | facción Roja / Azul / Verde / Sombría / Rara | Red / Blue / Green / Shadow / Rare faction |
+| Digi-Egg / partner | huevo / compañero | egg / partner |
+| Digivolve | evolucionar | evolve |
 
 ## Cómo funciona
 
@@ -59,6 +88,7 @@ En la hoja de la ciudad, cada diálogo aparece con su identificador, por ejemplo
 
 ## Estado
 
-- **Aldea del Cruce:** escrita la llegada, el guía Nilo, Brezo, Pipa, la Abuela Retama y el primer torneo. Faltan los personajes de fases posteriores.
-- **Las otras 11 ciudades:** se pueden jugar enteras. Muestran los textos compartidos y los genéricos, y sus personajes todavía dicen «…».
-- **Personajes:** 10 tienen nombre propio; el resto, unos 110, todavía muestra el nombre original.
+- **Las 12 ciudades están escritas**, con 2.846 diálogos en español y en inglés. Solo 2 diálogos quedan sin texto a propósito: son cabeceras sin contenido, en Ciudad sin Faroles.
+- **Los 117 personajes tienen nombre propio.** La regla del mundo: cuando una criatura alcanza otra forma, toma otro nombre (Brezo → Tizón → Yunque → Fragua).
+- **Palabras clave del Mirador de las Nubes:** se aceptan las nuestras (`KEYWORDS` en `world.ts`) y también las originales, y dan el mismo premio.
+- **Pendiente de refinar:** el tono de cada personaje entre ciudades, los nombres de mazos y algunos consejos que vienen del original y no se comprobaron contra el motor.
