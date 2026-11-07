@@ -76,7 +76,7 @@ describe('story screens edit the save the script uses', () => {
     const { store } = setup();
     await store.getState().newGame(0, 0);
     const own = store.getState().save!.decks[0].cards;
-    expect(store.getState().saveDeck(1, 'Otro', [172])).toMatch(/Armor/);
+    expect(store.getState().saveDeck(1, 'Otro', [172])).toMatch(/Armadura/);
     expect(store.getState().saveDeck(1, 'Otro', [27, 27, 27, 27, 27])).toMatch(/copias|tienes/);
     expect(store.getState().saveDeck(0, 'Rojo', own.slice(0, 10))).toMatch(/activo/);
     expect(store.getState().saveDeck(1, 'Otro', own.slice(0, 10))).toBeNull();
@@ -99,7 +99,7 @@ describe('story screens edit the save the script uses', () => {
     expect(store.getState().save!.partners[0].slot.parts).toEqual([part]);
     store.getState().partnerAction({ kind: 'unequip', partner: 0, part });
     expect(store.getState().save!.partners[0].slot.parts).toEqual([]);
-    expect(store.getState().partnerAction({ kind: 'egg', partner: 0, egg: 0 })).toMatch(/Digi-Egg/);
+    expect(store.getState().partnerAction({ kind: 'egg', partner: 0, egg: 0 })).toMatch(/huevo/);
   });
 });
 

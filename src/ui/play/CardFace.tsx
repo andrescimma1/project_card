@@ -4,6 +4,7 @@ import { artUrl, isCustomArt } from '../art';
 import { frameColor } from '../theme';
 import { ACTIONS, slotOf } from '../vocab/actions';
 import { factionOf, paletteOf } from '../vocab/factions';
+import { m } from '../../i18n';
 import { cardText, TERMS } from '../vocab/terms';
 import { ActionIcon, BackSigil, FactionEmblem } from './glyphs';
 
@@ -55,7 +56,7 @@ const FONT: Record<CardSize, number> = { xs: 6.6, sm: 8.9, hand: 10, md: 11.4, l
 /** Level medallion: our initial for the level; support and evolution cards say what they are. */
 function badgeOf(card: Card): string {
   if (card.kind === 'digimon') return TERMS.levelShort[card.level];
-  return card.kind === 'option' ? 'Ap' : 'Ev';
+  return card.kind === 'option' ? TERMS.supportBadge : TERMS.evolutionBadge;
 }
 
 /**
@@ -101,7 +102,7 @@ export function CardFace({
             {badgeOf(card)}
           </span>
           {creature && (
-            <span className="tcg-chip num" title={`Da ${creature.dpGiven} ${TERMS.dp} al cargarla`}>
+            <span className="tcg-chip num" title={m().board.card.gives(creature.dpGiven, TERMS.dp)}>
               <small>{TERMS.dp}</small>+{creature.dpGiven}
             </span>
           )}

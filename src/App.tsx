@@ -9,14 +9,20 @@ import { StoryScreen } from './ui/story/StoryScreen';
 import { AudioButton } from './ui/AudioPanel';
 import { BackSigil } from './ui/play/glyphs';
 import { TERMS } from './ui/vocab/terms';
+import { LanguageSwitch } from './ui/LanguageSwitch';
+import { m } from './i18n';
 
-const TABS: { id: View; label: string }[] = [
-  { id: 'story', label: 'Historia' },
-  { id: 'play', label: 'Partida libre' },
-  { id: 'decks', label: 'Mazos' },
-  { id: 'cards', label: `Cartas (${cardDb.cardCount})` },
-  { id: 'rules', label: 'Reglas investigadas' },
-];
+/** The sections of the top bar, in the current language. */
+function tabs(): { id: View; label: string }[] {
+  const T = m().common.tabs;
+  return [
+    { id: 'story', label: T.story },
+    { id: 'play', label: T.play },
+    { id: 'decks', label: T.decks },
+    { id: 'cards', label: T.cards(cardDb.cardCount) },
+    { id: 'rules', label: T.rules },
+  ];
+}
 
 /**
  * A game shell: a slim bar on top and the screen below, filling the window. The page never scrolls;
@@ -31,12 +37,12 @@ export default function App() {
         className="relative z-30 flex h-11 shrink-0 items-center gap-8 px-5 whitespace-nowrap shadow-[0_2px_0_#6f5638,0_3px_0_#140e09,0_8px_20px_rgb(0_0_0/0.45)]"
         style={{ background: 'var(--grain), linear-gradient(180deg, #2c2118, #1b140f)' }}
       >
-        <span className="hidden shrink-0 items-center gap-2 md:flex" title="Motor de reglas, cartas e IA basados en el juego original (SLUS-01328)">
+        <span className="hidden shrink-0 items-center gap-2 md:flex" title={m().common.titleHint}>
           <BackSigil className="size-[22px] text-brass" />
           <span className="font-display text-[22px] font-black tracking-wide text-bone">{TERMS.game}</span>
         </span>
-        <nav className="thin-scroll flex h-full min-w-0 flex-1 items-stretch gap-1 overflow-x-auto" aria-label="Secciones">
-          {TABS.map((t) => (
+        <nav className="thin-scroll flex h-full min-w-0 flex-1 items-stretch gap-1 overflow-x-auto" aria-label={m().common.sections}>
+          {tabs().map((t) => (
             <button
               key={t.id}
               type="button"
@@ -50,6 +56,7 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <LanguageSwitch />
         <AudioButton />
       </header>
       <main className="relative min-h-0 flex-1">

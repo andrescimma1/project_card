@@ -111,6 +111,20 @@ la interfaz habla con vocabulario y estética propios. **Las reglas no cambiaron
 * `tests/vocab.test.ts` revisa que ningún texto visible de la interfaz use términos de Digimon ni
   ◯ △ ✕, y que esté en español latino neutro.
 
+## Idiomas
+
+* Todo texto que lee el jugador sale de un diccionario por idioma (`src/i18n/locales/<idioma>/`):
+  español latino neutro e inglés, con selector en la barra superior (se recuerda en el navegador; el
+  español es el idioma por defecto). El compilador obliga a que cada idioma tenga todas las claves.
+* Los textos de las cartas (efectos de soporte y de evolución) están reescritos en ambos idiomas con
+  nuestro vocabulario en `src/i18n/cards/`, con el texto original del disco como clave; los datos no
+  cambian. Los nombres de criaturas y ataques siguen siendo los del disco.
+* El motor conserva sus mensajes (errores de mazo, fusión, intercambio…); `src/i18n/engineMessages.ts`
+  los reconoce y los muestra en el idioma actual.
+* Para agregar un idioma: copiar `locales/en`, traducirlo y sumarlo en `src/i18n/index.ts`.
+  `tests/i18n.test.ts` revisa que esté completo, sin vocabulario de Digimon y sin texto escrito dentro
+  de los componentes.
+
 ## Mazos propios (Etapa 6)
 
 * `src/game/deckbook.ts`: reglas de construcción del original (30 cartas, máximo 4 copias, al menos un

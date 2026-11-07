@@ -7,26 +7,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { cards } from '../../engine/cards/db';
 import type { SaveData } from '../../engine/progression/save';
 import { completeStats } from '../../engine/progression/stats';
+import { m } from '../../i18n';
 import { SPECIALTY_COLOR, SPECIALTY_NAME } from '../theme';
 import { actionOf } from '../vocab/actions';
 import { TERMS } from '../vocab/terms';
 import { CardArt } from '../play/CardFace';
 import { Button } from './common';
 
-const SECTIONS = [
-  ['cards', 'Cartas'],
-  ['events', 'Mazos de evento'],
-  ['com', 'Contra la CPU'],
-  ['bonuses', 'Bonos'],
-  ['trade', 'Intercambio'],
-  ['fusion', 'Fusión'],
-  ['attacks', 'Ataques'],
-  ['specialty', 'Especialidades'],
-  ['results', 'Resultados'],
-  ['titles', 'Títulos'],
-] as const;
+/** Section ids in the original order; their names are in the dictionary (story.stats.sections). */
+const SECTIONS = ['cards', 'events', 'com', 'bonuses', 'trade', 'fusion', 'attacks', 'specialty', 'results', 'titles'] as const;
 const SLOTS = ['circle', 'triangle', 'cross'] as const;
-const RANK = ['1.º', '2.º', '3.º', '4.º', '5.º'];
 const pct = (permille: number) => `${Math.floor(permille / 10)}.${permille % 10} %`;
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
@@ -47,11 +37,14 @@ function Row({ label, value }: { label: React.ReactNode; value: React.ReactNode 
   );
 }
 
-const WinLoss = ({ w, l }: { w: number; l: number }) => (
-  <>
-    {w} <span className="text-faded">victorias</span> · {l} <span className="text-faded">derrotas</span>
-  </>
-);
+const WinLoss = ({ w, l }: { w: number; l: number }) => {
+  const t = m().story.shared;
+  return (
+    <>
+      {w} <span className="text-faded">{t.winsWord(w)}</span> · {l} <span className="text-faded">{t.lossesWord(l)}</span>
+    </>
+  );
+};
 
 export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; autoScroll: boolean; onClose: () => void }) {
   const st = useMemo(() => completeStats(save), [save]);
@@ -88,23 +81,25 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
     document.getElementById(`stats-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const s = m().story.stats;
+  const shared = m().story.shared;
   return (
-    <div className="flex flex-col gap-3" aria-label="Estadísticas completas del jugador">
+    <div className="flex flex-col gap-3" aria-label={s.label}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-4xl font-black ">Estadísticas completas</h2>
+        <h2 className="font-display text-4xl font-black ">{s.title}</h2>
         <Button primary onClick={onClose}>
-          Salir
+          {shared.exit}
         </Button>
       </div>
-      <nav className="flex flex-wrap gap-1.5" aria-label="Secciones">
-        {SECTIONS.map(([id, label]) => (
+      <nav className="flex flex-wrap gap-1.5" aria-label={s.sectionsLabel}>
+        {SECTIONS.map((id) => (
           <button key={id} type="button" onClick={() => jump(id)} className="cut bg-leather px-3 py-1 font-display text-[15px] font-semibold [--c:6px] hover:bg-hide">
-            {label}
+            {s.sections[id]}
           </button>
         ))}
       </nav>
       <div ref={page} className="flex max-h-[70vh] flex-col gap-8 overflow-y-auto cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4 sm:p-6">
-        <Section id="cards" title="Cartas que tienes">
+        <Section id="cards" title={s.cardsTitle}>
           <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {st.cards.map((c) => (
               <li key={c.id} className="flex gap-3 cut [--c:10px] bg-leather/70 p-2">
@@ -112,12 +107,12 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="flex items-baseline justify-between gap-2">
                     <span className="truncate font-semibold">{c.known ? cards[c.id].name : '?????????????'}</span>
-                    <span className="shrink-0 text-xs text-faded">No.{c.id}</span>
+                    <span className="shrink-0 text-xs text-faded">{s.cardNo(c.id)}</span>
                   </p>
                   {c.known && (
                     <p className="text-faded">
-                      {c.copies} {c.copies === 1 ? 'copia' : 'copias'}
-                      {c.traded && <span className="ml-2" style={{ color: 'var(--color-rare)' }}>Recibida por intercambio</span>}
+                      {shared.copies(c.copies)}
+                      {c.traded && <span className="ml-2" style={{ color: 'var(--color-rare)' }}>{s.traded}</span>}
                     </p>
                   )}
                   {c.digimon && (
@@ -126,10 +121,10 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
                         <WinLoss w={c.digimon.wins} l={c.digimon.losses} />
                       </p>
                       <p className="text-faded">
-                        Máximo{' '}
-                        {SLOTS.map((s, k) => (
-                          <span key={s} className="mr-2 tabular-nums text-bone">
-                            {TERMS.actions[actionOf(s)]} {c.digimon!.max[k]}
+                        {s.best}{' '}
+                        {SLOTS.map((sl, k) => (
+                          <span key={sl} className="mr-2 tabular-nums text-bone">
+                            {TERMS.actions[actionOf(sl)]} {c.digimon!.max[k]}
                           </span>
                         ))}
                       </p>
@@ -141,89 +136,89 @@ export function CompleteStats({ save, autoScroll, onClose }: { save: SaveData; a
           </ol>
         </Section>
 
-        <Section id="events" title="Por mazo de evento">
-          {st.eventDecks.length === 0 && <p className="text-faded">Todavía no conoces ningún mazo.</p>}
+        <Section id="events" title={s.eventsTitle}>
+          {st.eventDecks.length === 0 && <p className="text-faded">{s.noDecks}</p>}
           {st.eventDecks.map((d) => (
-            <Row key={d.index} label={`${d.name} Deck`} value={<WinLoss w={d.wins} l={d.losses} />} />
+            <Row key={d.index} label={s.eventDeck(d.name)} value={<WinLoss w={d.wins} l={d.losses} />} />
           ))}
         </Section>
 
-        <Section id="com" title="Por rival de la CPU">
-          {st.comDecks.length === 0 && <p className="text-faded">Todavía no le ganaste a ningún rival.</p>}
+        <Section id="com" title={s.comTitle}>
+          {st.comDecks.length === 0 && <p className="text-faded">{s.noRivals}</p>}
           {st.comDecks.map((d) => (
             <Row key={d.index} label={d.owner} value={<WinLoss w={d.wins} l={d.losses} />} />
           ))}
         </Section>
 
-        <Section id="bonuses" title="Bonos obtenidos">
+        <Section id="bonuses" title={s.bonusesTitle}>
           <div className="grid gap-x-8 sm:grid-cols-2">
             {st.bonuses.map((b) => (
-              <Row key={b.id} label={b.name} value={`${b.times} veces`} />
+              <Row key={b.id} label={b.name} value={s.times(b.times)} />
             ))}
           </div>
         </Section>
 
-        <Section id="trade" title="Intercambio">
-          <Row label="Cartas entregadas" value={st.trading.given} />
-          <Row label="Cartas recibidas" value={st.trading.received} />
+        <Section id="trade" title={s.sections.trade}>
+          <Row label={s.given} value={st.trading.given} />
+          <Row label={s.received} value={st.trading.received} />
         </Section>
 
-        <Section id="fusion" title="Fusión">
-          <Row label="Cartas usadas" value={st.fusion.used} />
-          <Row label="Cartas fusionadas" value={st.fusion.fused} />
-          <Row label="Mutaciones" value={`${st.fusion.mutations} veces`} />
+        <Section id="fusion" title={s.sections.fusion}>
+          <Row label={s.used} value={st.fusion.used} />
+          <Row label={s.fused} value={st.fusion.fused} />
+          <Row label={s.mutations} value={s.times(st.fusion.mutations)} />
         </Section>
 
-        <Section id="attacks" title="Ataques que usaste">
-          {SLOTS.map((s, k) => (
-            <Row key={s} label={`Ataques de ${TERMS.actions[actionOf(s)]}`} value={pct(st.attackRate[k])} />
+        <Section id="attacks" title={s.attacksTitle}>
+          {SLOTS.map((sl, k) => (
+            <Row key={sl} label={s.attacksOf(TERMS.actions[actionOf(sl)])} value={pct(st.attackRate[k])} />
           ))}
         </Section>
 
-        <Section id="specialty" title="Datos por especialidad">
+        <Section id="specialty" title={s.specialtyTitle}>
           {st.specialty.rows.map((r, i) => (
             <Row
               key={r.specialty}
               label={
                 <>
-                  {RANK[i]} <span style={{ color: SPECIALTY_COLOR[r.specialty] }}>{SPECIALTY_NAME[r.specialty]}</span>
+                  {s.rank(i + 1)} <span style={{ color: SPECIALTY_COLOR[r.specialty] }}>{SPECIALTY_NAME[r.specialty]}</span>
                 </>
               }
               value={
                 <>
-                  <WinLoss w={r.wins} l={r.losses} /> · {r.cards} <span className="text-faded">cartas</span>
+                  <WinLoss w={r.wins} l={r.losses} /> · {r.cards} <span className="text-faded">{s.cardsWord(r.cards)}</span>
                 </>
               }
             />
           ))}
           <Row
-            label="Todas las cartas"
+            label={s.allCards}
             value={
               <>
-                <WinLoss w={st.specialty.all.wins} l={st.specialty.all.losses} /> · {st.specialty.all.cards} <span className="text-faded">cartas</span>
+                <WinLoss w={st.specialty.all.wins} l={st.specialty.all.losses} /> · {st.specialty.all.cards} <span className="text-faded">{s.cardsWord(st.specialty.all.cards)}</span>
               </>
             }
           />
         </Section>
 
-        <Section id="results" title="Resultados">
-          <Row label="Contra la CPU" value={<WinLoss w={st.results.com[0]} l={st.results.com[1]} />} />
-          <Row label="Contra otro jugador" value={<WinLoss w={st.results.twoP[0]} l={st.results.twoP[1]} />} />
-          <Row label="Veces que guardaste" value={st.results.saves} />
+        <Section id="results" title={s.sections.results}>
+          <Row label={s.vsCom} value={<WinLoss w={st.results.com[0]} l={st.results.com[1]} />} />
+          <Row label={s.vsPlayer} value={<WinLoss w={st.results.twoP[0]} l={st.results.twoP[1]} />} />
+          <Row label={s.saves} value={st.results.saves} />
         </Section>
 
-        <Section id="titles" title="Títulos">
-          <Row label="Título de batalla" value={st.titles.tamer} />
-          <Row label="Título de coleccionista" value={st.titles.collector} />
-          <Row label="Título de batalla 2P" value={st.titles.battle2p} />
+        <Section id="titles" title={s.sections.titles}>
+          <Row label={s.battleTitle} value={st.titles.tamer} />
+          <Row label={s.collectorTitle} value={st.titles.collector} />
+          <Row label={s.battle2pTitle} value={st.titles.battle2p} />
           <p className="pt-6 text-center font-display text-4xl font-black " style={{ color: 'var(--color-rare)' }}>
-            Eres «{st.finalTitle}»
+            {s.youAre(st.finalTitle)}
           </p>
         </Section>
         {autoScroll && (
           <div className="flex justify-center pb-4">
             <Button primary onClick={onClose}>
-              Salir
+              {shared.exit}
             </Button>
           </div>
         )}

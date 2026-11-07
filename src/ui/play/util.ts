@@ -3,6 +3,7 @@ import type { Card } from '../../engine/cards/types';
 import { cardOf } from '../../engine/game/effects';
 import { partnerCards } from '../../engine/game/partner';
 import type { CardRef, GameState, PlayerId } from '../../engine/game/types';
+import { m } from '../../i18n';
 
 /** The card an instance uses (partner instances use their slot copy). */
 export function cardAt(game: GameState, player: PlayerId, ref: CardRef): Card {
@@ -19,12 +20,14 @@ export function activeRef(game: GameState, player: PlayerId): CardRef | null {
   return game.players[player].stack.find((x) => x !== null) ?? null;
 }
 
-/** Player labels for the board: "Tú" / "CPU" against the CPU, the two names in a 2 Player Battle. */
+/** Player labels for the board: "You" / "CPU" against the CPU, the two names in a 2 Player Battle. */
 export function seatNames(twoPlayer: boolean, names: [string, string] | null): [string, string] {
-  return twoPlayer ? (names ?? ['Jugador 1', 'Jugador 2']) : ['Tú', 'CPU'];
+  const S = m().board.seats;
+  return twoPlayer ? (names ?? [S.player1, S.player2]) : [S.you, S.cpu];
 }
 
-/** Names printed on the board's frames: the session names if any, else "Jugador" / "CPU". */
+/** Names printed on the board's frames: the session names if any, else "Player" / "CPU". */
 export function boardNames(twoPlayer: boolean, names: [string, string] | null): [string, string] {
-  return names ?? (twoPlayer ? ['Jugador 1', 'Jugador 2'] : ['Jugador', 'CPU']);
+  const S = m().board.seats;
+  return names ?? (twoPlayer ? [S.player1, S.player2] : [S.player, S.cpu]);
 }

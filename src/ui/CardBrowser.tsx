@@ -7,11 +7,13 @@ import { useBrowser, type KindFilter } from '../store';
 import { CardTile } from './CardTile';
 import { CardDetail } from './CardDetail';
 import { SPECIALTY_COLOR, SPECIALTY_NAME } from './theme';
+import { m } from '../i18n';
 
 const SPECIALTIES: Specialty[] = ['fire', 'ice', 'nature', 'darkness', 'rare'];
 const LEVELS: Level[] = ['R', 'C', 'U', 'A'];
-const KINDS: { id: KindFilter; label: string }[] = [
-  { id: 'all', label: 'Todas' },
+/** The card kind filters, labelled in the current language. */
+const kinds = (): { id: KindFilter; label: string }[] => [
+  { id: 'all', label: m().research.browser.all },
   { id: 'digimon', label: TERMS.creatures },
   { id: 'option', label: TERMS.supportShort },
   { id: 'digivolve', label: TERMS.evolution },
@@ -63,24 +65,25 @@ export function CardBrowser() {
   }, [s.query, s.kind, s.specialties, s.levels, s.crossEffect, s.onlyIssues]);
 
   const selected = s.selectedId !== null ? byId.get(s.selectedId) : undefined;
+  const t = m().research.browser;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[15rem_1fr]">
-      <aside className="flex flex-col gap-5 lg:sticky lg:top-0 lg:self-start" aria-label="Filtros">
+      <aside className="flex flex-col gap-5 lg:sticky lg:top-0 lg:self-start" aria-label={t.filters}>
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm text-faded">Buscar nombre, ataque o efecto</span>
+          <span className="text-sm text-faded">{t.search}</span>
           <input
             value={s.query}
             onChange={(e) => s.setQuery(e.target.value)}
-            placeholder="WarGreymon, Eat-up, Draw…"
+            placeholder={t.searchPlaceholder}
             className="rounded-lg border border-seam bg-leather px-3 py-2 placeholder:text-faded/60"
           />
         </label>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-sm text-faded">Tipo de carta</legend>
+          <legend className="mb-1.5 text-sm text-faded">{t.kind}</legend>
           <div className="flex flex-wrap gap-1.5">
-            {KINDS.map((k) => (
+            {kinds().map((k) => (
               <Toggle key={k.id} on={s.kind === k.id} onClick={() => s.setKind(k.id)}>
                 {k.label}
               </Toggle>
@@ -89,7 +92,7 @@ export function CardBrowser() {
         </fieldset>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-sm text-faded">Especialidad</legend>
+          <legend className="mb-1.5 text-sm text-faded">{TERMS.faction}</legend>
           <div className="flex flex-wrap gap-1.5">
             {SPECIALTIES.map((sp) => (
               <Toggle key={sp} on={s.specialties.includes(sp)} onClick={() => s.toggleSpecialty(sp)} color={SPECIALTY_COLOR[sp]}>
@@ -100,11 +103,11 @@ export function CardBrowser() {
         </fieldset>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-sm text-faded">Nivel</legend>
+          <legend className="mb-1.5 text-sm text-faded">{t.level}</legend>
           <div className="flex flex-wrap gap-1.5">
             {LEVELS.map((l) => (
               <Toggle key={l} on={s.levels.includes(l)} onClick={() => s.toggleLevel(l)}>
-                {l}
+                <span title={TERMS.levels[l]}>{TERMS.levelShort[l]}</span>
               </Toggle>
             ))}
           </div>
@@ -117,7 +120,7 @@ export function CardBrowser() {
             onChange={(e) => s.setCrossEffect(e.target.value as typeof s.crossEffect)}
             className="rounded-lg border border-seam bg-leather px-3 py-2"
           >
-            <option value="any">Cualquiera</option>
+            <option value="any">{t.any}</option>
             {CROSS_EFFECT_BY_CODE.map((ce) => (
               <option key={ce} value={ce}>
                 {crossEffectLabel(ce)}
@@ -128,28 +131,24 @@ export function CardBrowser() {
 
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={s.onlyIssues} onChange={(e) => s.setOnlyIssues(e.target.checked)} className="size-4 accent-[var(--color-conflict)]" />
-          Solo cartas con dudas o con texto que no coincide
+          {t.onlyIssues}
         </label>
 
         <div className="flex items-center justify-between text-sm text-faded">
-          <span>
-            {filtered.length} de {cards.length} cartas
-          </span>
+          <span>{t.count(filtered.length, cards.length)}</span>
           <button type="button" onClick={s.reset} className="underline underline-offset-4 hover:text-bone">
-            Limpiar
+            {t.clear}
           </button>
         </div>
       </aside>
 
       <div className={`grid gap-6 ${selected ? 'xl:grid-cols-[1fr_26rem]' : ''}`}>
-        <section aria-label="Cartas" className="grid grid-cols-[repeat(auto-fill,minmax(10.5rem,1fr))] content-start gap-4">
+        <section aria-label={t.cards} className="grid grid-cols-[repeat(auto-fill,minmax(10.5rem,1fr))] content-start gap-4">
           {filtered.map((c) => (
             <CardTile key={c.id} card={c} active={c.id === s.selectedId} onSelect={() => s.select(c.id === s.selectedId ? null : c.id)} />
           ))}
           {filtered.length === 0 && (
-            <p className="col-span-full rounded-xl border border-dashed border-seam p-6 text-faded">
-              Ninguna carta cumple estos filtros. Quita alguno o usa “Limpiar”.
-            </p>
+            <p className="col-span-full rounded-xl border border-dashed border-seam p-6 text-faded">{t.noMatch}</p>
           )}
         </section>
         <div

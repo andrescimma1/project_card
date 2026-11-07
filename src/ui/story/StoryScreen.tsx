@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cards } from '../../engine/cards/db';
 import { TERMS } from '../vocab/terms';
+import { m } from '../../i18n';
 import { percentages, rankTitles } from '../../engine/progression/ranks';
 import { progression } from '../../engine/progression/tables';
 import type { SaveData } from '../../engine/progression/save';
@@ -21,6 +22,7 @@ import { TradeView } from './TradeView';
 import { DuelView } from './DuelView';
 
 const act = () => storyStore.getState();
+/** Area names of the original world map (proper names, not translated). */
 const AREAS: { name: string; cities: number[] }[] = [
   { name: 'Mega Area', cities: [0, 1, 2, 3, 4] },
   { name: 'Giga Area', cities: [5, 7, 8, 6] },
@@ -42,56 +44,52 @@ function ErrorNote() {
 function SlotsView() {
   const slots = useStory((s) => s.slots);
   useEffect(() => act().refreshSlots(), []);
+  const t = m().story;
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
       <div>
-        <h2 className="font-display text-5xl font-black ">Modo historia</h2>
-        <p className="mt-2 max-w-[62ch] text-faded">
-          Las ciudades, los torneos y los diálogos son los guiones originales del juego, leídos de tu disco. Hay tres partidas, como los tres archivos
-          de la tarjeta de memoria. Se guarda cuando eliges Guardar, igual que en el original.
-        </p>
+        <h2 className="font-display text-5xl font-black ">{t.slots.title}</h2>
+        <p className="mt-2 max-w-[62ch] text-faded">{t.slots.intro}</p>
       </div>
       <ErrorNote />
       <ol className="flex flex-col gap-3">
         {slots.map((s, i) => (
           <li key={i} className="flex flex-wrap items-center justify-between gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4">
             <div>
-              <p className="font-display text-xl font-bold ">Partida {'ABC'[i]}</p>
-              <p className="text-sm text-faded">{s ? `${s.name} con ${s.partner} · ${s.tamer} · ${s.winsCom} victorias · ${permille(Math.floor((s.storyPoints * 1000) / 166))}` : 'Vacía'}</p>
+              <p className="font-display text-xl font-bold ">{t.shared.slot('ABC'[i])}</p>
+              <p className="text-sm text-faded">{s ? t.slots.summary(s.name, s.partner, s.tamer, s.winsCom, permille(Math.floor((s.storyPoints * 1000) / 166))) : t.slots.empty}</p>
             </div>
             <div className="flex gap-2">
               {s && (
                 <Button primary onClick={() => act().continueGame(i)}>
-                  Continuar
+                  {t.shared.continue}
                 </Button>
               )}
-              <Button onClick={() => act().chooseNewGame(i)}>{s ? 'Empezar de nuevo' : 'Nueva partida'}</Button>
-              {s && <Button onClick={() => act().deleteSlot(i)}>Borrar</Button>}
+              <Button onClick={() => act().chooseNewGame(i)}>{s ? t.slots.restart : t.slots.newGame}</Button>
+              {s && <Button onClick={() => act().deleteSlot(i)}>{t.slots.delete}</Button>}
             </div>
           </li>
         ))}
       </ol>
       {slots.filter(Boolean).length >= 2 && (
         <div className="flex flex-wrap items-center gap-3">
-          <Button onClick={() => act().openTrade()}>Intercambiar cartas</Button>
-          <Button onClick={() => act().openDuel()}>Batalla 2P</Button>
-          <span className="text-sm text-faded">Entre dos de tus partidas, como con dos tarjetas de memoria.</span>
+          <Button onClick={() => act().openTrade()}>{t.slots.trade}</Button>
+          <Button onClick={() => act().openDuel()}>{t.slots.duel}</Button>
+          <span className="text-sm text-faded">{t.slots.betweenSlots}</span>
         </div>
       )}
     </div>
   );
 }
 
-const STARTERS: { id: number; deck: string }[] = [
-  { id: 175, deck: 'Mazo rojo' },
-  { id: 182, deck: 'Mazo verde' },
-  { id: 190, deck: 'Mazo amarillo' },
-];
+/** Starter card ids; their deck names are in the dictionary (story.newGame.starterDecks), in this order. */
+const STARTERS = [175, 182, 190];
 
 function NewGameView() {
   const slot = useStory((s) => s.slot);
+  const t = m().story;
   // OPENSEG: User Registration (NAME ENTRY, 12 letters) comes before STARTER SELECT
-  const [name, setName] = useState('Player');
+  const [name, setName] = useState(() => t.newGame.defaultName);
   const [named, setNamed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!named)
@@ -100,17 +98,17 @@ function NewGameView() {
         className="mx-auto flex max-w-xl flex-col gap-5 py-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!cleanName(name)) return setError('Escribe un nombre para tu partida.');
+          if (!cleanName(name)) return setError(m().game.story.nameRequired);
           setError(null);
           setNamed(true);
         }}
       >
         <div>
-          <h2 className="font-display text-5xl font-black ">Registro</h2>
-          <p className="mt-2 text-faded">Elige tu nombre para este mundo. Los personajes te llaman así en los diálogos.</p>
+          <h2 className="font-display text-5xl font-black ">{t.newGame.title}</h2>
+          <p className="mt-2 text-faded">{t.newGame.intro}</p>
         </div>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-faded">Nombre del jugador (hasta 12 letras)</span>
+          <span className="text-sm text-faded">{t.newGame.nameLabel}</span>
           <input
             value={name}
             maxLength={12}
@@ -126,33 +124,33 @@ function NewGameView() {
         )}
         <div className="flex gap-2">
           <button type="submit" data-primary className="cmd">
-            <span>Este nombre está bien</span>
+            <span>{t.newGame.nameOk}</span>
           </button>
-          <Button onClick={() => act().toSlots()}>Volver</Button>
+          <Button onClick={() => act().toSlots()}>{t.shared.back}</Button>
         </div>
       </form>
     );
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
       <div>
-        <h2 className="font-display text-5xl font-black ">Elige tu compañero</h2>
-        <p className="mt-2 text-faded">Empiezas con su mazo y cinco cartas más, elegidas al azar entre parejas fijas como en el original.</p>
+        <h2 className="font-display text-5xl font-black ">{t.newGame.partnerTitle}</h2>
+        <p className="mt-2 text-faded">{t.newGame.partnerIntro}</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        {STARTERS.map((s, i) => (
+        {STARTERS.map((id, i) => (
           <button
-            key={s.id}
+            key={id}
             type="button"
             onClick={() => void act().newGame(slot ?? 0, i as 0 | 1 | 2, name)}
             className="flex flex-col items-center gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4 transition-colors hover:border-bone"
           >
-            <CardFace card={cards[s.id]} size="md" />
-            <span className="font-display text-xl font-bold ">{cards[s.id].name}</span>
-            <span className="text-sm text-faded">{s.deck}</span>
+            <CardFace card={cards[id]} size="md" />
+            <span className="font-display text-xl font-bold ">{cards[id].name}</span>
+            <span className="text-sm text-faded">{t.newGame.starterDecks[i]}</span>
           </button>
         ))}
       </div>
-      <Button onClick={() => setNamed(false)}>Volver</Button>
+      <Button onClick={() => setNamed(false)}>{t.shared.back}</Button>
     </div>
   );
 }
@@ -162,26 +160,25 @@ function NewGameView() {
 function PlayerPanel({ save }: { save: SaveData }) {
   const t = rankTitles(save.ranks);
   const p = percentages({ storyPoints: save.story.points, collection: save.collection, ownedParts: save.ownedParts });
+  const s = m().story;
   return (
-    <section className="flex flex-col gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4" aria-label="Datos del jugador">
+    <section className="flex flex-col gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4" aria-label={s.player.label}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-display text-xl font-bold ">{save.name}</h3>
-        <span className="text-sm text-faded">
-          {save.winsCom} victorias, {save.lossesCom} derrotas
-        </span>
+        <span className="text-sm text-faded">{s.shared.record(save.winsCom, save.lossesCom)}</span>
       </div>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
-        <div><dt className="text-faded">Título de batalla</dt><dd>{t.tamer}</dd></div>
-        <div><dt className="text-faded">Coleccionista</dt><dd>{t.collector}</dd></div>
-        <div><dt className="text-faded">Juego completado</dt><dd>{permille(p.game)}</dd></div>
-        <div><dt className="text-faded">Cartas</dt><dd>{permille(p.cards)}</dd></div>
+        <div><dt className="text-faded">{s.player.battleTitle}</dt><dd>{t.tamer}</dd></div>
+        <div><dt className="text-faded">{s.player.collector}</dt><dd>{t.collector}</dd></div>
+        <div><dt className="text-faded">{s.player.completion}</dt><dd>{permille(p.game)}</dd></div>
+        <div><dt className="text-faded">{s.player.cards}</dt><dd>{permille(p.cards)}</dd></div>
         <div><dt className="text-faded">{TERMS.parts}</dt><dd>{permille(p.parts)}</dd></div>
       </dl>
       <ul className="flex flex-wrap gap-3">
         {save.partners.map((pt) => (
           <li key={pt.slot.id} className="flex items-center gap-2 cut [--c:10px] bg-leather px-3 py-2 text-sm">
             <strong>{cards[pt.slot.id].name}</strong>
-            <span className="text-faded">nivel {pt.slot.level}, {pt.exp} EXP</span>
+            <span className="text-faded">{s.player.partnerLevel(pt.slot.level, pt.exp)}</span>
           </li>
         ))}
       </ul>
@@ -194,10 +191,11 @@ function MapView() {
   const open = visibleCities(save);
   const [saved, setSaved] = useState(false);
   const [menu, setMenu] = useState(false);
+  const t = m().story;
   if (menu)
     return (
       <div className="mx-auto flex max-w-6xl flex-col gap-5 py-4">
-        <h2 className="font-display text-4xl font-black ">Mazos y compañeros</h2>
+        <h2 className="font-display text-4xl font-black ">{t.map.decksAndPartners}</h2>
         <StoryMenu
           onClose={() => {
             setMenu(false);
@@ -209,18 +207,18 @@ function MapView() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-4xl font-black ">Mapa del mundo</h2>
+        <h2 className="font-display text-4xl font-black ">{t.map.title}</h2>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setMenu(true)}>Mazos y compañeros</Button>
+          <Button onClick={() => setMenu(true)}>{t.map.decksAndPartners}</Button>
           <Button
             onClick={() => {
               act().saveNow();
               setSaved(true);
             }}
           >
-            {saved ? 'Guardado' : 'Guardar'}
+            {saved ? t.shared.saved : t.shared.save}
           </Button>
-          <Button onClick={() => act().toSlots()}>Salir</Button>
+          <Button onClick={() => act().toSlots()}>{t.shared.exit}</Button>
         </div>
       </div>
       <ErrorNote />
@@ -244,7 +242,7 @@ function MapView() {
                   style={{ borderColor: save.story.city === c ? 'var(--color-rare)' : 'var(--color-seam)' }}
                 >
                   <span className="font-display text-xl font-bold ">{visible ? progression.world.cities[c] : '???'}</span>
-                  <span className="text-xs text-faded">{visible ? (save.story.city === c ? 'Estás aquí' : 'Entrar') : 'Sin passcode'}</span>
+                  <span className="text-xs text-faded">{visible ? (save.story.city === c ? t.map.here : t.map.enter) : t.map.locked}</span>
                 </button>
               );
             })}
@@ -287,7 +285,7 @@ function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: 
       </div>
       <div className="flex justify-end">
         <Button primary onClick={onNext}>
-          Continuar
+          {m().story.shared.continue}
         </Button>
       </div>
     </div>
@@ -295,9 +293,10 @@ function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: 
 }
 
 function Reward({ req }: { req: Extract<StoryRequest, { kind: 'reward' }> }) {
+  const t = m().story;
   return (
     <div className="flex flex-col gap-4 cut [--c:16px] border-2 bg-leather p-5" style={{ borderColor: 'var(--color-rare)' }}>
-      {req.pack !== undefined && <p className="font-display text-2xl font-bold ">Recibiste un {progression.packs[req.pack].name}</p>}
+      {req.pack !== undefined && <p className="font-display text-2xl font-bold ">{t.city.gotPack(progression.packs[req.pack].name)}</p>}
       {req.part !== undefined && (
         <p className="font-display text-2xl font-bold ">
           {TERMS.part}: <PartName id={req.part} />
@@ -308,14 +307,14 @@ function Reward({ req }: { req: Extract<StoryRequest, { kind: 'reward' }> }) {
           {req.cards.map((id, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
               <CardFace card={cards[id]} size="sm" />
-              <span className="text-xs text-faded">{req.results[i] === -2 || req.results[i] === -1 ? 'FULL SET' : req.results[i] === 1 ? '¡Nueva!' : `${req.results[i]} copias`}</span>
+              <span className="text-xs text-faded">{req.results[i] === -2 || req.results[i] === -1 ? t.shared.fullSet : req.results[i] === 1 ? t.shared.newCard : t.shared.copies(req.results[i])}</span>
             </div>
           ))}
         </div>
       )}
       <div className="flex justify-end">
         <Button primary onClick={() => act().reply({ kind: 'ack' })}>
-          Continuar
+          {t.shared.continue}
         </Button>
       </div>
     </div>
@@ -328,6 +327,7 @@ function Keyword() {
     const i = progression.world.keywords.indexOf(word.trim().toUpperCase());
     act().reply({ kind: 'choice', value: i });
   };
+  const t = m().story;
   return (
     <form
       className="flex flex-wrap items-end gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5"
@@ -337,13 +337,13 @@ function Keyword() {
       }}
     >
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-faded">Palabra clave</span>
+        <span className="text-faded">{t.city.keyword}</span>
         <input value={word} onChange={(e) => setWord(e.target.value)} maxLength={12} className="cut [--c:6px] border border-seam bg-soot px-3 py-2 uppercase" autoFocus />
       </label>
       <Button primary onClick={submit}>
-        Decir
+        {t.city.say}
       </Button>
-      <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>Cancelar</Button>
+      <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{t.shared.cancel}</Button>
     </form>
   );
 }
@@ -352,6 +352,7 @@ function PlayerDataScreen({ save, onDone }: { save: SaveData; onDone: () => void
   // SAISEG 0x801E186C: with story flag v15 the ◯ button opens the Complete Stats (ENDSEG mode 2)
   const cleared = useStory((s) => (s.host?.vm.vars[15] ?? 0) !== 0);
   const [stats, setStats] = useState(false);
+  const t = m().story;
   if (stats)
     return (
       <CompleteStats
@@ -368,9 +369,9 @@ function PlayerDataScreen({ save, onDone }: { save: SaveData; onDone: () => void
       <PlayerPanel save={save} />
       <div className="flex flex-wrap gap-2">
         <Button primary onClick={onDone}>
-          Volver
+          {t.shared.back}
         </Button>
-        {cleared && <Button onClick={() => setStats(true)}>Estadísticas completas</Button>}
+        {cleared && <Button onClick={() => setStats(true)}>{t.player.fullStats}</Button>}
       </div>
     </div>
   );
@@ -379,14 +380,13 @@ function PlayerDataScreen({ save, onDone }: { save: SaveData; onDone: () => void
 /** CMD11.19(0): the final ending. The game plays its ending video (not reproduced) and returns to the title. */
 function Ending() {
   const [saved, setSaved] = useState(false);
+  const t = m().story;
   return (
     <div className="flex flex-col items-center gap-5 cut [--c:24px] border-2 bg-leather px-6 py-12 text-center" style={{ borderColor: 'var(--color-rare)' }}>
       <h3 className="font-display text-5xl font-bold" style={{ color: 'var(--color-rare)' }}>
-        Fin
+        {t.ending.title}
       </h3>
-      <p className="max-w-[52ch] text-faded">
-        Aquí el juego original pasa su video final y vuelve a la pantalla de título. El video no se reproduce en este remake.
-      </p>
+      <p className="max-w-[52ch] text-faded">{t.ending.text}</p>
       <div className="flex flex-wrap justify-center gap-2">
         <Button
           onClick={() => {
@@ -394,10 +394,10 @@ function Ending() {
             setSaved(true);
           }}
         >
-          {saved ? 'Guardado' : 'Guardar'}
+          {saved ? t.shared.saved : t.shared.save}
         </Button>
         <Button primary onClick={() => act().toSlots()}>
-          Volver a las partidas
+          {t.ending.backToSlots}
         </Button>
       </div>
     </div>
@@ -420,11 +420,12 @@ function CityView() {
   const npcs = useStory((s) => s.npcs);
   const city = host?.city ?? save.story.city;
   if (!req) return null;
+  const t = m().story;
   return (
     <div className={`mx-auto flex ${req.kind === 'screen' && req.screen !== 'playerData' ? 'max-w-6xl' : 'max-w-3xl'} flex-col gap-4 py-4`}>
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-display text-4xl font-black ">{progression.world.cities[city]}</h2>
-        <span className="text-sm text-faded">{host?.place === 1 ? 'Battle Cafe' : host?.place === 2 ? 'Arena' : ''}</span>
+        <span className="text-sm text-faded">{host?.place === 1 ? m().game.places[2] : host?.place === 2 ? m().game.arena : ''}</span>
       </div>
       <ErrorNote />
       {req.kind === 'say' && <Dialogue lines={req.lines} playerName={save.name} onNext={() => act().reply({ kind: 'ack' })} />}
@@ -435,19 +436,19 @@ function CityView() {
               {menuLabel(id, city)}
             </Button>
           ))}
-          <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{req.big ? 'Salir de la ciudad' : 'Volver'}</Button>
+          <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{req.big ? t.city.leaveCity : t.shared.back}</Button>
         </div>
       )}
       {req.kind === 'talkTo' && (
         <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5">
-          <p className="text-faded">¿Con quién quieres hablar?</p>
+          <p className="text-faded">{t.city.talkTo}</p>
           <div className="flex flex-wrap gap-2">
             {req.npcs.map((n) => (
               <Button key={n} onClick={() => act().reply({ kind: 'choice', value: n })}>
-                {npcs[n] ?? `Personaje ${n}`}
+                {npcs[n] ?? t.city.npc(n)}
               </Button>
             ))}
-            <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>Salir del Cafe</Button>
+            <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{t.city.leaveCafe(m().game.places[2])}</Button>
           </div>
         </div>
       )}
@@ -456,12 +457,10 @@ function CityView() {
           <p className="font-display text-2xl font-bold ">
             <Text segments={storySegments(decodeScriptString(req.name), save.name)} />
           </p>
-          <p className="text-sm text-faded">
-            Ataque {req.attack} · Defensa {req.defense} · Velocidad de digivolución {req.speed}
-          </p>
+          <p className="text-sm text-faded">{t.city.rivalStats(req.attack, req.defense, req.speed, TERMS.evolution)}</p>
           <div className="flex justify-end">
             <Button primary onClick={() => act().reply({ kind: 'ack' })}>
-              Continuar
+              {t.shared.continue}
             </Button>
           </div>
         </div>
@@ -479,10 +478,11 @@ function CityView() {
 function BattleEnd({ game }: { game: GameState }) {
   const won = game.winner === 0;
   const log = useSession((s) => s.log);
+  const t = m().story;
   return (
-    <EndBanner tone={won ? 'win' : 'lose'} title={won ? '¡Victoria!' : 'Derrota'} subtitle={`Rondas: ${game.players[0].rounds} a ${game.players[1].rounds}`}>
+    <EndBanner tone={won ? 'win' : 'lose'} title={won ? t.result.win : t.shared.defeat} subtitle={t.result.rounds(TERMS.rounds, game.players[0].rounds, game.players[1].rounds)}>
       <Button primary onClick={() => act().finishBattle(game, log.map((l) => l.event))}>
-        Ver resultados
+        {t.result.seeResults}
       </Button>
     </EndBanner>
   );
@@ -497,14 +497,15 @@ function ResultView() {
   const result = useStory((s) => s.result);
   const save = useStory((s) => s.save)!;
   const won = useStory((s) => s.won);
+  const t = m().story;
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5 py-4">
-      <h2 className="font-display text-5xl font-black ">{won ? 'Victoria' : 'Derrota'}</h2>
-      {!result && <p className="text-faded">Fin del tutorial: el juego no guarda el resultado de esta batalla.</p>}
+      <h2 className="font-display text-5xl font-black ">{won ? t.shared.victory : t.shared.defeat}</h2>
+      {!result && <p className="text-faded">{t.result.tutorialEnd}</p>}
       {result && (
         <>
           <section className="flex flex-col gap-2 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4">
-            <h3 className="font-display text-xl font-bold ">Experiencia</h3>
+            <h3 className="font-display text-xl font-bold ">{t.result.experience}</h3>
             <ul className="flex flex-col gap-1 text-sm">
               {result.bonuses.granted.map((b) => (
                 <li key={b.id} className="flex justify-between gap-3">
@@ -513,32 +514,32 @@ function ResultView() {
                 </li>
               ))}
               <li className="flex justify-between gap-3 border-t border-seam pt-1 font-semibold">
-                <span>Total (con la EXP del rival)</span>
+                <span>{t.result.total}</span>
                 <span className="tabular-nums">{result.bonuses.exp}</span>
               </li>
             </ul>
             <ul className="flex flex-col gap-1 text-sm">
               {save.partners.map((p, i) => (
                 <li key={p.slot.id}>
-                  {cards[p.slot.id].name}: {result.expGained[i] ? `+${result.expGained[i]} EXP` : 'no estaba en el mazo'}
-                  {result.levelsGained[i] ? `, sube a nivel ${p.slot.level}` : ''}
+                  {cards[p.slot.id].name}: {result.expGained[i] ? t.result.exp(result.expGained[i]) : t.result.notInDeck}
+                  {result.levelsGained[i] ? t.result.levelUp(p.slot.level) : ''}
                 </li>
               ))}
               {result.learned.map((id) => (
                 <li key={id}>
-                  Aprende la {TERMS.part.toLowerCase()} <PartName id={id} />
+                  {t.result.learnsPart(TERMS.part)} <PartName id={id} />
                 </li>
               ))}
             </ul>
           </section>
           {result.pack.length > 0 && (
             <section className="flex flex-col gap-3 cut [--c:16px] border-2 bg-leather p-4" style={{ borderColor: 'var(--color-rare)' }}>
-              <h3 className="font-display text-xl font-bold ">Prize Pack</h3>
+              <h3 className="font-display text-xl font-bold ">{t.result.prizePack}</h3>
               <div className="flex flex-wrap gap-3">
                 {result.pack.map((id, i) => (
                   <div key={i} className="flex flex-col items-center gap-1">
                     <CardFace card={cards[id]} size="sm" />
-                    <span className="text-xs text-faded">{result.packResults[i] < 0 ? 'FULL SET' : result.packResults[i] === 1 ? '¡Nueva!' : `${result.packResults[i]} copias`}</span>
+                    <span className="text-xs text-faded">{result.packResults[i] < 0 ? t.shared.fullSet : result.packResults[i] === 1 ? t.shared.newCard : t.shared.copies(result.packResults[i])}</span>
                   </div>
                 ))}
               </div>
@@ -547,7 +548,7 @@ function ResultView() {
         </>
       )}
       <Button primary onClick={() => act().closeResult()}>
-        Continuar
+        {t.shared.continue}
       </Button>
     </div>
   );

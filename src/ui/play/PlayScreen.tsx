@@ -21,11 +21,12 @@ import { CardPopup, EffectCard, EndBanner, LogDrawer, PhaseBanner } from './Over
 import { usePlayback, type Playback } from './Playback';
 import { GameStage } from './Stage';
 import { actionOf, slotOf, type ActionKind } from '../vocab/actions';
+import { m } from '../../i18n';
+import { localizeMessage } from '../../i18n/engineMessages';
 import { TERMS } from '../vocab/terms';
 import { boardNames, seatNames } from './util';
 import { DpSlot, Piles, RoundCrests } from './Zones';
 
-const STARTER_LABEL: Record<string, string> = { Red: 'Rojo (Veemon)', Green: 'Verde (Hawkmon)', Yellow: 'Amarillo (Armadillomon)' };
 const STARTER_PARTNER: Record<string, string> = { Red: 'Veemon', Green: 'Hawkmon', Yellow: 'Armadillomon' };
 
 function deckSummary(d: OriginalDeck) {
@@ -59,7 +60,9 @@ function DeckSetup() {
   const [opp, setOpp] = useState(opponentDecks.findIndex((d) => d.name === 'Tricolor Starter'));
   const [first, setFirst] = useState<'random' | 'me' | 'cpu'>('random');
   const customDeck = saved.find((d) => d.id === custom) ?? null;
-  const my = customDeck ? { cards: customDeck.cards, name: customDeck.name } : { cards: starterDecks[mine].cards, name: `${starterDecks[mine].name} Deck` };
+  const B = m().board;
+  const S = B.setup;
+  const my = customDeck ? { cards: customDeck.cards, name: customDeck.name } : { cards: starterDecks[mine].cards, name: S.deckName(starterDecks[mine].name) };
   const their = opponentDecks[opp];
   const so = deckSummary(their);
   const ownerCard = cards.find((c) => c.name === their.owner);
@@ -75,20 +78,20 @@ function DeckSetup() {
       seed,
       humanFirst,
       names: ['Jugador', their.owner],
-      deckNames: [my.name, `${their.name} Deck`],
+      deckNames: [my.name, S.deckName(their.name)],
     });
   };
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-8">
       <div>
-        <h2 className="font-display text-[56px] leading-none font-black ">Partida libre</h2>
-        <p className="mt-3 max-w-[62ch] text-faded">Mazos originales del juego. El rival juega con la IA original de la CPU, portada del código del juego, y con la personalidad que trae su mazo.</p>
+        <h2 className="font-display text-[56px] leading-none font-black">{S.title}</h2>
+        <p className="mt-3 max-w-[62ch] text-faded">{S.intro}</p>
       </div>
 
       <section className="frame side-player" style={{ '--c': '18px' } as CSSProperties}>
         <div className="fill flex flex-col gap-4 p-5">
-          <h3 className="relative z-[1] font-display text-[24px] font-extrabold ">Tu mazo</h3>
+          <h3 className="relative z-[1] font-display text-[24px] font-extrabold">{S.yourDeck}</h3>
           <div className="relative z-[1] grid gap-3 sm:grid-cols-3">
             {starterDecks.map((d, i) => {
               const partner = cards.find((c) => c.name === STARTER_PARTNER[d.name]);
@@ -107,9 +110,11 @@ function DeckSetup() {
                 >
                   {partner && <CardArt card={partner} className="size-16 shrink-0 bg-soot" />}
                   <span>
-                    <span className="block font-display text-[20px] font-bold ">{STARTER_LABEL[d.name] ?? d.name}</span>
+                    <span className="block font-display text-[20px] font-bold">
+                      {S.starters[d.name] ?? d.name} ({STARTER_PARTNER[d.name]})
+                    </span>
                     <span className="block text-sm text-faded">
-                      {sum.digimon} {TERMS.creatures.toLowerCase()}, {sum.options} de apoyo, {sum.digivolve} de evolución
+                      {S.summary(sum.digimon, TERMS.creatures.toLowerCase(), sum.options, sum.digivolve)}
                     </span>
                   </span>
                 </button>
@@ -125,13 +130,13 @@ function DeckSetup() {
               ))}
             </div>
           )}
-          <span className="relative z-[1] text-sm text-faded">Tus mazos guardados (pestaña Mazos) aparecen aquí cuando están completos.</span>
+          <span className="relative z-[1] text-sm text-faded">{S.savedHint}</span>
         </div>
       </section>
 
       <section className="frame side-rival" style={{ '--c': '18px' } as CSSProperties}>
         <label className="fill flex flex-col gap-3 p-5">
-          <span className="relative z-[1] font-display text-[24px] font-extrabold ">Rival</span>
+          <span className="relative z-[1] font-display text-[24px] font-extrabold">{S.rival}</span>
           <div className="relative z-[1] flex items-center gap-3">
             {ownerCard && <CardArt card={ownerCard} className="size-16 shrink-0 bg-soot" />}
             <select value={opp} onChange={(e) => setOpp(Number(e.target.value))} className="min-w-0 flex-1 bg-soot px-3 py-2.5 font-display text-[18px] shadow-[inset_0_0_0_1px_rgb(255_199_154/0.5)]">
@@ -143,21 +148,21 @@ function DeckSetup() {
             </select>
           </div>
           <span className="relative z-[1] text-sm text-faded">
-            {so.digimon} {TERMS.creatures.toLowerCase()}, {so.options} de apoyo, {so.digivolve} de evolución. Niveles: {so.levels.map(([l, n]) => `${n} ${TERMS.levels[l]}`).join(', ')}.
+            {S.summary(so.digimon, TERMS.creatures.toLowerCase(), so.options, so.digivolve)}. {S.levels(so.levels.map(([l, n]) => `${n} ${TERMS.levels[l]}`).join(', '))}
           </span>
           <span className="relative z-[1] text-sm text-faded">
-            Personalidad de la CPU: entrada y {TERMS.dp} {their.ai[0]}, ataque {their.ai[1]}, cambio de mano {their.ai[2]}, soporte {their.ai[3]} (2 es al azar).
+            {S.personality(TERMS.dp, their.ai[0], their.ai[1], their.ai[2], their.ai[3])}
           </span>
         </label>
       </section>
 
       <div className="flex flex-wrap items-center gap-4">
-        <span className="font-display text-[20px] font-bold ">Quién empieza</span>
+        <span className="font-display text-[20px] font-bold">{S.whoStarts}</span>
         {(
           [
-            ['random', 'Al azar'],
-            ['me', 'Yo'],
-            ['cpu', 'La CPU'],
+            ['random', S.first.random],
+            ['me', S.first.me],
+            ['cpu', S.first.cpu],
           ] as const
         ).map(([k, label]) => (
           <Choice key={k} active={first === k} onClick={() => setFirst(k)}>
@@ -166,7 +171,7 @@ function DeckSetup() {
         ))}
         <span className="flex-1" />
         <button type="button" onClick={start} data-primary className="cmd !px-8 !py-3 !text-[22px]">
-          <span>Empezar partida</span>
+          <span>{S.start}</span>
         </button>
       </div>
     </div>
@@ -175,14 +180,15 @@ function DeckSetup() {
 
 function GameOver({ game }: { game: GameState }) {
   const won = game.winner === HUMAN;
+  const E = m().board.end;
   return (
     <EndBanner
       tone={won ? 'win' : 'lose'}
-      title={won ? '¡Victoria!' : 'Derrota'}
-      subtitle={game.endReason === 'rounds' ? `Rondas: tú ${game.players[0].rounds}, la CPU ${game.players[1].rounds}` : `Un jugador se quedó sin ${TERMS.creatures.toLowerCase()} que sacar`}
+      title={won ? E.victory : E.defeat}
+      subtitle={game.endReason === 'rounds' ? E.rounds(game.players[0].rounds, game.players[1].rounds) : E.noCreatures(TERMS.creatures.toLowerCase())}
     >
       <button type="button" onClick={() => sessionStore.getState().reset()} data-primary className="cmd !px-8 !text-[22px]">
-        <span>Nueva partida</span>
+        <span>{E.newGame}</span>
       </button>
     </EndBanner>
   );
@@ -215,9 +221,10 @@ function AttackTab({ first }: { first: boolean }) {
 }
 
 function sideStatus(game: GameState, p: PlayerId, mine: boolean, playback: Playback | null): string {
-  if (playback) return 'Ataque revelado';
-  if (mine) return 'Elige tu ataque';
-  return game.players[p].attack !== null ? 'Ya eligió' : 'Eligiendo…';
+  const S = m().board.status;
+  if (playback) return S.revealed;
+  if (mine) return S.choose;
+  return game.players[p].attack !== null ? S.chosen : S.choosing;
 }
 
 /** The match board. `endScreen` replaces the default end banner (story mode); `onLeave` the abandon button. */
@@ -295,13 +302,13 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
           <span className="font-display">{labels[p]}</span>
         </span>
         {deckNames && <span className="font-display text-[16px] font-semibold text-bone/70 ">{deckNames[p]}</span>}
-        <RoundCrests rounds={playback ? playback.rounds[p] : board.players[p].rounds} label={`Rondas de ${labels[p]}`} />
+        <RoundCrests rounds={playback ? playback.rounds[p] : board.players[p].rounds} label={m().board.roundsOf(labels[p])} />
         <span className="flex-1" />
       </div>
     );
     const gamble = gambleAction(p);
     return (
-      <section aria-label={`Zona de ${labels[p]}`} className={`frame h-[230px] ${p === 0 ? 'side-player' : 'side-rival'}`} style={{ '--c': '20px' } as CSSProperties}>
+      <section aria-label={m().board.zoneOf(labels[p])} className={`frame h-[230px] ${p === 0 ? 'side-player' : 'side-rival'}`} style={{ '--c': '20px' } as CSSProperties}>
         <div className="fill flex flex-col pr-[44px]">
           {p === 1 && header}
           <div className={`relative z-[1] flex min-h-0 flex-1 items-center gap-6 px-5 ${p === 1 ? 'flex-row-reverse' : ''}`}>
@@ -338,7 +345,7 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
                   chosen={chosenOnBoard(p)}
                   hiddenChoice={!playback && board.players[p].attack !== null && chosenOnBoard(p) === null}
                   fx={playback?.fx[p]}
-                  emptyText={!busy && p === seats.me && board.phase.name === 'entrance' ? `Elige una ${TERMS.creature.toLowerCase()} de tu mano` : `${TERMS.arena} vacía`}
+                  emptyText={!busy && p === seats.me && board.phase.name === 'entrance' ? m().board.chooseFromHand(TERMS.creature.toLowerCase()) : m().board.emptyArena(TERMS.arena)}
                   onInspect={setInspect}
                 />
               </div>
@@ -384,7 +391,7 @@ export function BattleBoard({ game, endScreen, onLeave, hideLeave }: { game: Gam
 
         {error && (
           <p role="alert" className="absolute bottom-[86px] left-1/2 z-30 -translate-x-1/2 bg-soot px-4 py-2 text-[15px] shadow-[inset_0_0_0_2px_var(--color-conflict)]">
-            {error}
+            {localizeMessage(error)}
           </p>
         )}
         <PhaseBanner game={board} paused={busy} names={labels} twoPlayer={twoPlayer} />

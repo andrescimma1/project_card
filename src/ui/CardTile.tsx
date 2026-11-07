@@ -5,6 +5,7 @@ import { ACTIONS, slotOf } from './vocab/actions';
 import { crossEffectLabel, TERMS } from './vocab/terms';
 import { ActionIcon } from './play/glyphs';
 import { CardArt } from './play/CardFace';
+import { m } from '../i18n';
 
 function trackPointer(e: PointerEvent<HTMLElement>) {
   const r = e.currentTarget.getBoundingClientRect();
@@ -14,6 +15,7 @@ function trackPointer(e: PointerEvent<HTMLElement>) {
 
 export function CardTile({ card, active, onSelect }: { card: Card; active: boolean; onSelect: () => void }) {
   const color = frameColor(card);
+  const t = m().research.tile;
   return (
     <button
       type="button"
@@ -21,7 +23,7 @@ export function CardTile({ card, active, onSelect }: { card: Card; active: boole
       onPointerMove={trackPointer}
       data-active={active}
       aria-pressed={active}
-      aria-label={`${card.name}, carta ${card.number}`}
+      aria-label={t.label(card.name, card.number)}
       className="holo group flex aspect-[63/88] w-full flex-col overflow-hidden rounded-[14px] border-2 bg-leather text-left transition-transform duration-150 hover:-translate-y-0.5"
       style={{
         borderColor: color,
@@ -78,12 +80,12 @@ export function CardTile({ card, active, onSelect }: { card: Card; active: boole
 
         {card.issues.length > 0 ? (
           <span className="mt-1 self-start rounded-full px-1.5 py-0.5 text-[11px] font-semibold text-soot" style={{ background: 'var(--color-conflict)' }}>
-            {card.issues.length === 1 ? '1 punto a verificar' : `${card.issues.length} puntos a verificar`}
+            {t.issues(card.issues.length)}
           </span>
         ) : (
           card.notes.length > 0 && (
             <span className="mt-1 self-start rounded-full border px-1.5 py-0.5 text-[11px]" style={{ borderColor: 'var(--color-probable)', color: 'var(--color-probable)' }}>
-              El texto no coincide con el juego
+              {t.mismatch}
             </span>
           )
         )}

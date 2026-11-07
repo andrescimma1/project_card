@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { newGame } from '../../src/engine/progression/save';
 import { menuLabel, npcNames, storySegments, visibleCities } from '../../src/story/present';
+import { setLocale } from '../../src/i18n';
 import { parseMscd } from '../../src/story/vm';
 import { readDrvPath } from '../../tools/extract/drv';
 import { asm, cmd, goto, skipIf, str } from './mscdAsm';
@@ -19,10 +20,13 @@ describe('script text', () => {
 });
 
 describe('menus and the map', () => {
-  it('menu ids: places, arenas of the city, choices', () => {
-    expect([menuLabel(2, 0), menuLabel(3, 2), menuLabel(5, 2), menuLabel(6, 5), menuLabel(13, 0), menuLabel(16, 0)]).toEqual([
-      'Battle Cafe', 'Jungle Arena', 'Beet Arena', 'Haunted Arena', 'Combatir', 'Sí',
-    ]);
+  it('menu ids: places and choices in the current language, arenas of the city as the disc names them', () => {
+    const labels = () => [menuLabel(2, 0), menuLabel(3, 2), menuLabel(5, 2), menuLabel(6, 5), menuLabel(13, 0), menuLabel(16, 0)];
+    setLocale('es');
+    expect(labels()).toEqual(['Café de batallas', 'Jungle Arena', 'Beet Arena', 'Haunted Arena', 'Combatir', 'Sí']);
+    setLocale('en');
+    expect(labels()).toEqual(['Battle Cafe', 'Jungle Arena', 'Beet Arena', 'Haunted Arena', 'Battle', 'Yes']);
+    setLocale('es');
   });
 
   it('a city is on the map when its flag v(282 + i) is set', () => {

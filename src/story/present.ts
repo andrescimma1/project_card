@@ -3,6 +3,7 @@
  * Nothing here changes the rules; labels replace the game's graphical menu items.
  */
 import { renderGameText } from '../engine/cards/romTables';
+import { m } from '../i18n';
 import { progression } from '../engine/progression/tables';
 import type { SaveData } from '../engine/progression/save';
 import type { MscdScript } from './vm';
@@ -55,27 +56,13 @@ export function decodeScriptString(raw: string): string {
   }
 }
 
-const LABELS: Record<number, string> = {
-  0: 'Sala del jugador',
-  1: 'Menú',
-  2: 'Battle Cafe',
-  7: 'Fusion Shop',
-  8: 'Entrar',
-  9: 'No entrar',
-  12: 'Hablar',
-  13: 'Combatir',
-  14: 'Información',
-  15: 'Guardar',
-  16: 'Sí',
-  17: 'No',
-  18: 'Mazos', // 🟡 CMD10.9 (SUBSEG)
-  19: 'Compañero', // 🟡 CMD10.17 (SUBSEG)
-};
+// Labels of ids 0..19 live in the language dictionaries (i18n game.places). 🟡 18 = CMD10.9 (SUBSEG), 19 = CMD10.17 (SUBSEG).
 
 /** Label for a graphical menu item (CMD11.1 id); ids 3..6 are the 4 arenas of the city. */
 export function menuLabel(id: number, city: number): string {
-  if (id >= 3 && id <= 6) return progression.world.arenas[city]?.[id - 3] || 'Arena';
-  return LABELS[id] ?? `Opción ${id}`;
+  const G = m().game;
+  if (id >= 3 && id <= 6) return progression.world.arenas[city]?.[id - 3] || G.arena;
+  return G.places[id] ?? G.option(id);
 }
 
 /** Cities on the map: flag v(282 + i) set (SAISEG 0x801DE964). */

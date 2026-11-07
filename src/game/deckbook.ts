@@ -5,6 +5,8 @@
 import { cards } from '../engine/cards/db';
 import type { Level, Specialty } from '../engine/cards/types';
 import { validateDeck } from '../engine/game/turn';
+import { m } from '../i18n';
+import { localizeMessage } from '../i18n/engineMessages';
 
 export const DECK_SIZE = 30;
 export const MAX_COPIES = 4;
@@ -25,8 +27,8 @@ export function copiesOf(deck: SavedDeck, id: number): number {
 }
 
 export function addCard(deck: SavedDeck, id: number): { deck: SavedDeck; error: string | null } {
-  if (deck.cards.length >= DECK_SIZE) return { deck, error: `El mazo ya tiene ${DECK_SIZE} cartas.` };
-  if (copiesOf(deck, id) >= MAX_COPIES) return { deck, error: `Máximo ${MAX_COPIES} copias de ${cards[id].name}.` };
+  if (deck.cards.length >= DECK_SIZE) return { deck, error: m().game.deck.full(DECK_SIZE) };
+  if (copiesOf(deck, id) >= MAX_COPIES) return { deck, error: m().game.deck.maxCopies(MAX_COPIES, cards[id].name) };
   return { deck: { ...deck, cards: [...deck.cards, id].sort((a, b) => a - b) }, error: null };
 }
 
@@ -52,7 +54,8 @@ export function deckStats(deck: SavedDeck) {
     digivolve: cs.filter((c) => c.kind === 'digivolve').length,
     levels,
     specialties,
-    errors: validateDeck(deck.cards),
+    // the rules' messages, shown in the current language
+    errors: validateDeck(deck.cards).map((e) => localizeMessage(e)),
   };
 }
 

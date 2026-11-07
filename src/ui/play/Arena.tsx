@@ -10,6 +10,7 @@ import type { GameState, PlayerId } from '../../engine/game/types';
 import { count } from '../../engine/game/zones';
 import { battleStat, DP_CAP } from '../../engine/rules/primitives';
 import { SPECIALTY_COLOR, SPECIALTY_NAME, SPECIALTY_TEXT } from '../theme';
+import { m } from '../../i18n';
 import { ACTIONS, powerIndex, slotOf, type ActionKind } from '../vocab/actions';
 import { crossEffectLabel, TERMS } from '../vocab/terms';
 import { CardArt } from './CardFace';
@@ -92,7 +93,7 @@ export function HpGauge({ hp, max, height = 12, delay = 0 }: { hp: number; max: 
       aria-valuenow={hp}
       aria-valuemin={0}
       aria-valuemax={max}
-      aria-label="HP"
+      aria-label={TERMS.hp}
     >
       <motion.div className="absolute inset-y-0 left-0 bg-[#f1e5ca]/75" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, delay: delay + 0.45, ease: 'easeOut' }} />
       <motion.div
@@ -112,7 +113,7 @@ export function HpGauge({ hp, max, height = 12, delay = 0 }: { hp: number; max: 
 function DpColumn({ dp, mirrored }: { dp: number; mirrored: boolean }) {
   const shown = useCountTo(dp);
   return (
-    <div className={`flex w-[78px] shrink-0 flex-col items-center gap-1.5 py-1 ${mirrored ? '' : ''}`} aria-label={`${TERMS.dpLong}: ${dp} de ${DP_CAP}`} title={TERMS.dpLong}>
+    <div className={`flex w-[78px] shrink-0 flex-col items-center gap-1.5 py-1 ${mirrored ? '' : ''}`} aria-label={m().board.arena.dpMeter(TERMS.dpLong, dp, DP_CAP)} title={TERMS.dpLong}>
       <span className="font-display text-[16px] font-bold text-gold">{TERMS.dp}</span>
       <span className="num text-[40px] leading-none font-extrabold text-bone ">{shown}</span>
       <div className="flex flex-col-reverse gap-[3px]" aria-hidden>
@@ -168,7 +169,7 @@ export function ActivePanel({
 
   return (
     <section
-      aria-label={`${TERMS.activeCreature} de ${label}`}
+      aria-label={m().board.arena.of(TERMS.activeCreature, label)}
       className={`frame h-full ${mirrored ? 'side-rival' : 'side-player'}`}
       style={{ '--c': '20px', filter: 'drop-shadow(0 14px 24px rgb(0 0 0 / 0.5))' } as CSSProperties}
     >
@@ -176,12 +177,12 @@ export function ActivePanel({
         {/* header */}
         <div className={`relative z-[1] flex h-[34px] shrink-0 items-center gap-3 px-4 ${mirrored ? 'flex-row-reverse' : ''}`}>
           <span className="plate h-[26px] text-[19px] font-extrabold ">
-            <span className="font-display tracking-wide">{card ? card.name : `Sin ${TERMS.creature.toLowerCase()}`}</span>
+            <span className="font-display tracking-wide">{card ? card.name : m().board.arena.without(TERMS.creature.toLowerCase())}</span>
           </span>
           {card && (
             <span className="font-display text-[16px] font-semibold" style={{ color: SPECIALTY_TEXT[view.specialty] }}>
-              {TERMS.faction} {SPECIALTY_NAME[view.specialty]}
-              {view.specialty !== card.specialty ? ' (cambiada)' : ''} · {TERMS.levels[card.level]}
+              {TERMS.factionNamed(SPECIALTY_NAME[view.specialty])}
+              {view.specialty !== card.specialty ? m().board.arena.changed : ''} · {TERMS.levels[card.level]}
             </span>
           )}
           <span className="flex-1" />
@@ -190,12 +191,12 @@ export function ActivePanel({
               initial={{ scale: 1.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="num grid size-[26px] place-items-center rounded-full bg-gold text-[17px] font-extrabold text-ink shadow-[0_0_0_2px_#2b1d12]"
-              title="Ya eligió su ataque"
+              title={m().board.attacks.alreadyChoseAttack}
             >
               <span>?</span>
             </motion.span>
           )}
-          {view.below > 0 && <span className="text-[13px] text-faded">{view.below} debajo</span>}
+          {view.below > 0 && <span className="text-[13px] text-faded">{m().board.arena.below(view.below)}</span>}
         </div>
 
         {card ? (
@@ -225,8 +226,8 @@ export function ActivePanel({
                   {TERMS.actions.instinct}: {crossEffectLabel(card.crossEffect)}
                 </span>
                 {view.enteredAs && (
-                  <span className="rounded-sm bg-gold/15 px-1.5 font-display font-semibold text-gold" title="Entró directo desde la mano">
-                    Entró como {TERMS.levels[view.enteredAs]}: {view.enteredAs === 'C' ? 'mitad' : view.enteredAs === 'U' ? 'un cuarto' : 'normal'}
+                  <span className="rounded-sm bg-gold/15 px-1.5 font-display font-semibold text-gold" title={m().board.arena.enteredHint}>
+                    {m().board.arena.enteredAs(TERMS.levels[view.enteredAs], view.enteredAs === 'C' ? 'half' : view.enteredAs === 'U' ? 'quarter' : 'full')}
                   </span>
                 )}
               </div>
@@ -237,7 +238,7 @@ export function ActivePanel({
               <motion.button
                 type="button"
                 onClick={() => onInspect(card)}
-                aria-label={`Ver ${card.name}, ${view.hp} HP`}
+                aria-label={m().board.arena.view(card.name, view.hp)}
                 className="cut relative h-[170px] w-full overflow-hidden [--c:16px]"
                 style={{ background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${color} 45%, #140e09), #140e09 75%)`, boxShadow: `0 0 0 2px #2b1d12, 0 0 0 4px ${color}` }}
                 animate={reduce ? {} : fx.lunge ? { x: [0, 54 * toward, 0], scale: [1, 1.08, 1] } : fx.hurt ? { x: [0, -10 * toward, 10 * toward, -5 * toward, 0] } : { x: 0, scale: 1 }}

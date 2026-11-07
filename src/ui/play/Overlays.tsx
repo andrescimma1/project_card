@@ -13,7 +13,8 @@ import { CPU } from '../../game/session';
 import { sessionStore, useSession } from '../../game/useSession';
 import { LEVEL_NAME } from '../theme';
 import { CardFace } from './CardFace';
-import { CUSTOM_ART } from '../art';
+import { m } from '../../i18n';
+import { creatureProfile } from '../art';
 import { ACTIONS, slotOf } from '../vocab/actions';
 import { factionOf } from '../vocab/factions';
 import { cardText, crossEffectLabel, TERMS } from '../vocab/terms';
@@ -21,19 +22,20 @@ import { ActionDisc, FactionEmblem } from './glyphs';
 import type { Playback } from './Playback';
 import { cardAt } from './util';
 
-const SPEED_NAME = ['ninguna', 'baja', 'media', 'alta'];
 
-const GROUP: Record<string, string> = {
-  turnStart: 'Preparación',
-  mulligan: 'Preparación',
-  entrance: 'Preparación',
-  armorDigivolve: 'Preparación',
-  dp: TERMS.evolution,
-  digivolveOption: TERMS.evolution,
-  digivolve: TERMS.evolution,
-  attack: 'Batalla',
-  support: 'Batalla',
+type Group = 'prep' | 'evolution' | 'battle';
+const GROUP: Record<string, Group> = {
+  turnStart: 'prep',
+  mulligan: 'prep',
+  entrance: 'prep',
+  armorDigivolve: 'prep',
+  dp: 'evolution',
+  digivolveOption: 'evolution',
+  digivolve: 'evolution',
+  attack: 'battle',
+  support: 'battle',
 };
+const groupName = (g: Group) => (g === 'prep' ? TERMS.phases.prep : g === 'battle' ? TERMS.phases.battle : TERMS.evolution);
 
 /** "Prep Phase / Draw Cards": a short banner each time the turn enters a new phase. */
 export function PhaseBanner({ game, paused, names, twoPlayer }: { game: GameState; paused: boolean; names: [string, string]; twoPlayer: boolean }) {
@@ -45,9 +47,11 @@ export function PhaseBanner({ game, paused, names, twoPlayer }: { game: GameStat
   useEffect(() => {
     if (!key || paused || key === last.current) return;
     last.current = key;
-    const first = twoPlayer ? names[game.turn] : game.turn === 0 ? 'Tú' : 'La CPU';
-    const sub = group === 'Preparación' ? `Turno ${game.turnNumber} · ${first} ataca${game.turn === 0 && !twoPlayer ? 's' : ''} primero` : group === 'Batalla' ? 'Elige tu ataque' : `Carga ${TERMS.dp} y evoluciona`;
-    setShown({ key, title: `Fase de ${group}`, sub });
+    const B = m().board;
+    const you = game.turn === 0 && !twoPlayer;
+    const first = twoPlayer ? names[game.turn] : you ? B.seats.you : B.seats.theCpu;
+    const sub = group === 'prep' ? B.banner.prepSub(game.turnNumber, first, you) : group === 'battle' ? B.banner.battleSub : B.banner.evolutionSub(TERMS.dp);
+    setShown({ key, title: B.banner.phase(groupName(group)), sub });
     gameEvents.emit('PHASE_BANNER');
   }, [key, paused, group, game.turn, game.turnNumber, names, twoPlayer]);
 
@@ -98,6 +102,7 @@ export function LogDrawer({ open, onClose, game, names }: { open: boolean; onClo
   const report = useSession((s) => s.battleReport);
   const recent = log.filter((l) => l.event.type !== 'cardsDiscarded' && !(l.event.type === 'draw' && l.event.player === CPU && !names)).slice(-120).reverse();
   usePanelCue(open);
+  const P = m().board.logPanel;
   return (
     <AnimatePresence>
       {open && (
@@ -108,22 +113,22 @@ export function LogDrawer({ open, onClose, game, names }: { open: boolean; onClo
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 460, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-          aria-label="Registro de la partida"
+          aria-label={P.aria}
         >
           <div className="fill flex flex-col">
             <div className="relative z-[1] flex items-center justify-between px-4 pt-3 pb-2">
-              <h2 className="font-display text-[24px] font-black ">Registro</h2>
+              <h2 className="font-display text-[24px] font-black">{P.title}</h2>
               <button type="button" data-sfx="none" onClick={onClose} className="cmd !py-1 !text-[14px]">
-                <span>Cerrar</span>
+                <span>{P.close}</span>
               </button>
             </div>
             <div className="thin-scroll relative z-[1] min-h-0 flex-1 overflow-y-auto px-4 pb-4">
               {report && (
-                <section className="mb-3 rounded-md bg-gold/10 p-3 shadow-[inset_0_0_0_1px_rgb(232_191_93/0.45)]" aria-label="Última batalla">
+                <section className="mb-3 rounded-md bg-gold/10 p-3 shadow-[inset_0_0_0_1px_rgb(232_191_93/0.45)]" aria-label={P.lastBattle}>
                   <div className="mb-1 flex items-center justify-between">
-                    <h3 className="font-display text-[17px] font-bold text-gold ">Última batalla</h3>
+                    <h3 className="font-display text-[17px] font-bold text-gold">{P.lastBattle}</h3>
                     <button type="button" onClick={() => sessionStore.getState().dismissReport()} className="text-[13px] text-faded underline underline-offset-4 hover:text-bone">
-                      Ocultar
+                      {P.hide}
                     </button>
                   </div>
                   <ol className="flex list-decimal flex-col gap-1 pl-5 text-[14px]">
@@ -196,7 +201,7 @@ export function CardPopup({ card, onClose, onDetail }: { card: Card | null; onCl
                         return (
                           <span className="flex items-center gap-1.5" style={{ color: f.palette.light }} title={f.temperament}>
                             <FactionEmblem faction={f.id} className="size-[20px]" />
-                            {TERMS.faction} {f.name}
+                            {TERMS.factionNamed(f.name)}
                           </span>
                         );
                       })()}
@@ -206,28 +211,32 @@ export function CardPopup({ card, onClose, onDetail }: { card: Card | null; onCl
                       </span>
                       {(card.level === 'C' || card.level === 'U') && (
                         <span>
-                          · evoluciona con {card.dpRequired} {TERMS.dp}
+                          · {m().board.popup.evolvesWith(card.dpRequired, TERMS.dp)}
                         </span>
                       )}
                       <span>
-                        · da {card.dpGiven} {TERMS.dp}
+                        · {m().board.popup.gives(card.dpGiven, TERMS.dp)}
                       </span>
                     </p>
-                    {CUSTOM_ART[card.id] && (CUSTOM_ART[card.id]!.habitat || CUSTOM_ART[card.id]!.element) && (
-                      <p className="text-[16px] text-faded">
-                        {CUSTOM_ART[card.id]!.habitat && (
-                          <>
-                            {TERMS.habitat}: <span className="text-bone">{CUSTOM_ART[card.id]!.habitat}</span>
-                          </>
-                        )}
-                        {CUSTOM_ART[card.id]!.habitat && CUSTOM_ART[card.id]!.element && ' · '}
-                        {CUSTOM_ART[card.id]!.element && (
-                          <>
-                            {TERMS.element}: <span className="text-bone">{CUSTOM_ART[card.id]!.element}</span>
-                          </>
-                        )}
-                      </p>
-                    )}
+                    {(() => {
+                      const profile = creatureProfile(card.id);
+                      if (!profile) return null;
+                      return (
+                        <p className="text-[16px] text-faded">
+                          {profile.habitat && (
+                            <>
+                              {TERMS.habitat}: <span className="text-bone">{profile.habitat}</span>
+                            </>
+                          )}
+                          {profile.habitat && profile.element && ' · '}
+                          {profile.element && (
+                            <>
+                              {TERMS.element}: <span className="text-bone">{profile.element}</span>
+                            </>
+                          )}
+                        </p>
+                      );
+                    })()}
                     <div className="flex flex-col gap-1.5">
                       {ACTIONS.map((a) => (
                         <div key={a} data-action={a} className="atk-row h-[42px] px-2">
@@ -253,10 +262,10 @@ export function CardPopup({ card, onClose, onDetail }: { card: Card | null; onCl
                 <span className="flex-1" />
                 <div className="flex gap-3">
                   <button type="button" data-sfx="none" onClick={onClose} data-primary className="cmd">
-                    <span>Cerrar</span>
+                    <span>{m().board.popup.close}</span>
                   </button>
                   <button type="button" onClick={() => onDetail(card)} className="cmd">
-                    <span>Ficha técnica</span>
+                    <span>{m().board.popup.details}</span>
                   </button>
                 </div>
               </div>
@@ -273,7 +282,7 @@ function SupportText({ title, text, speed }: { title: string; text: string; spee
     <div className="rounded-md p-3 text-ink" style={{ background: 'var(--grain), linear-gradient(180deg, #f2e4c2, #dfcb9e)', boxShadow: 'inset 0 0 0 1px #6f5638' }}>
       <p className="mb-1 flex items-baseline justify-between font-display text-[17px] font-bold text-[#7a4e24]">
         {title}
-        {speed !== undefined && <span className="text-[15px] text-[#6a4c2e]">Velocidad {SPEED_NAME[speed]}</span>}
+        {speed !== undefined && <span className="text-[15px] text-[#6a4c2e]">{m().board.popup.speed(TERMS.speed[speed])}</span>}
       </p>
       <p className="text-[17px] leading-snug">{cardText(text)}</p>
     </div>
@@ -305,7 +314,7 @@ export function EffectCard({ playback }: { playback: Playback | null }) {
                   </div>
                   <div className="relative z-[1] flex w-[300px] flex-col gap-2">
                     <span className="font-display text-[15px] font-bold text-faded ">
-                      {e.source === 'cross' ? TERMS.instinctEffect : e.source === 'option' ? TERMS.supportCard : TERMS.supportEffect} · velocidad {SPEED_NAME[e.speed]}
+                      {e.source === 'cross' ? TERMS.instinctEffect : e.source === 'option' ? TERMS.supportCard : TERMS.supportEffect} · {m().board.effect.speed(TERMS.speed[e.speed])}
                     </span>
                     <p className="text-[17px] leading-snug">{cardText(text)}</p>
                     {/* the outcome lands with its sound (battleStepCues: 700 ms) */}
@@ -316,7 +325,7 @@ export function EffectCard({ playback }: { playback: Playback | null }) {
                       animate={{ scale: 1, opacity: 1, rotate: 0 }}
                       transition={{ delay: 0.7, type: 'spring', stiffness: 420, damping: 18 }}
                     >
-                      {e.voided ? 'Anulado' : e.conditionsMet ? 'Se aplica' : 'Condición no cumplida'}
+                      {e.voided ? m().board.effect.voided : e.conditionsMet ? m().board.effect.applies : m().board.effect.notMet}
                     </motion.span>
                   </div>
                 </div>
