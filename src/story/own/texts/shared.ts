@@ -10,7 +10,7 @@ export const SHARED: Record<string, Written> = {
   congrats: { who: null, es: '¡Felicitaciones por la victoria!', en: 'Congratulations on your win!' },
   farewell: { who: null, es: 'Te esperamos pronto.', en: 'We hope to see you again soon.' },
   whoTalk: { who: null, es: '¿Con quién quieres hablar?', en: 'Who do you want to talk to?' },
-  whereGo: { who: null, es: '¿Adónde quieres ir?\n*c5Pulsa *c7*b1*c5 para ir al mapa.', en: 'Where do you want to go?\n*c5Press *c7*b1*c5 to go to the map.' },
+  whereGo: { who: null, es: '¿Adónde quieres ir?', en: 'Where do you want to go?' },
   pickOption: { who: null, es: 'Elige una opción.', en: 'Pick an option.' },
 };
 

@@ -4,9 +4,9 @@
  * lives only for the session.
  */
 import { cards } from '../engine/cards/db';
-import { rankTitles } from '../engine/progression/ranks';
 import { recordIndex, type DeckRecord } from '../engine/progression/records';
 import type { SaveData } from '../engine/progression/save';
+import { rankNames } from './titles';
 
 type KV = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export const SAVE_SLOTS = 3;
@@ -85,6 +85,6 @@ export function listSaves(storage: KV | null = defaultStorage()): (SaveSummary |
   return Array.from({ length: SAVE_SLOTS }, (_, slot) => {
     const s = loadSave(slot, storage);
     if (!s) return null;
-    return { name: s.name, partner: cards[s.partners[0].slot.id].name, winsCom: s.winsCom, tamer: rankTitles(s.ranks).tamer, storyPoints: s.story.points };
+    return { name: s.name, partner: cards[s.partners[0].slot.id].name, winsCom: s.winsCom, tamer: rankNames(s.ranks).tamer, storyPoints: s.story.points };
   });
 }

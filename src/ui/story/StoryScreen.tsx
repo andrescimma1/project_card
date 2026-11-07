@@ -3,7 +3,8 @@ import { cards } from '../../engine/cards/db';
 import { TERMS } from '../vocab/terms';
 import { m, useLocale } from '../../i18n';
 import { AREAS, CITIES, keywordIndex } from '../../story/own/world';
-import { percentages, rankTitles } from '../../engine/progression/ranks';
+import { percentages } from '../../engine/progression/ranks';
+import { rankNames } from '../../game/titles';
 import { progression } from '../../engine/progression/tables';
 import { STARTER_DECK, type SaveData } from '../../engine/progression/save';
 import { deckLabel } from '../../story/own/decks';
@@ -154,7 +155,7 @@ function NewGameView() {
 /* ---------- player data and map ---------- */
 
 function PlayerPanel({ save }: { save: SaveData }) {
-  const t = rankTitles(save.ranks);
+  const t = rankNames(save.ranks);
   const p = percentages({ storyPoints: save.story.points, collection: save.collection, ownedParts: save.ownedParts });
   const s = m().story;
   return (
@@ -252,22 +253,13 @@ function MapView() {
 
 /* ---------- city ---------- */
 
-function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: string; onNext: () => void }) {
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        onNext();
-      }
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onNext]);
+/** A page of script text: the speaker's header line, then the body. */
+function Lines({ lines, playerName }: { lines: string[]; playerName: string }) {
   const decoded = lines.map(decodeScriptString);
   const speaker = decoded[0]?.startsWith('*c') ? decoded[0] : null;
   const body = speaker ? decoded.slice(1) : decoded;
   return (
-    <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5" role="dialog" aria-live="polite">
+    <>
       {speaker && (
         <p className="font-display text-xl font-bold ">
           <Text segments={storySegments(speaker, playerName)} />
@@ -280,6 +272,24 @@ function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: 
           </p>
         ))}
       </div>
+    </>
+  );
+}
+
+function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: string; onNext: () => void }) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onNext();
+      }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onNext]);
+  return (
+    <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5" role="dialog" aria-live="polite">
+      <Lines lines={lines} playerName={playerName} />
       <div className="flex justify-end">
         <Button primary onClick={onNext}>
           {m().story.shared.continue}
@@ -427,13 +437,16 @@ function CityView() {
       <ErrorNote />
       {req.kind === 'say' && <Dialogue lines={req.lines} playerName={save.name} onNext={() => act().reply({ kind: 'ack' })} />}
       {req.kind === 'menu' && (
-        <div className="flex flex-wrap gap-2 cut [--c:16px] border-2 border-seam bg-leather p-5">
+        <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5">
+          {req.prompt.length > 0 && <Lines lines={req.prompt} playerName={save.name} />}
+          <div className="flex flex-wrap gap-2">
           {req.options.map((id, i) => (
             <Button key={i} primary={i === 0} onClick={() => act().reply({ kind: 'choice', value: i + 1 })}>
               {menuLabel(id, city)}
             </Button>
           ))}
           <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{req.big ? t.city.leaveCity : t.shared.back}</Button>
+          </div>
         </div>
       )}
       {req.kind === 'talkTo' && (
@@ -518,7 +531,7 @@ function ResultView() {
             <ul className="flex flex-col gap-1 text-sm">
               {save.partners.map((p, i) => (
                 <li key={p.slot.id}>
-                  {cards[p.slot.id].name}: {result.expGained[i] ? t.result.exp(result.expGained[i]) : t.result.notInDeck}
+                  {cards[p.slot.id].name}: {result.inDeck[i] ? t.result.exp(result.expGained[i]) : t.result.notInDeck}
                   {result.levelsGained[i] ? t.result.levelUp(p.slot.level) : ''}
                 </li>
               ))}

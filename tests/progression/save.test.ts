@@ -58,6 +58,7 @@ describe('after a battle against the CPU', () => {
     const { state, events } = ended(1);
     const r = applyComResult(s, { state, events, rival: deck('New Power'), deckUsed: [175, ...Array(29).fill(27)], lent: null }, counter());
     expect([s.winsCom, s.lossesCom, r.pack.length]).toEqual([0, 1, 0]);
+    expect(r.inDeck).toEqual([true]); // it played, even if it earned nothing
   });
 
   it('partners that were not in the deck used get no EXP', () => {
@@ -65,6 +66,7 @@ describe('after a battle against the CPU', () => {
     const { state, events } = ended(0);
     const r = applyComResult(s, { state, events, rival: deck('New Power'), deckUsed: Array(30).fill(27), lent: null }, counter());
     expect(r.expGained).toEqual([0]);
+    expect(r.inDeck).toEqual([false]);
     expect(s.partners[0].exp).toBe(0);
   });
 });

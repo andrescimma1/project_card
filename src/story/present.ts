@@ -73,6 +73,7 @@ export function menuLabel(id: number, city: number): string {
 /** Cities on the map: flag v(282 + i) set (SAISEG 0x801DE964). */
 export function visibleCities(save: SaveData): number[] {
   return Array.from({ length: 12 }, (_, i) => i).filter((i) => {
+    if (i === save.story.city) return true; // the city you are in, even before the script sets its flag
     const bit = 282 + i - 12;
     return ((save.story.flags[bit >> 5] >>> (bit & 31)) & 1) === 1;
   });
