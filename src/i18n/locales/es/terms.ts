@@ -67,7 +67,7 @@ export const terms = {
     blue: { name: 'Azul', temperament: 'Calma, paciencia y control (provisional)' },
     green: { name: 'Verde', temperament: 'Resistencia, crecimiento y defensa (provisional)' },
     shadow: { name: 'Sombría', temperament: 'Astucia, engaño y desgaste (provisional)' },
-    gold: { name: 'Dorada', temperament: 'Rareza, nobleza y equilibrio (provisional)' },
+    gold: { name: 'Rara', temperament: 'Rareza, nobleza y equilibrio (provisional)' },
   },
   elements: {
     fire: 'Fuego',

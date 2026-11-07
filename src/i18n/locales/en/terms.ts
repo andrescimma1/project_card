@@ -54,7 +54,7 @@ export const terms: typeof es = {
     blue: { name: 'Blue', temperament: 'Calm, patience and control (provisional)' },
     green: { name: 'Green', temperament: 'Endurance, growth and defence (provisional)' },
     shadow: { name: 'Shadow', temperament: 'Cunning, deceit and attrition (provisional)' },
-    gold: { name: 'Gold', temperament: 'Rarity, nobility and balance (provisional)' },
+    gold: { name: 'Rare', temperament: 'Rarity, nobility and balance (provisional)' },
   },
   elements: {
     fire: 'Fire',

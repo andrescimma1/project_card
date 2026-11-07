@@ -22,6 +22,13 @@ describe('card art', () => {
     expect(creatures.filter((id) => !isCustomArt(id))).toEqual([]);
   });
 
+  it('every Rare Faction creature of the Yellow starter deck has our own art', () => {
+    const yellow = starterDecks.find((d) => d.name === 'Yellow')!;
+    const rare = [...new Set(yellow.cards)].filter((id) => cards[id].kind === 'digimon' && cards[id].specialty === 'rare');
+    expect(rare.length).toBe(8);
+    expect(rare.filter((id) => !isCustomArt(id))).toEqual([]);
+  });
+
   it.skipIf(!existsSync('public/art'))('every custom art file exists in public/', () => {
     for (const [id, a] of Object.entries(CUSTOM_ART)) expect(existsSync(join('public', a!.file)), `card ${id}: ${a!.file}`).toBe(true);
   });
