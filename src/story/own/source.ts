@@ -6,11 +6,22 @@
 import type { Locale } from '../../i18n';
 import { compile, encodeCaption, encodeName, encodeUnit, type CityLogic, type Page, type TextSource, type UnitContext, type UnitText } from './ir';
 import { CITY00 } from './texts/city00';
+import { CITY01 } from './texts/city01';
+import { CITY02 } from './texts/city02';
+import { CITY03 } from './texts/city03';
+import { CITY04 } from './texts/city04';
+import { CITY05 } from './texts/city05';
+import { CITY06 } from './texts/city06';
+import { CITY07 } from './texts/city07';
+import { CITY08 } from './texts/city08';
+import { CITY09 } from './texts/city09';
+import { CITY10 } from './texts/city10';
+import { CITY11 } from './texts/city11';
 import { GENERIC, SHARED } from './texts/shared';
 import type { CityTexts, Written } from './texts/types';
 import { characterName } from './world';
 
-const WRITTEN: Partial<Record<number, CityTexts>> = { 0: CITY00 };
+const WRITTEN: Partial<Record<number, CityTexts>> = { 0: CITY00, 1: CITY01, 2: CITY02, 3: CITY03, 4: CITY04, 5: CITY05, 6: CITY06, 7: CITY07, 8: CITY08, 9: CITY09, 10: CITY10, 11: CITY11 };
 
 const PLAYER = '*h0';
 /** Places on the city menu (CMD11.1 ids 0..7). */
@@ -86,3 +97,5 @@ export function buildCity(city: number, logic: CityLogic, locale: Locale): Uint8
 
 /** Runs of dialogue written for a city (to check every one exists in its logic). */
 export const writtenRuns = (city: number): string[] => Object.keys(WRITTEN[city] ?? {});
+
+export const writtenText = (city: number, id: string): Written | undefined => WRITTEN[city]?.[id];

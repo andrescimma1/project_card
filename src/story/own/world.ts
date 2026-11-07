@@ -6,6 +6,7 @@
  *
  * The 12 places keep the order and the unlocks of the original map; only their names are ours.
  */
+import { progression } from '../../engine/progression/tables';
 import type { Locale } from '../../i18n';
 
 type Named = Record<Locale, string>;
@@ -69,6 +70,7 @@ export const ARENAS: Record<Locale, string[][]> = {
  * plain string is a proper name, the same in every language. Characters not named yet keep their key.
  */
 export const CHARACTERS: Record<string, string | Named> = {
+  // Aldea del Cruce
   Betamon: 'Nilo', // the guide: an axolotl ship's boy
   Agumon: 'Brezo', // a young boar with a red mane
   Penguinmon: 'Pipa', // a pika with a sled
@@ -77,9 +79,143 @@ export const CHARACTERS: Record<string, string | Named> = {
   Greymon: 'Tizón',
   WarGreymon: 'Fragua',
   BlackWarGreymon: 'Hollín',
-  Tai: 'Tadeo', // another traveller who came back
   Apokarimon: { es: 'El Borrón', en: 'The Blot' }, // what is left of a creature that lost its shape
+  // travellers: people who came back to the Quiet Lands, like the player
+  Tai: 'Tadeo',
+  Davis: 'Dante',
+  Sora: 'Soledad',
+  Mimi: 'Mina',
+  Keely: 'Lía',
+  Matt: 'Mateo',
+  Cody: 'Iker',
+  Joe: 'Jacinto',
+  Izzy: 'Isidro',
+  'T.K.': 'Tomás',
+  Kari: 'Clara',
+  Ken: 'Fermín', // the Collector, once he gives it up
+  'Digimon Emperor': { es: 'El Coleccionista', en: 'The Collector' }, // takes over the arenas
+  // Hornos Viejos
+  Veemon: 'Brinco',
+  ExVeemon: 'Zarpazo',
+  Flamedramon: 'Chispero',
+  Raidramon: 'Trueno',
+  Paildramon: 'Dúo',
+  Magnamon: 'Áureo',
+  Imperialdramon: 'Soberano',
+  Meramon: 'Pavesa',
+  Phoenixmon: 'Ceniza',
+  Garudamon: 'Plumaria',
+  // Bosque Hondo
+  Wormmon: 'Hebra',
+  Veedramon: 'Escamo',
+  Ninjamon: 'Sigilo',
+  Halsemon: 'Vendaval',
+  Shurimon: 'Molinete',
+  Lillymon: 'Azucena',
+  Vegiemon: 'Musgo',
+  Aquilamon: 'Aquilino',
+  Sylphymon: 'Céfiro',
+  HerculesKabuterimon: 'Coloso',
+  Hawkmon: 'Trino',
+  Kuwagamon: 'Tenaza',
+  Valkyrimon: 'Brunilda',
+  // Puerto Escarcha
+  Garurumon: 'Ventisca',
+  Stingmon: 'Aguijón',
+  MetalGarurumon: 'Acero',
+  ',MetalGarurumon': 'Acero',
+  BKMetalGarurumon: { es: 'Acero Negro', en: 'Black Steel' },
+  Frigimon: 'Témpano',
+  Whamon: 'Muelle',
+  Digmon: 'Barreno',
+  Submarimon: 'Calado',
+  Ankylomon: 'Coraza',
+  Shakkoumon: 'Ánfora',
+  Armadillomon: 'Gema',
+  Vikemon: 'Fiordo',
+  // Chatarral
+  MetalMamemon: 'Tuerca',
+  Nanimon: 'Gruñón',
+  KingSukamon: { es: 'Rey Basural', en: 'Junk King' },
+  Shadramon: 'Humo',
+  Zudomon: 'Martillo',
+  Hagurumon: 'Cuerda',
+  ShellNumemon: 'Babosín',
+  Thundermon: 'Tronada',
+  SuperStarmon: 'Lucero',
+  // Ciudad sin Faroles
+  Myotismon: 'Mortaja', // wants every shape to go grey and quiet
+  VenomMyotismon: { es: 'Mortaja Voraz', en: 'Ravenous Mortaja' },
+  Devimon: 'Grajo',
+  MegaKabuterimon: 'Astado',
+  Quetzalmon: 'Quetzal',
+  Bakemon: 'Sábana',
+  SkullGreymon: 'Osario',
+  // Isla de Arena
+  Leomon: 'Melena',
+  MetalEtemon: 'Latón',
+  // Templo Hundido
+  Pegasusmon: 'Alazán',
+  Baronmon: 'Barón',
+  MagnaAngemon: 'Custodio',
+  Angemon: 'Celeste',
+  Patamon: 'Bollo',
+  Centarumon: 'Saeta',
+  Tyrannomon: 'Campana',
+  Seraphimon: 'Serafín',
+  // Mirador de las Nubes
+  Gatomon: 'Zarpa',
+  Wizardmon: 'Abalorio',
+  Tylomon: 'Ancla',
+  Nefertimon: 'Esfinge',
+  Angewomon: 'Aurora',
+  AeroVeedramon: 'Altura',
+  Magnadramon: 'Magna',
+  // Camino del Risco
+  Goburimon: 'Honda',
+  DemiDevimon: 'Chismes',
+  Megadramon: 'Garfio',
+  Gigadramon: 'Tenazón',
+  Piximon: 'Duende',
+  GranKuwagamon: 'Mandíbula',
+  // Torre del Archivero
+  MetalGreymon: 'Yunque',
+  Omnimon: 'Centinela',
+  WereGarurumon: 'Aullido',
+  Togemon: 'Espina',
+  Kabuterimon: 'Cornelio',
+  Ikkakumon: 'Rompehielos',
+  Birdramon: 'Gallardo',
+  // Torre sin Fin
+  Piedmon: { es: 'El Bufón', en: 'The Jester' },
+  Puppetmon: 'Hilván',
+  Diaboromon: 'Plaga',
+  Infermon: 'Mangle',
+  Tuskmon: 'Colmillo',
+  Phantomon: { es: 'Tres Llaves', en: 'Three Keys' },
+  MegaSeadramon: 'Marejada',
+  MetalSeadramon: 'Casco',
+  Machinedramon: 'Engranaje',
+  LadyDevimon: { es: 'Dama Negra', en: 'Black Lady' },
+  // who they are is the mystery: they keep their sign
+  '???????': '???????',
+  '?????????': '?????????',
+  A: 'A',
 };
+
+/**
+ * The 10 keywords the player can type in Cloud Lookout (CMD10.15), in the order of the original table:
+ * the index is what the city logic checks, so each of ours gives the same reward as the original word,
+ * which is still accepted.
+ */
+export const KEYWORDS = ['CENTINELA-1', 'FRAGUA', 'CENTINELA-2', 'ACERO', 'ALTURA', 'COLOSO', 'MORTAJA', 'BUFON', 'LATON', 'ABUELO'];
+
+/** Index of a typed keyword (ours or the original), or −1. */
+export function keywordIndex(word: string): number {
+  const w = word.trim().toUpperCase();
+  const own = KEYWORDS.indexOf(w);
+  return own >= 0 ? own : progression.world.keywords.indexOf(w);
+}
 
 export function characterName(key: string, locale: Locale): string {
   const c = CHARACTERS[key];

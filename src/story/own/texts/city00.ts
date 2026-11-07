@@ -1,8 +1,9 @@
 /**
  * Aldea del Cruce (city 0): the player arrives. Nilo, the guide, explains the world; Brezo and Pipa give
  * advice at the café; Grandma Retama runs the first arena and gives the pass to Old Kilns.
- * Runs not written here (the characters of later phases) are filled in later.
+ * The later phases of the village are in city00later.ts.
  */
+import { CITY00_LATER } from './city00later';
 import type { CityTexts } from './types';
 
 const niloDeck = { who: null, es: '*c3Mazo de Nilo\nEl mazo de siempre de Nilo.\nIdeal contra principiantes.', en: "*c3Nilo's Deck\nNilo's usual deck.\nGood against beginners." };
@@ -17,11 +18,11 @@ const retamaToArena = {
   en: 'I see Nilo already told you\nwhat this world is like.\n\nThen you should\ntry your luck at the Arena.\n\nI will be waiting at the Arena.\nHa ha ha!',
 };
 
-export const CITY00: CityTexts = {
+const ARRIVAL: CityTexts = {
   // first arrival
   '0120': {
     who: null,
-    es: 'Te damos la bienvenida\na las Tierras Quietas.\n\nHace mucho que las personas se fueron.\nHoy las criaturas cuidan sus pueblos.\n\nTu guía, Nilo, te espera\nen el Café de batallas.\n\nSi recién empiezas,\nescucha sus consejos.\n\n¡Buen viaje, aprendiz!',
+    es: 'Te damos la bienvenida\na las Tierras Quietas.\n\nHace mucho que las personas se fueron.\nHoy las criaturas cuidan sus pueblos.\n\nTu guía, Nilo, te espera\nen el Café de batallas.\n\nSi estás empezando,\nescucha sus consejos.\n\n¡Buen viaje, aprendiz!',
     en: 'Welcome to the Quiet Lands.\n\nPeople left a long time ago.\nThe creatures look after their towns now.\n\nYour guide, Nilo, is waiting for you\nat the Battle Cafe.\n\nIf you are just starting out,\nlisten to his advice.\n\nHave a good journey, apprentice!',
   },
 
@@ -149,3 +150,5 @@ export const CITY00: CityTexts = {
   CA64: { es: '¡Ja, ja, ja! Te falta mucho por aprender.\n\nVuelve cuando quieras.\nTe enfrento cualquier día.\n\n¡Ja, ja, ja!', en: "Ha ha ha! You have a lot to learn.\n\nCome back anytime.\nI'll take you on any day.\n\nHa ha ha!" },
   CB64: retamaDeck,
 };
+
+export const CITY00: CityTexts = { ...ARRIVAL, ...CITY00_LATER };

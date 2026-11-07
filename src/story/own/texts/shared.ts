@@ -22,7 +22,7 @@ export const GENERIC = {
   whatToDo: { es: '¿Qué quieres hacer?', en: 'What do you want to do?' },
   pack: { es: 'Recibiste un sobre.', en: 'You got a pack.' },
   cards: (n: number) => (n === 1 ? { es: 'Recibiste una carta.', en: 'You got a card.' } : { es: `Recibiste ${n} cartas.`, en: `You got ${n} cards.` }),
-  part: { es: 'Recibiste una pieza para tu compañero.', en: 'You got a part for your partner.' },
+  part: { es: 'Recibiste una reliquia para tu compañero.', en: 'You got a relic for your partner.' },
   /** A character whose lines are not written yet. */
   silent: '…',
 };
