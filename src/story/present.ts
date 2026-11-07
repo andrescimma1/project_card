@@ -3,8 +3,8 @@
  * Nothing here changes the rules; labels replace the game's graphical menu items.
  */
 import { renderGameText } from '../engine/cards/romTables';
-import { m } from '../i18n';
-import { progression } from '../engine/progression/tables';
+import { getLocale, m } from '../i18n';
+import { ARENAS } from './own/world';
 import type { SaveData } from '../engine/progression/save';
 import type { MscdScript } from './vm';
 
@@ -45,10 +45,15 @@ export function storySegments(line: string, playerName: string): Segment[] {
   return out;
 }
 
-/** Decode a script string (latin1 bytes with Shift-JIS pairs) into text. */
+/** Decode a script string into text: UTF-8 (our own scripts) or latin1 bytes with Shift-JIS pairs (the original). */
 export function decodeScriptString(raw: string): string {
   if (!/[\x80-\xff]/.test(raw)) return raw;
   const bytes = Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    // not UTF-8: an original script
+  }
   try {
     return new TextDecoder('shift_jis').decode(bytes);
   } catch {
@@ -61,7 +66,7 @@ export function decodeScriptString(raw: string): string {
 /** Label for a graphical menu item (CMD11.1 id); ids 3..6 are the 4 arenas of the city. */
 export function menuLabel(id: number, city: number): string {
   const G = m().game;
-  if (id >= 3 && id <= 6) return progression.world.arenas[city]?.[id - 3] || G.arena;
+  if (id >= 3 && id <= 6) return ARENAS[getLocale()][city]?.[id - 3] || G.arena;
   return G.places[id] ?? G.option(id);
 }
 
@@ -95,6 +100,7 @@ export function npcNames(s: MscdScript): Record<number, string> {
       if (u16(pc) !== 8 || u16(pc + 2) !== 4) continue;
       let t = '';
       for (let o = pc + 6; b[o]; o++) t += String.fromCharCode(b[o]);
+      t = decodeScriptString(t);
       if (t.startsWith('*c') && !t.includes('*h')) return storySegments(t, '').map((x) => x.text).join('').trim() || null;
     }
     return null;

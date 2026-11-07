@@ -20,12 +20,12 @@ describe('script text', () => {
 });
 
 describe('menus and the map', () => {
-  it('menu ids: places and choices in the current language, arenas of the city as the disc names them', () => {
+  it('menu ids: places, choices and the arenas of our towns in the current language', () => {
     const labels = () => [menuLabel(2, 0), menuLabel(3, 2), menuLabel(5, 2), menuLabel(6, 5), menuLabel(13, 0), menuLabel(16, 0)];
     setLocale('es');
-    expect(labels()).toEqual(['Café de batallas', 'Jungle Arena', 'Beet Arena', 'Haunted Arena', 'Combatir', 'Sí']);
+    expect(labels()).toEqual(['Café de batallas', 'Arena del Bosque', 'Arena del Escarabajo', 'Arena Embrujada', 'Combatir', 'Sí']);
     setLocale('en');
-    expect(labels()).toEqual(['Battle Cafe', 'Jungle Arena', 'Beet Arena', 'Haunted Arena', 'Battle', 'Yes']);
+    expect(labels()).toEqual(['Battle Cafe', 'Deepwood Arena', 'Beetle Arena', 'Haunted Arena', 'Battle', 'Yes']);
     setLocale('es');
   });
 

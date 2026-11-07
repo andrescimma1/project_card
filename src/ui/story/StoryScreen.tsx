@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { cards } from '../../engine/cards/db';
 import { TERMS } from '../vocab/terms';
-import { m } from '../../i18n';
+import { m, useLocale } from '../../i18n';
+import { AREAS, CITIES } from '../../story/own/world';
 import { percentages, rankTitles } from '../../engine/progression/ranks';
 import { progression } from '../../engine/progression/tables';
 import type { SaveData } from '../../engine/progression/save';
@@ -22,12 +23,6 @@ import { TradeView } from './TradeView';
 import { DuelView } from './DuelView';
 
 const act = () => storyStore.getState();
-/** Area names of the original world map (proper names, not translated). */
-const AREAS: { name: string; cities: number[] }[] = [
-  { name: 'Mega Area', cities: [0, 1, 2, 3, 4] },
-  { name: 'Giga Area', cities: [5, 7, 8, 6] },
-  { name: 'Tera Area', cities: [9, 10, 11] },
-];
 const permille = (v: number) => `${Math.floor(v / 10)}.${v % 10} %`;
 
 function ErrorNote() {
@@ -187,6 +182,7 @@ function PlayerPanel({ save }: { save: SaveData }) {
 }
 
 function MapView() {
+  const locale = useLocale();
   const save = useStory((s) => s.save)!;
   const open = visibleCities(save);
   const [saved, setSaved] = useState(false);
@@ -224,8 +220,8 @@ function MapView() {
       <ErrorNote />
       <PlayerPanel save={save} />
       {AREAS.map((a) => (
-        <section key={a.name} className="flex flex-col gap-2">
-          <h3 className="font-display text-sm font-semibold text-faded">{a.name}</h3>
+        <section key={a.name.en} className="flex flex-col gap-2">
+          <h3 className="font-display text-sm font-semibold text-faded">{a.name[locale]}</h3>
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {a.cities.map((c) => {
               const visible = open.includes(c);
@@ -241,7 +237,7 @@ function MapView() {
                   className="flex min-h-20 flex-col justify-between cut [--c:16px] border-2 bg-leather px-4 py-3 text-left transition-colors enabled:hover:border-bone disabled:opacity-35"
                   style={{ borderColor: save.story.city === c ? 'var(--color-rare)' : 'var(--color-seam)' }}
                 >
-                  <span className="font-display text-xl font-bold ">{visible ? progression.world.cities[c] : '???'}</span>
+                  <span className="font-display text-xl font-bold ">{visible ? CITIES[c][locale] : '???'}</span>
                   <span className="text-xs text-faded">{visible ? (save.story.city === c ? t.map.here : t.map.enter) : t.map.locked}</span>
                 </button>
               );
@@ -414,6 +410,7 @@ function ScreenRequest({ req, save }: { req: Extract<StoryRequest, { kind: 'scre
 }
 
 function CityView() {
+  const locale = useLocale();
   const req = useStory((s) => s.request);
   const host = useStory((s) => s.host);
   const save = useStory((s) => s.save)!;
@@ -424,7 +421,7 @@ function CityView() {
   return (
     <div className={`mx-auto flex ${req.kind === 'screen' && req.screen !== 'playerData' ? 'max-w-6xl' : 'max-w-3xl'} flex-col gap-4 py-4`}>
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-display text-4xl font-black ">{progression.world.cities[city]}</h2>
+        <h2 className="font-display text-4xl font-black ">{CITIES[city][locale]}</h2>
         <span className="text-sm text-faded">{host?.place === 1 ? m().game.places[2] : host?.place === 2 ? m().game.arena : ''}</span>
       </div>
       <ErrorNote />

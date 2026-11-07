@@ -43,7 +43,7 @@ export const story = {
   slots: {
     title: 'Modo historia',
     intro:
-      'Las ciudades, los torneos y los diálogos son los guiones originales del juego, leídos de tu disco. Hay tres partidas, como los tres archivos de la tarjeta de memoria. Se guarda cuando eliges Guardar, igual que en el original.',
+      'Los torneos, los rivales y los premios siguen las reglas del juego original; los pueblos, los personajes y los diálogos son de Card Evolution. Hay tres partidas, como los tres archivos de la tarjeta de memoria. Se guarda cuando eliges Guardar, igual que en el original.',
     summary: (name: string, partner: string, title: string, won: number, completed: string) => `${name} con ${partner} · ${title} · ${wins(won)} · ${completed}`,
     empty: 'Vacía',
     restart: 'Empezar de nuevo',
