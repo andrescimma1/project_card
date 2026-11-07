@@ -36,7 +36,7 @@ export const story: typeof es = {
   slots: {
     title: 'Story mode',
     intro:
-      'The cities, tournaments and dialogue are the original game scripts, read from your disc. There are three save files, like the three files on the memory card. The game saves when you choose Save, just like the original.',
+      'Tournaments, rivals and prizes follow the rules of the original game; the towns, characters and dialogue are original to Card Evolution. There are three save files, like the three files on the memory card. The game saves when you choose Save, just like the original.',
     summary: (name: string, partner: string, title: string, won: number, completed: string) => `${name} with ${partner} · ${title} · ${wins(won)} · ${completed}`,
     empty: 'Empty',
     restart: 'Start over',

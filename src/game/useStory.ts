@@ -1,5 +1,6 @@
 import { useStore } from 'zustand';
-import { createStoryStore, fetchCityScript, type StoryState } from './storyStore';
+import { loadOwnCity } from '../story/own/load';
+import { createStoryStore, type StoryState } from './storyStore';
 import { sessionStore } from './useSession';
 
 function safeStorage() {
@@ -11,7 +12,7 @@ function safeStorage() {
 }
 
 /** The single story-mode store of the app. */
-export const storyStore = createStoryStore({ loadScript: fetchCityScript, storage: safeStorage(), session: sessionStore, seed: Date.now() >>> 0 });
+export const storyStore = createStoryStore({ loadScript: loadOwnCity, storage: safeStorage(), session: sessionStore, seed: Date.now() >>> 0 });
 
 if (import.meta.env.DEV && typeof window !== 'undefined') Object.assign(window, { __dcbStory: storyStore });
 
