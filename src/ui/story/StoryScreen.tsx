@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react';
 import { cards } from '../../engine/cards/db';
 import { TERMS } from '../vocab/terms';
-import { m, useLocale } from '../../i18n';
-import { AREAS, CITIES, keywordIndex } from '../../story/own/world';
+import { m } from '../../i18n';
+import { keywordIndex } from '../../story/own/world';
 import { percentages } from '../../engine/progression/ranks';
 import { rankNames } from '../../game/titles';
 import { progression } from '../../engine/progression/tables';
 import { STARTER_DECK, type SaveData } from '../../engine/progression/save';
 import { deckLabel } from '../../story/own/decks';
 import type { StoryRequest } from '../../story/cityHost';
-import { decodeScriptString, menuLabel, storySegments, visibleCities } from '../../story/present';
 import { useSession } from '../../game/useSession';
 import { storyStore, useStory } from '../../game/useStory';
 import { CardFace } from '../play/CardFace';
 import { BattleBoard } from '../play/PlayScreen';
 import { EndBanner } from '../play/Overlays';
 import type { GameState } from '../../engine/game/types';
-import { Button, PartName, Text } from './common';
+import { Button, PartName } from './common';
 import { PartnerGet, StoryMenu } from './StoryMenus';
 import { FusionShop } from './FusionShop';
 import { CompleteStats } from './CompleteStats';
 import { cleanName } from '../../game/storyStore';
 import { TradeView } from './TradeView';
 import { DuelView } from './DuelView';
+import { MapStage, TownStage } from './StoryStage';
+import { AVATARS, avatarFace } from './visuals';
 
 const act = () => storyStore.getState();
 const permille = (v: number) => `${Math.floor(v / 10)}.${v % 10} %`;
@@ -88,6 +89,7 @@ function NewGameView() {
   // OPENSEG: User Registration (NAME ENTRY, 12 letters) comes before STARTER SELECT
   const [name, setName] = useState(() => t.newGame.defaultName);
   const [named, setNamed] = useState(false);
+  const [avatar, setAvatar] = useState(0);
   const [error, setError] = useState<string | null>(null);
   if (!named)
     return (
@@ -130,15 +132,35 @@ function NewGameView() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
       <div>
-        <h2 className="font-display text-5xl font-black ">{t.newGame.partnerTitle}</h2>
-        <p className="mt-2 text-faded">{t.newGame.partnerIntro}</p>
+        <h2 className="font-display text-3xl font-black ">{t.newGame.faceTitle}</h2>
+        <p className="mt-1 text-faded">{t.newGame.faceHint}</p>
+      </div>
+      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label={t.newGame.faceTitle}>
+        {Array.from({ length: AVATARS }, (_, i) => (
+          <button
+            key={i}
+            type="button"
+            role="radio"
+            aria-checked={avatar === i}
+            onClick={() => setAvatar(i)}
+            className="relative h-28 w-24 overflow-hidden rounded-md bg-hide transition-shadow"
+            style={{ boxShadow: avatar === i ? '0 0 0 3px var(--color-gold)' : '0 0 0 2px var(--color-seam)' }}
+          >
+            <span aria-hidden="true" className="absolute inset-0 grid place-items-center font-display text-3xl font-extrabold text-bone/70">{name.slice(0, 1).toUpperCase()}</span>
+            <span className="absolute inset-0 bg-cover bg-[center_30%]" style={{ backgroundImage: `url(${avatarFace(i).src})` }} />
+          </button>
+        ))}
+      </div>
+      <div>
+        <h2 className="font-display text-3xl font-black ">{t.newGame.partnerTitle}</h2>
+        <p className="mt-1 text-faded">{t.newGame.partnerIntro}</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         {STARTERS.map((id, i) => (
           <button
             key={id}
             type="button"
-            onClick={() => void act().newGame(slot ?? 0, i as 0 | 1 | 2, name)}
+            onClick={() => void act().newGame(slot ?? 0, i as 0 | 1 | 2, name, avatar)}
             className="flex flex-col items-center gap-3 cut [--c:16px] border border-seam bg-gradient-to-b from-hide/80 to-leather/80 p-4 transition-colors hover:border-bone"
           >
             <CardFace card={cards[id]} size="md" />
@@ -184,11 +206,10 @@ function PlayerPanel({ save }: { save: SaveData }) {
 }
 
 function MapView() {
-  const locale = useLocale();
   const save = useStory((s) => s.save)!;
-  const open = visibleCities(save);
   const [saved, setSaved] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [details, setDetails] = useState(false);
   const t = m().story;
   if (menu)
     return (
@@ -203,101 +224,36 @@ function MapView() {
       </div>
     );
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-5 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-4xl font-black ">{t.map.title}</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setMenu(true)}>{t.map.decksAndPartners}</Button>
-          <Button
-            onClick={() => {
-              act().saveNow();
-              setSaved(true);
-            }}
-          >
-            {saved ? t.shared.saved : t.shared.save}
-          </Button>
-          <Button onClick={() => act().toSlots()}>{t.shared.exit}</Button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-3">
       <ErrorNote />
-      <PlayerPanel save={save} />
-      {AREAS.map((a) => (
-        <section key={a.name.en} className="flex flex-col gap-2">
-          <h3 className="font-display text-sm font-semibold text-faded">{a.name[locale]}</h3>
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {a.cities.map((c) => {
-              const visible = open.includes(c);
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  disabled={!visible}
-                  onClick={() => {
-                    setSaved(false);
-                    void act().enterCity(c);
-                  }}
-                  className="flex min-h-20 flex-col justify-between cut [--c:16px] border-2 bg-leather px-4 py-3 text-left transition-colors enabled:hover:border-bone disabled:opacity-35"
-                  style={{ borderColor: save.story.city === c ? 'var(--color-rare)' : 'var(--color-seam)' }}
-                >
-                  <span className="font-display text-xl font-bold ">{visible ? CITIES[c][locale] : '???'}</span>
-                  <span className="text-xs text-faded">{visible ? (save.story.city === c ? t.map.here : t.map.enter) : t.map.locked}</span>
-                </button>
-              );
-            })}
+      <MapStage
+        details={details ? (
+          <div className="flex flex-col gap-2">
+            <PlayerPanel save={save} />
+            <div><Button onClick={() => setDetails(false)}>{t.shared.back}</Button></div>
           </div>
-        </section>
-      ))}
+        ) : null}
+        onDetails={() => setDetails((v) => !v)}
+        toolbar={
+          <>
+            <Button onClick={() => setMenu(true)}>{t.map.decksAndPartners}</Button>
+            <Button
+              onClick={() => {
+                act().saveNow();
+                setSaved(true);
+              }}
+            >
+              {saved ? t.shared.saved : t.shared.save}
+            </Button>
+            <Button onClick={() => act().toSlots()}>{t.shared.exit}</Button>
+          </>
+        }
+      />
     </div>
   );
 }
 
 /* ---------- city ---------- */
-
-/** A page of script text: the speaker's header line, then the body. */
-function Lines({ lines, playerName }: { lines: string[]; playerName: string }) {
-  const decoded = lines.map(decodeScriptString);
-  const speaker = decoded[0]?.startsWith('*c') ? decoded[0] : null;
-  const body = speaker ? decoded.slice(1) : decoded;
-  return (
-    <>
-      {speaker && (
-        <p className="font-display text-xl font-bold ">
-          <Text segments={storySegments(speaker, playerName)} />
-        </p>
-      )}
-      <div className="flex min-h-[3.5rem] flex-col gap-1 text-lg leading-snug">
-        {body.map((l, i) => (
-          <p key={i}>
-            <Text segments={storySegments(l, playerName)} />
-          </p>
-        ))}
-      </div>
-    </>
-  );
-}
-
-function Dialogue({ lines, playerName, onNext }: { lines: string[]; playerName: string; onNext: () => void }) {
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        onNext();
-      }
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onNext]);
-  return (
-    <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5" role="dialog" aria-live="polite">
-      <Lines lines={lines} playerName={playerName} />
-      <div className="flex justify-end">
-        <Button primary onClick={onNext}>
-          {m().story.shared.continue}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 function Reward({ req }: { req: Extract<StoryRequest, { kind: 'reward' }> }) {
   const t = m().story;
@@ -420,65 +376,22 @@ function ScreenRequest({ req, save }: { req: Extract<StoryRequest, { kind: 'scre
 }
 
 function CityView() {
-  const locale = useLocale();
   const req = useStory((s) => s.request);
-  const host = useStory((s) => s.host);
   const save = useStory((s) => s.save)!;
-  const npcs = useStory((s) => s.npcs);
-  const city = host?.city ?? save.story.city;
   if (!req) return null;
-  const t = m().story;
-  return (
-    <div className={`mx-auto flex ${req.kind === 'screen' && req.screen !== 'playerData' ? 'max-w-6xl' : 'max-w-3xl'} flex-col gap-4 py-4`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-display text-4xl font-black ">{CITIES[city][locale]}</h2>
-        <span className="text-sm text-faded">{host?.place === 1 ? m().game.places[2] : host?.place === 2 ? m().game.arena : ''}</span>
+  if (req.kind === 'screen')
+    return (
+      <div className={`mx-auto flex ${req.screen !== 'playerData' ? 'max-w-6xl' : 'max-w-3xl'} flex-col gap-4 py-4`}>
+        <ErrorNote />
+        <ScreenRequest req={req} save={save} />
       </div>
+    );
+  const overlay =
+    req.kind === 'reward' ? <Reward req={req} /> : req.kind === 'keyword' ? <Keyword /> : req.kind === 'partnerGet' ? <PartnerGet candidates={req.candidates} /> : undefined;
+  return (
+    <div className="flex flex-col gap-3">
       <ErrorNote />
-      {req.kind === 'say' && <Dialogue lines={req.lines} playerName={save.name} onNext={() => act().reply({ kind: 'ack' })} />}
-      {req.kind === 'menu' && (
-        <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5">
-          {req.prompt.length > 0 && <Lines lines={req.prompt} playerName={save.name} />}
-          <div className="flex flex-wrap gap-2">
-          {req.options.map((id, i) => (
-            <Button key={i} primary={i === 0} onClick={() => act().reply({ kind: 'choice', value: i + 1 })}>
-              {menuLabel(id, city)}
-            </Button>
-          ))}
-          <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{req.big ? t.city.leaveCity : t.shared.back}</Button>
-          </div>
-        </div>
-      )}
-      {req.kind === 'talkTo' && (
-        <div className="flex flex-col gap-3 cut [--c:16px] border-2 border-seam bg-leather p-5">
-          <p className="text-faded">{t.city.talkTo}</p>
-          <div className="flex flex-wrap gap-2">
-            {req.npcs.map((n) => (
-              <Button key={n} onClick={() => act().reply({ kind: 'choice', value: n })}>
-                {npcs[n] ?? t.city.npc(n)}
-              </Button>
-            ))}
-            <Button onClick={() => act().reply({ kind: 'choice', value: -1 })}>{t.city.leaveCafe(m().game.places[2])}</Button>
-          </div>
-        </div>
-      )}
-      {req.kind === 'rival' && (
-        <div className="flex flex-col gap-2 cut [--c:16px] border-2 bg-leather p-5" style={{ borderColor: 'var(--color-fire)' }}>
-          <p className="font-display text-2xl font-bold ">
-            <Text segments={storySegments(decodeScriptString(req.name), save.name)} />
-          </p>
-          <p className="text-sm text-faded">{t.city.rivalStats(req.attack, req.defense, req.speed, TERMS.evolution)}</p>
-          <div className="flex justify-end">
-            <Button primary onClick={() => act().reply({ kind: 'ack' })}>
-              {t.shared.continue}
-            </Button>
-          </div>
-        </div>
-      )}
-      {req.kind === 'reward' && <Reward req={req} />}
-      {req.kind === 'keyword' && <Keyword />}
-      {req.kind === 'screen' && <ScreenRequest req={req} save={save} />}
-      {req.kind === 'partnerGet' && <PartnerGet candidates={req.candidates} />}
+      <TownStage req={req} overlay={overlay} />
     </div>
   );
 }

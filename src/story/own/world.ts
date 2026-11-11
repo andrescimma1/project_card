@@ -223,3 +223,10 @@ export function characterName(key: string, locale: Locale): string {
   if (c === undefined) return key;
   return typeof c === 'string' ? c : c[locale];
 }
+
+/** Characters without a card of their own: their portrait file in /story-art/caras. */
+export const PORTRAITS: Record<string, string> = {
+  Tai: 'tadeo', Davis: 'dante', Sora: 'soledad', Mimi: 'mina', Keely: 'lia', Matt: 'mateo', Cody: 'iker', Joe: 'jacinto',
+  Izzy: 'isidro', 'T.K.': 'tomas', Kari: 'clara', Ken: 'fermin', 'Digimon Emperor': 'coleccionista', A: 'a',
+  '???????': 'encapuchado', '?????????': 'encapuchado', Babamon: 'abuela-retama', KingSukamon: 'rey-basural',
+};

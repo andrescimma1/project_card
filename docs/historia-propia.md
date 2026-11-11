@@ -92,6 +92,34 @@ En la hoja de la ciudad, cada diálogo aparece con su identificador, por ejemplo
   - `null` es nadie (un aviso o la descripción de un mazo).
 - **Personajes nuevos:** van en `CHARACTERS`, en `world.ts`.
 
+## Cómo se ve
+
+La historia se juega en una escena 16:9 que se adapta a la ventana sin scroll (`src/ui/story/StoryStage.tsx`).
+
+- **El mapa de las Tierras Quietas:**
+  - cada pueblo es una carta, boca abajo hasta que ganas su pase;
+  - la ficha con la cara de tu compañero marca dónde estás y camina por el camino al viajar;
+  - al entrar, la carta del pueblo crece hasta llenar la escena;
+  - una niebla gris cubre las regiones a las que todavía no llegaste.
+- **Un pueblo:**
+  - su pintura de fondo, la placa con el nombre y la región;
+  - los lugares (Café, Arena, Tienda…) como cartas a la izquierda;
+  - abajo, la caja de diálogo con tu cara a la izquierda y la de quien habla a la derecha. El texto aparece letra por letra, y las preguntas y sus respuestas van dentro de la caja.
+- **Las caras:**
+  - las criaturas usan el arte de su propia carta, recortado a la cara. El punto de la cara de cada arte está en `FOCUS`, en `src/ui/story/visuals.ts`;
+  - las personas y las criaturas sin carta tienen su retrato, en `PORTRAITS` de `world.ts`;
+  - el jugador elige una de cuatro caras de aprendiz al empezar.
+
+**Imágenes.** Se generan con GPT, con los prompts de `docs/arte/prompts-historia.md`.
+- Los originales van a `public/cards-art/historia/`, que git no sube.
+- La versión WebP que usa el juego va a `public/story-art/`, en estas carpetas:
+  - `pueblos/NN.webp`;
+  - `mapa.webp`;
+  - `dorso.webp`;
+  - `lugares/*.webp`;
+  - `caras/*.webp`.
+- Mientras falta una imagen, el juego muestra un fondo pintado con el color del pueblo, o la inicial del personaje.
+
 ## Estado
 
 - **Las 12 ciudades están escritas**, con 2.846 diálogos en español y en inglés. Solo 2 diálogos quedan sin texto a propósito: son cabeceras sin contenido, en Ciudad sin Faroles.
