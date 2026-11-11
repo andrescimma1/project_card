@@ -54,9 +54,11 @@ export const story = {
     betweenSlots: 'Entre dos de tus partidas, como con dos tarjetas de memoria.',
   },
   newGame: {
-    defaultName: 'Player',
+    defaultName: 'Jugador',
     title: 'Registro',
     intro: 'Elige tu nombre para este mundo. Los personajes te llaman así en los diálogos.',
+    faceTitle: 'Tu cara',
+    faceHint: 'Así te verán en los diálogos.',
     nameLabel: 'Nombre del jugador (hasta 12 letras)',
     nameOk: 'Este nombre está bien',
     partnerTitle: 'Elige tu compañero',
@@ -77,6 +79,10 @@ export const story = {
     here: 'Estás aquí',
     enter: 'Entrar',
     locked: 'Sin pase',
+    world: 'Las Tierras Quietas',
+    hint: 'Elige un pueblo. Los que todavía no ganaste siguen boca abajo.',
+    newPass: 'Pase',
+    details: 'Tus datos',
   },
   /** Rank titles, by rank (0..7): battle (wins against the CPU), collector and 2 player battle. */
   ranks: {
@@ -96,6 +102,9 @@ export const story = {
     gotPack: (pack: string) => `Recibiste un ${pack}`,
     keyword: 'Palabra clave',
     say: 'Decir',
+    next: 'Seguir',
+    rivalLabels: ['Ataque', 'Defensa', 'Evolución'],
+    rivalIntro: 'Tu próximo rival.',
   },
   ending: {
     title: 'Fin',

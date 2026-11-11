@@ -50,7 +50,7 @@ export interface StoryState {
   refreshSlots: () => void;
   chooseNewGame: (slot: number) => void;
   /** Start a game in `slot`; the name is checked like NAME ENTRY (OPENSEG 0x801E7EC4). Error message, or null. */
-  newGame: (slot: number, partner: 0 | 1 | 2, name?: string) => Promise<string | null>;
+  newGame: (slot: number, partner: 0 | 1 | 2, name?: string, avatar?: number) => Promise<string | null>;
   continueGame: (slot: number) => void;
   deleteSlot: (slot: number) => void;
   enterCity: (city: number) => Promise<void>;
@@ -200,11 +200,12 @@ export function createStoryStore(deps: StoryDeps) {
       error: null,
       refreshSlots: () => set({ slots: listSaves(deps.storage) }),
       chooseNewGame: (slot) => set({ view: 'newGame', slot }),
-      newGame: async (slot, partner, name = 'Player') => {
+      newGame: async (slot, partner, name = 'Player', avatar = 0) => {
         const clean = cleanName(name);
         if (!clean) return m().game.story.nameRequired;
         const save = createSave(partner, rand);
         save.name = clean;
+        save.avatar = avatar;
         save.decks[0].name = deckLabel(STARTER_DECK[partner]);
         set({ slot, save });
         persist();

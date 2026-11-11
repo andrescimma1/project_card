@@ -573,6 +573,16 @@ button.atk-row:hover:not(:disabled) {
   font-variant-numeric: lining-nums tabular-nums;
 }
 
+/* the grey fog over the regions of the story map you have not reached */
+.fog {
+  animation: fog-drift 9s ease-in-out infinite alternate;
+}
+@keyframes fog-drift {
+  to {
+    transform: translate(-1.5cqw, 0.5cqw);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tcg,
   .tcg-holo,
@@ -580,7 +590,8 @@ button.atk-row:hover:not(:disabled) {
   .cmd {
     transition: none;
   }
-  .tcg[data-playable='true'] {
+  .tcg[data-playable='true'],
+  .fog {
     animation: none;
   }
 }

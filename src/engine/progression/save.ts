@@ -73,6 +73,8 @@ export interface SaveData {
   attackUse: [number, number, number];
   /** Story script state: flags (+0x23FC, 12 × u32), counters (+0x242C), points (+0x14), current city (+0x0E). */
   story: { flags: number[]; counters: number[]; points: number; city: number };
+  /** The face the player picked for the story dialogues (ours, not in the original save). */
+  avatar?: number;
   /** +0x50/+0x52/+0x54: fusion statistics. */
   fusion: { fused: number; used: number; mutations: number };
   /** +0x2768: the 3 cards of the last pack. */

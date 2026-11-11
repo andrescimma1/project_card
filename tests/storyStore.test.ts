@@ -43,6 +43,15 @@ describe('story flow', () => {
     expect(g.players[0].partners.map((p) => p.id)).toEqual([175]);
   });
 
+  it('a new game keeps the face the player picked (the first one by default)', async () => {
+    const { store, storage } = setup();
+    await store.getState().newGame(0, 0, 'Nico', 2);
+    expect(store.getState().save!.avatar).toBe(2);
+    expect(loadSave(0, storage)?.avatar).toBe(2);
+    await store.getState().newGame(1, 0);
+    expect(store.getState().save!.avatar).toBe(0);
+  });
+
   it('the new game deck and the rival deck show our deck names', async () => {
     const { store, session } = setup();
     await store.getState().newGame(0, 0);
